@@ -1,16 +1,117 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TextileFlow</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextileFlow | Dashboard ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
-    <h1>Hola mundo!!</h1>
+    <div class="app-layout">
+        
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="fa-solid fa-shirt"></i>
+                <span class="logo-text">TextileFlow</span>
+            </div>
+            
+            <nav class="main-menu">
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-boxes"></i> Inventario SKU</a></li>
+                    <li><a href="#"><i class="fas fa-tape"></i> Materia Prima</a></li>
+                    <li><a href="#"><i class="fas fa-cut"></i> Producción</a></li>
+                    <li><a href="#"><i class="fas fa-truck-loading"></i> Compras</a></li>
+                    <li><a href="#"><i class="fas fa-dollar-sign"></i> Ventas</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> RR.HH.</a></li>
+                </ul>
+            </nav>
+        </aside>
 
-    
+        <div class="main-content-wrapper">
+            
+            <header class="top-bar">
+                <div class="user-info">
+                    <span>Bienvenido, Admin. Daniel</span>
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </header>
 
+            <main class="content-area">
+                
+                <h2>Resumen Operacional Textil</h2>
+                
+                <div class="card-row">
+                    
+                    <div class="card summary-card primary">
+                        <div class="card-icon"><i class="fas fa-boxes"></i></div>
+                        <div class="card-details">
+                            <span class="card-title">Stock Total de SKUs</span>
+                            <span class="card-value">15.730</span>
+                            <span class="card-footer">Unidades listas para envío</span>
+                        </div>
+                    </div>
+
+                    <div class="card summary-card success">
+                        <div class="card-icon"><i class="fas fa-tape"></i></div>
+                        <div class="card-details">
+                            <span class="card-title">MP Baja Existencia</span>
+                            <span class="card-value">82</span>
+                            <span class="card-footer">Rollos o kilos por reponer</span>
+                        </div>
+                    </div>
+
+                    <div class="card summary-card warning">
+                        <div class="card-icon"><i class="fas fa-cut"></i></div>
+                        <div class="card-details">
+                            <span class="card-title">Órdenes de Producción</span>
+                            <span class="card-value">12</span>
+                            <span class="card-footer">En Proceso / Pendientes</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="chart-row">
+                    
+                    <div class="card chart-card wide">
+                        <h3>Producción vs. Demanda (Últimos 7 días)</h3>
+                        <div class="chart-placeholder">
+                            [Gráfico de líneas simulando unidades producidas vs. unidades vendidas]
+                        </div>
+                    </div>
+
+                    <div class="card chart-card pie">
+                        <h3>Distribución de Costo Total</h3>
+                        <div class="pie-placeholder">
+                            <span class="pie-value">65%</span>
+                        </div>
+                        <ul class="legend">
+                            <li><span class="dot primary"></span> 65% Materia Prima</li>
+                            <li><span class="dot secondary"></span> 20% Mano de Obra</li>
+                            <li><span class="dot danger"></span> 15% Costos Fijos</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="card server-data-card">
+                    <h3>Datos de RR.HH.</h3>
+                    <div class="data-item">
+                        <i class="fas fa-user-tie"></i> Empleados Registrados: <span class="data-value">25</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-hourglass-half"></i> Horas Extra Pendientes: <span class="data-value">0.83 horas</span>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
     
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script> 
 </body>
 </html>
