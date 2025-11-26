@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <title>Dashboard | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="layout">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+                <p>ERP Textil</p>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+                <li><a href="#"><i class="fas fa-industry"></i> Producción</a></li>
+                <li><a href="#"><i class="fas fa-shopping-cart"></i> Compras</a></li>
+                <li><a href="#"><i class="fas fa-sell"></i> Ventas</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> RRHH</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userNameDisplay">Admin</div>
+                    <div class="user-role" id="userRoleDisplay">Rol</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+      
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Bienvenido a TextileFlow ERP</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>📦 Stock Total</h3>
+                    <div class="value">15.7k</div>
+                    <div class="unit">unidades</div>
+                </div>
+                <div class="card">
+                    <h3>⚠️ Baja Existencia</h3>
+                    <div class="value">82</div>
+                    <div class="unit">reorden</div>
+                </div>
+                <div class="card">
+                    <h3>🏭 Órdenes</h3>
+                    <div class="value">12</div>
+                    <div class="unit">en proceso</div>
+                </div>
+                <div class="card">
+                    <h3>💰 Ingresos Hoy</h3>
+                    <div class="value">$45k</div>
+                    <div class="unit">en ventas</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <h2>🎯 Bienvenido a TextileFlow</h2>
+                <p>Sistema ERP especializado para la gestión integral de empresas textiles.</p>
+                
+                <p style="line-height: 1.6;">
+                    Desde este dashboard puedes acceder a todas las funcionalidades del sistema:
+                </p>
+
+                <div class="links">
+                    <a href="#" class="btn"><i class="fas fa-boxes"></i> Inventario</a>
+                    <a href="#" class="btn"><i class="fas fa-industry"></i> Producción</a>
+                    <a href="#" class="btn"><i class="fas fa-shopping-cart"></i> Compras</a>
+                    <a href="#" class="btn"><i class="fas fa-sell"></i> Ventas</a>
+                    <a href="#" class="btn"><i class="fas fa-users"></i> RRHH</a>
+                    <a href="#" class="btn secondary"><i class="fas fa-cog"></i> Config</a>
+                </div>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script type="module">
+        import authService from '../src/auth/services/authService.js';
+
+     
+        const session = authService.getSession();
+        if (session) {
+            document.getElementById('userNameDisplay').textContent = session.displayName || session.email;
+            document.getElementById('userRoleDisplay').textContent = `${session.role.charAt(0).toUpperCase() + session.role.slice(1)}`;
+        }
+
+      
+        window.logout = function() {
+            authService.logout();
+            window.location.href = './login.html';
+        };
+
+        
+        window.toggleMenu = function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        };
+
+       
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            });
+        });
+
+        
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.className = 'status-message show success';
+        statusDiv.innerHTML = `✅ ¡Bienvenido ${session?.displayName || 'Usuario'}! Tu sesión está activa.`;
+        
+        setTimeout(() => {
+            statusDiv.classList.remove('show');
+        }, 5000);
+
+        console.log('✅ Dashboard cargado exitosamente');
+        console.log('👤 Usuario:', session);
+    </script>
+</body>
+</html>
+
