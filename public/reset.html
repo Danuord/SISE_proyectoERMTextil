@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <title>Reset - TextileFlow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #667eea;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        p {
+            color: #7f8c8d;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Resetear TextileFlow</h1>
+        <p>Esto limpiará todas las sesiones y datos locales</p>
+        <button onclick="resetApp()">Limpiar y Reiniciar</button>
+        <button onclick="goToInit()">Ir a Init</button>
+        <button onclick="goToLogin()">Ir a Login</button>
+    </div>
+
+    <script>
+        function resetApp() {
+            // Limpiar localStorage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Limpiar cookies si existen
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+
+            alert('✓ Datos limpiados. Redirigiendo a init...');
+            window.location.href = './init.html';
+        }
+
+        function goToInit() {
+            window.location.href = './init.html';
+        }
+
+        function goToLogin() {
+            window.location.href = './pages/login.html';
+        }
+
+        console.log('LocalStorage:', localStorage);
+        console.log('SessionStorage:', sessionStorage);
+    </script>
+</body>
+</html>

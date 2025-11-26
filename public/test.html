@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <title>Test - TextileFlow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #667eea;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f9f9f9;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        .output {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #2ecc71;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .info {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de Autenticación TextileFlow</h1>
+
+        <div class="test-section">
+            <h3>1. Estado de Firebase</h3>
+            <button onclick="testFirebaseConfig()">Verificar Config Firebase</button>
+            <div id="firebaseOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Verificar Cuentas de Prueba</h3>
+            <button onclick="testTestAccounts()">Ver Cuentas de Prueba</button>
+            <div id="accountsOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Probar Login</h3>
+            <button onclick="testLogin()">Login - admin@textileflow.com</button>
+            <div id="loginOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Verificar Sesión</h3>
+            <button onclick="testSession()">Ver Sesión en localStorage</button>
+            <div id="sessionOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>DEBUG: Estado de Firebase</h3>
+            <button onclick="debugFirebase()">Estado Actual Firebase</button>
+            <div id="debugOutput" class="output"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import authService from './src/auth/services/authService.js';
+        import { getTestAccountsInfo } from './src/config/seedData.js';
+        import { auth, db } from './src/config/firebase.js';
+
+        window.authService = authService;
+        window.getTestAccountsInfo = getTestAccountsInfo;
+        window.auth = auth;
+        window.db = db;
+    </script>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            el.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            el.scrollTop = el.scrollHeight;
+            console.log(message);
+        }
+
+        function testFirebaseConfig() {
+            const output = 'firebaseOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            log(output, '🔧 Verificando Firebase...');
+            
+            try {
+                if (window.auth) {
+                    log(output, '✅ Auth está disponible', 'success');
+                } else {
+                    log(output, '❌ Auth no está disponible', 'error');
+                }
+                
+                if (window.db) {
+                    log(output, '✅ Firestore está disponible', 'success');
+                } else {
+                    log(output, '❌ Firestore no está disponible', 'error');
+                }
+
+                log(output, `📍 Hostname: ${location.hostname}`);
+                log(output, '✅ Firebase configurado correctamente', 'success');
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testTestAccounts() {
+            const output = 'accountsOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            try {
+                const accounts = window.getTestAccountsInfo();
+                log(output, `📋 Encontradas ${accounts.length} cuentas de prueba:`, 'success');
+                
+                accounts.forEach((acc, i) => {
+                    log(output, `${i + 1}. ${acc.email} | Rol: ${acc.role}`);
+                });
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const output = 'loginOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            try {
+                log(output, '🔐 Iniciando prueba de login...');
+                log(output, '📧 Intentando con: admin@textileflow.com / Admin@123456');
+                
+                const result = await window.authService.login('admin@textileflow.com', 'Admin@123456');
+                
+                log(output, `📊 Resultado completo: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result && result.success) {
+                    log(output, '✅ Login exitoso!', 'success');
+                    log(output, `Usuario: ${result.user.email}`);
+                    log(output, `UID: ${result.user.uid}`);
+                } else {
+                    log(output, `❌ Login fallido`, 'error');
+                    log(output, `Error: ${result?.error}`, 'error');
+                    log(output, `Respuesta completa: ${JSON.stringify(result)}`, 'error');
+                }
+            } catch (error) {
+                log(output, `💥 Excepción: ${error.message}`, 'error');
+                log(output, `Error completo: ${JSON.stringify(error)}`, 'error');
+            }
+        }
+
+        function testSession() {
+            const output = 'sessionOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            try {
+                const session = localStorage.getItem('textileflow_session');
+                
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    log(output, '✅ Sesión encontrada:', 'success');
+                    log(output, JSON.stringify(sessionData, null, 2));
+                } else {
+                    log(output, '⚠️ No hay sesión en localStorage', 'info');
+                }
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAll() {
+            const output = 'clearOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                log(output, '✅ localStorage limpiado', 'success');
+                log(output, '✅ sessionStorage limpiado', 'success');
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function debugFirebase() {
+            const output = 'debugOutput';
+            document.getElementById(output).innerHTML = '';
+            
+            try {
+                log(output, '🔍 DEBUG: Estado de Firebase');
+                
+                if (window.auth) {
+                    log(output, `✅ Auth disponible`);
+                    log(output, `   - currentUser: ${window.auth.currentUser?.email || 'null'}`);
+                    log(output, `   - CurrentUser UID: ${window.auth.currentUser?.uid || 'null'}`);
+                } else {
+                    log(output, `❌ Auth no disponible`, 'error');
+                }
+                
+                if (window.db) {
+                    log(output, `✅ Firestore disponible`);
+                } else {
+                    log(output, `❌ Firestore no disponible`, 'error');
+                }
+                
+                const session = localStorage.getItem('textileflow_session');
+                if (session) {
+                    const data = JSON.parse(session);
+                    log(output, `✅ Sesión en localStorage: ${data.email}`);
+                } else {
+                    log(output, `⚠️ No hay sesión en localStorage`);
+                }
+                
+                log(output, '🌍 URL: ' + location.href);
+                log(output, '📍 Hostname: ' + location.hostname);
+                
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        window.testFirebaseConfig = testFirebaseConfig;
+        window.testTestAccounts = testTestAccounts;
+        window.testLogin = testLogin;
+        window.testSession = testSession;
+        window.clearAll = clearAll;
+        window.debugFirebase = debugFirebase;
+
+        window.addEventListener('load', () => {
+            console.log('🧪 Test page cargado');
+            testFirebaseConfig();
+        });
+    </script>
+</body>
+</html>
