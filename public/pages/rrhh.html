@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <title>RRHH - Gestión de Usuarios | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/modules/rrhh.css">
+</head>
+<body>
+    <div class="layout">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+                <p>ERP Textil</p>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>                
+                <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
+                <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
+                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+                <li><a href="#"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userNameDisplay">Usuario</div>
+                    <div class="user-role" id="userRoleDisplay">Admin</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Gestión de Usuarios - RRHH</h1>
+                    <p>Administración de usuarios del sistema</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, email o documento...">
+            </div>
+
+            <div class="content-header">
+                <h2>Lista de Usuarios</h2>
+                <button class="btn-primary" onclick="openAddUserModal()">
+                    <i class="fas fa-plus"></i> Agregar Usuario
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="clientesTable">
+                    <thead>
+                        <tr>
+                            <th>Tipo Doc</th>
+                            <th>Documento</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientesList">
+                        <!-- para cargar datos -->
+                    </tbody>
+                </table>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Nuevo Usuario</h3>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="clientForm" onsubmit="handleSaveClient(event)">
+                <div class="form-info">
+                    <i class="fas fa-info-circle"></i> Los campos marcados con * son obligatorios
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipoDocumento">Tipo de Documento *</label>
+                        <select id="tipoDocumento" required>
+                            <option value="">-- Seleccionar --</option>
+                            <option value="CC">Cédula de Ciudadanía (CC)</option>
+                            <option value="CE">Cédula de Extranjería (CE)</option>
+                            <option value="NIT">DNI</option>
+                            <option value="PA">Pasaporte (PA)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numeroDocumento">Número de Documento *</label>
+                        <input type="text" id="numeroDocumento" required placeholder="Ej: 1234567890">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre">Nombre *</label>
+                        <input type="text" id="nombre" required placeholder="Ej: Juan">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apellido">Apellido *</label>
+                        <input type="text" id="apellido" required placeholder="Ej: Pérez">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" required placeholder="Ej: juan@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rol">Rol *</label>
+                        <select id="rol" required>
+                            <option value="empleado">Empleado</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" placeholder="Ej: 3001234567">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contrasena">Contraseña *</label>
+                        <input type="password" id="contrasena" required placeholder="Ej: MiContraseña123">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccion">Dirección</label>
+                    <textarea id="direccion" placeholder="Ej: Calle 1 #2-3, Apto 401" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-submit">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let clientes = [
+            {
+                id: 1,
+                tipoDocumento: 'CC',
+                numeroDocumento: '1023456789',
+                nombre: 'Juan',
+                apellido: 'Pérez García',
+                email: 'juan.perez@email.com',
+                telefono: '3001234567',
+                direccion: 'Calle Principal 123, Apartamento 401',
+                rol: 'empleado',
+                contrasena: 'pass123',
+                estado: 1,
+                fechaCreacion: new Date().toISOString()
+            },
+            {
+                id: 2,
+                tipoDocumento: 'CC',
+                numeroDocumento: '1098765432',
+                nombre: 'María',
+                apellido: 'López Martínez',
+                email: 'maria.lopez@email.com',
+                telefono: '3007654321',
+                direccion: 'Avenida Central 456, Apartamento 502',
+                rol: 'admin',
+                contrasena: 'admin123',
+                estado: 1,
+                fechaCreacion: new Date().toISOString()
+            },
+            {
+                id: 3,
+                tipoDocumento: 'CC',
+                numeroDocumento: '9001234567',
+                nombre: 'Carlos',
+                apellido: 'González Rodríguez',
+                email: 'carlos.gonzalez@email.com',
+                telefono: '3002345678',
+                direccion: 'Calle Secundaria 789',
+                rol: 'empleado',
+                contrasena: 'pass456',
+                estado: 0,
+                fechaCreacion: new Date().toISOString()
+            }
+        ];
+
+        let editingId = null;
+
+        function logout() {
+            localStorage.removeItem('textileflow_session');
+            window.location.href = './login.html';
+        }
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function loadUserInfo() {
+            const session = localStorage.getItem('textileflow_session');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    document.getElementById('userNameDisplay').textContent = user.displayName || user.email || 'Usuario';
+                    document.getElementById('userRoleDisplay').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Rol';
+                } catch (e) {
+                    console.error('Error parseando sesión:', e);
+                }
+            }
+        }
+
+        function renderClientsTable(dataToRender = clientes) {
+            const tbody = document.getElementById('clientesList');
+            tbody.innerHTML = '';
+
+            dataToRender.forEach(cliente => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cliente.tipoDocumento}</td>
+                    <td>${cliente.numeroDocumento}</td>
+                    <td>${cliente.nombre}</td>
+                    <td>${cliente.apellido}</td>
+                    <td>${cliente.email}</td>
+                    <td>${cliente.telefono || '-'}</td>
+                    <td>
+                        <span class="role-badge">${cliente.rol === 'admin' ? 'Administrador' : 'Empleado'}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${cliente.estado === 1 ? 'status-active' : 'status-inactive'}">
+                            ${cliente.estado === 1 ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-sm btn-edit" onclick="editClient(${cliente.id})" title="Editar">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-sm btn-toggle" onclick="toggleClientStatus(${cliente.id})" title="Cambiar estado">
+                                <i class="fas fa-${cliente.estado === 1 ? 'times' : 'check'}"></i> ${cliente.estado === 1 ? 'Inactivar' : 'Activar'}
+                            </button>
+                            <!-- Eliminado: botón de eliminar -->
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openAddUserModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Agregar Nuevo Empleado';
+            document.getElementById('clientForm').reset();
+            document.getElementById('rol').value = 'empleado';
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function editClient(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (cliente) {
+                editingId = id;
+                document.getElementById('modalTitle').textContent = 'Editar Empleado';
+                document.getElementById('tipoDocumento').value = cliente.tipoDocumento;
+                document.getElementById('numeroDocumento').value = cliente.numeroDocumento;
+                document.getElementById('nombre').value = cliente.nombre;
+                document.getElementById('apellido').value = cliente.apellido;
+                document.getElementById('email').value = cliente.email;
+                document.getElementById('rol').value = cliente.rol;
+                document.getElementById('telefono').value = cliente.telefono;
+                document.getElementById('contrasena').value = cliente.contrasena;
+                document.getElementById('direccion').value = cliente.direccion;
+                document.getElementById('clientModal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('clientModal').classList.remove('active');
+            document.getElementById('clientForm').reset();
+            editingId = null;
+        }
+
+        function handleSaveClient(event) {
+            event.preventDefault();
+
+            const nuevoCliente = {
+                tipoDocumento: document.getElementById('tipoDocumento').value,
+                numeroDocumento: document.getElementById('numeroDocumento').value,
+                nombre: document.getElementById('nombre').value,
+                apellido: document.getElementById('apellido').value,
+                email: document.getElementById('email').value,
+                rol: document.getElementById('rol').value,
+                telefono: document.getElementById('telefono').value,
+                contrasena: document.getElementById('contrasena').value,
+                direccion: document.getElementById('direccion').value,
+                estado: 1,
+                fechaCreacion: new Date().toISOString()
+            };
+
+            if (editingId) {
+                const index = clientes.findIndex(c => c.id === editingId);
+                if (index !== -1) {
+                    clientes[index] = { ...clientes[index], ...nuevoCliente };
+                }
+            } else {
+                const newId = Math.max(...clientes.map(c => c.id), 0) + 1;
+                clientes.push({ id: newId, ...nuevoCliente });
+            }
+
+            renderClientsTable();
+            closeModal();
+            alert('Cliente guardado exitosamente');
+        }
+
+        function toggleClientStatus(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (cliente) {
+                cliente.estado = cliente.estado === 1 ? 0 : 1;
+                renderClientsTable();
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = clientes.filter(c => 
+                c.nombre.toLowerCase().includes(searchTerm) ||
+                c.apellido.toLowerCase().includes(searchTerm) ||
+                c.email.toLowerCase().includes(searchTerm) ||
+                c.numeroDocumento.includes(searchTerm)
+            );
+            renderClientsTable(filtered);
+        });
+
+        document.getElementById('clientModal').addEventListener('click', (e) => {
+            if (e.target.id === 'clientModal') {
+                closeModal();
+            }
+        });
+
+        loadUserInfo();
+        renderClientsTable();
+    </script>
+</body>
+</html>
