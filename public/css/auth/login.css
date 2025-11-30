@@ -182,10 +182,10 @@ body {
     font-size: 16px;
 }
 
-.login-form {
+form#loginForm {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
 }
 
 .form-group {
@@ -274,21 +274,28 @@ body {
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    gap: 15px;
 }
 
 .remember-me {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     color: #6c757d;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .remember-me input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     accent-color: var(--primary);
+    flex-shrink: 0;
+    margin: 0;
 }
 
 .forgot-password {
@@ -304,7 +311,7 @@ body {
 }
 
 .btn-login {
-    padding: 12px 24px;
+    padding: 14px 24px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
@@ -317,6 +324,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin-top: 10px;
 }
 
 .btn-login:hover {
