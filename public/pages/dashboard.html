@@ -11,35 +11,36 @@
 <body>
     <div class="layout">
         <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
-                <p>ERP Textil</p>
-            </div>
+    <div class="sidebar-header">
+        <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+        <p>ERP Textil</p>
+    </div>
 
-            <ul class="sidebar-menu">
-                <li><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="#"><i class="fas fa-industry"></i> RR HH </a></li>
-                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-                <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
-                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
-            </ul>
+    <ul class="sidebar-menu">
+        <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
+        <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
+        <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+        <li><a href="./pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+        <li><a href="#"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
+        <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
+        <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+    </ul>
 
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-name" id="userNameDisplay">Admin</div>
-                    <div class="user-role" id="userRoleDisplay">Rol</div>
-                </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
             </div>
-        </aside>
+            <div class="user-name" id="userNameDisplay">Admin</div>
+            <div class="user-role" id="userRoleDisplay">Rol</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
+    </div>
+</aside>
       
         <main class="main-content">
             <div class="header">
@@ -95,27 +96,30 @@
 
     <script type="module">
         import authService from '../src/auth/services/authService.js';
+        // NEW: import the reusable sidebar module
+        import { initSidebar } from '../js/sidebar.js';
 
      
+        // Get current session
         const session = authService.getSession();
-        if (session) {
-            document.getElementById('userNameDisplay').textContent = session.displayName || session.email;
-            document.getElementById('userRoleDisplay').textContent = `${session.role.charAt(0).toUpperCase() + session.role.slice(1)}`;
-        }
 
-      
-        window.logout = function() {
-            authService.logout();
-            window.location.href = './login.html';
-        };
+        // NEW: initialize the reusable sidebar
+        // This will render the sidebar template and populate user info
+        await initSidebar({
+            session,
+            onLogout: () => {
+                authService.logout();
+                window.location.href = './login.html';
+            }
+        });
 
-        
+        // Keep toggleMenu as-is; the component renders an <aside id="sidebar"> so this still works
         window.toggleMenu = function() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('active');
         };
 
-       
+        // Sidebar link auto-close on mobile is handled inside initSidebar, so this block can be removed
         document.querySelectorAll('.sidebar-menu a').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
@@ -125,16 +129,14 @@
         });
 
         
+        // Status message remains unchanged
         const statusDiv = document.getElementById('statusMessage');
         statusDiv.className = 'status-message show success';
-        statusDiv.innerHTML = `✅ ¡Bienvenido ${session?.displayName || 'Usuario'}! Tu sesión está activa.`;
-        
-        setTimeout(() => {
-            statusDiv.classList.remove('show');
-        }, 5000);
+        statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}! Tu sesión está activa.`;
+        setTimeout(() => { statusDiv.classList.remove('show'); }, 5000);
 
-        console.log('✅ Dashboard cargado exitosamente');
-        console.log('👤 Usuario:', session);
+        console.log('Dashboard cargado exitosamente');
+        console.log('Usuario:', session);
     </script>
 </body>
 </html>

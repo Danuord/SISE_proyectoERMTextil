@@ -1,6 +1,3 @@
-// ===============================
-//  IMPORTS DE FIREBASE
-// ===============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
 import { 
@@ -10,9 +7,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 
-// ===============================
-//  CONFIGURACIÓN DE FIREBASE
-// ===============================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -31,9 +25,7 @@ const auth = getAuth(app);
 console.log("Firebase inicializado correctamente!");
 
 
-// ===============================
-//  FUNCIÓN DE LOGIN
-// ===============================
+
 async function handleLogin(e) {
     e.preventDefault();
 
@@ -78,42 +70,31 @@ async function handleLogin(e) {
 }
 
 
-// ===============================
-//  EVENT LISTENER LOGIN
-// ===============================
 document.getElementById("loginForm").addEventListener("submit", handleLogin);
 
 
-// ===============================
-//  MODAL RECUPERAR CONTRASEÑA
-// ===============================
 
-// Elementos
 const resetModal = document.getElementById("resetModal");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const closeResetModal = document.getElementById("closeResetModal");
 const resetForm = document.getElementById("resetForm");
 
-// Abrir modal
 forgotPasswordLink.addEventListener("click", (e) => {
     e.preventDefault();
     console.log("→ Click detectado en 'Olvidaste tu contraseña'");
     resetModal.style.display = "flex";
 });
 
-// Cerrar modal
 closeResetModal.addEventListener("click", () => {
     resetModal.style.display = "none";
 });
 
-// Cerrar haciendo clic fuera
 window.addEventListener("click", (e) => {
     if (e.target === resetModal) {
         resetModal.style.display = "none";
     }
 });
 
-// Enviar email de recuperación
 resetForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
