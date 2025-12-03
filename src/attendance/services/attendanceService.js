@@ -18,7 +18,7 @@ function normalizeRecord(rec) {
         id: rec.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         userId: rec.userId,
         role: rec.role || 'Empleado',
-        type: rec.type, // 'Entrada' | 'Salida'
+        type: rec.type,
         timestamp: rec.timestamp || Date.now(),
         notes: rec.notes || '',
         source: rec.source || 'manual',
@@ -37,7 +37,7 @@ function register(rec) {
         const bc = new BroadcastChannel('attendance');
         bc.postMessage({ type: 'NEW_ATTENDANCE', record: normalized });
         bc.close();
-    } catch {}
+    } catch { }
     return normalized;
 }
 
@@ -57,7 +57,7 @@ function getToday() {
     const start = startOfDay();
     const end = endOfDay();
     return list.filter(r => r.timestamp >= start && r.timestamp <= end)
-               .sort((a, b) => b.timestamp - a.timestamp);
+        .sort((a, b) => b.timestamp - a.timestamp);
 }
 
 function subscribe(onChange) {
@@ -66,7 +66,7 @@ function subscribe(onChange) {
     try {
         bc = new BroadcastChannel('attendance');
         bc.onmessage = () => onChange && onChange();
-    } catch {}
+    } catch { }
     // Periodic refresh fallback (every 10s)
     const iv = setInterval(() => {
         onChange && onChange();
@@ -74,7 +74,7 @@ function subscribe(onChange) {
     // Return unsubscribe
     return () => {
         if (bc) {
-            try { bc.close(); } catch {}
+            try { bc.close(); } catch { }
         }
         clearInterval(iv);
     };

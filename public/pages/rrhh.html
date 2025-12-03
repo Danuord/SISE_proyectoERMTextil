@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/modules/rrhh.css">
 </head>
+
 <body>
     <div class="layout">
         <aside id="sidebar" class="sidebar">
@@ -18,11 +20,11 @@
             </div>
 
             <ul class="sidebar-menu">
-                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>                
+                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
                 <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
                 <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
                 <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-                <li><a href="#"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+                <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
                 <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
                 <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
                 <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
@@ -54,14 +56,39 @@
                 </button>
             </div>
 
-            <div class="search-box">
-                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, email o documento...">
-            </div>
+
 
             <div class="content-header">
                 <h2>Lista de Usuarios</h2>
                 <button class="btn-primary" onclick="openAddUserModal()">
                     <i class="fas fa-plus"></i> Agregar Usuario
+                </button>
+            </div>
+
+            <div class="filters-container">
+                <input type="text" id="searchInput" class="search-input-inline"
+                    placeholder="Buscar por Nro Documento,Nombre,Email...">
+                <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+                <select id="filterTipoDoc" onchange="applyFilters()" class="filter-select">
+                    <option value="">Tipo Doc: Todos</option>
+                    <option value="CC">CC</option>
+                    <option value="CE">CE</option>
+                    <option value="DNI">DNI</option>
+                    <option value="PA">PA</option>
+                    <option value="RUC">RUC</option>
+                </select>
+                <select id="filterRol" onchange="applyFilters()" class="filter-select">
+                    <option value="">Rol: Todos</option>
+                    <option value="Empleado">Empleado</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+                <select id="filterEstado" onchange="applyFilters()" class="filter-select">
+                    <option value="">Estado: Todos</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                </select>
+                <button class="btn-clear-filters" onclick="clearFilters()">
+                    <i class="fas fa-times-circle"></i> Limpiar
                 </button>
             </div>
 
@@ -71,19 +98,31 @@
                         <tr>
                             <th>Tipo Doc</th>
                             <th>Documento</th>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>Email</th>
+                            <th>Nombre Completo</th>
+                            <th>Em@il</th>
                             <th>Teléfono</th>
+                            <th>Dirección</th>
                             <th>Rol</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="clientesList">
-                        <!-- para cargar datos -->
+
                     </tbody>
                 </table>
+            </div>
+
+            <div class="export-buttons">
+                <button class="btn-export btn-pdf" onclick="generatePDF()">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button class="btn-export btn-excel" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                <button class="btn-export btn-print" onclick="printTable()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
             </div>
 
             <footer>
@@ -110,9 +149,10 @@
                         <select id="tipoDocumento" required>
                             <option value="">-- Seleccionar --</option>
                             <option value="CC">Cédula de Ciudadanía (CC)</option>
-                            <option value="CE">Cédula de Extranjería (CE)</option>
-                            <option value="NIT">DNI</option>
+                            <option value="CE">Carnet de Extranjería (CE)</option>
+                            <option value="DNI">DNI</option>
                             <option value="PA">Pasaporte (PA)</option>
+                            <option value="RUC">RUC</option>
                         </select>
                     </div>
 
@@ -143,8 +183,9 @@
                     <div class="form-group">
                         <label for="rol">Rol *</label>
                         <select id="rol" required>
-                            <option value="empleado">Empleado</option>
-                            <option value="admin">Administrador</option>
+                            <option value="Empleado">Empleado</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Cliente">Cliente</option>
                         </select>
                     </div>
                 </div>
@@ -168,211 +209,16 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn-submit">Guardar Cliente</button>
+                    <button type="submit" class="btn-submit">Guardar Usuario</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        let clientes = [
-            {
-                id: 1,
-                tipoDocumento: 'CC',
-                numeroDocumento: '1023456789',
-                nombre: 'Juan',
-                apellido: 'Pérez García',
-                email: 'juan.perez@email.com',
-                telefono: '3001234567',
-                direccion: 'Calle Principal 123, Apartamento 401',
-                rol: 'empleado',
-                contrasena: 'pass123',
-                estado: 1,
-                fechaCreacion: new Date().toISOString()
-            },
-            {
-                id: 2,
-                tipoDocumento: 'CC',
-                numeroDocumento: '1098765432',
-                nombre: 'María',
-                apellido: 'López Martínez',
-                email: 'maria.lopez@email.com',
-                telefono: '3007654321',
-                direccion: 'Avenida Central 456, Apartamento 502',
-                rol: 'admin',
-                contrasena: 'admin123',
-                estado: 1,
-                fechaCreacion: new Date().toISOString()
-            },
-            {
-                id: 3,
-                tipoDocumento: 'CC',
-                numeroDocumento: '9001234567',
-                nombre: 'Carlos',
-                apellido: 'González Rodríguez',
-                email: 'carlos.gonzalez@email.com',
-                telefono: '3002345678',
-                direccion: 'Calle Secundaria 789',
-                rol: 'empleado',
-                contrasena: 'pass456',
-                estado: 0,
-                fechaCreacion: new Date().toISOString()
-            }
-        ];
-
-        let editingId = null;
-
-        function logout() {
-            localStorage.removeItem('textileflow_session');
-            window.location.href = './login.html';
-        }
-
-        function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
-        }
-
-        function loadUserInfo() {
-            const session = localStorage.getItem('textileflow_session');
-            if (session) {
-                try {
-                    const user = JSON.parse(session);
-                    document.getElementById('userNameDisplay').textContent = user.displayName || user.email || 'Usuario';
-                    document.getElementById('userRoleDisplay').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Rol';
-                } catch (e) {
-                    console.error('Error parseando sesión:', e);
-                }
-            }
-        }
-
-        function renderClientsTable(dataToRender = clientes) {
-            const tbody = document.getElementById('clientesList');
-            tbody.innerHTML = '';
-
-            dataToRender.forEach(cliente => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cliente.tipoDocumento}</td>
-                    <td>${cliente.numeroDocumento}</td>
-                    <td>${cliente.nombre}</td>
-                    <td>${cliente.apellido}</td>
-                    <td>${cliente.email}</td>
-                    <td>${cliente.telefono || '-'}</td>
-                    <td>
-                        <span class="role-badge">${cliente.rol === 'admin' ? 'Administrador' : 'Empleado'}</span>
-                    </td>
-                    <td>
-                        <span class="status-badge ${cliente.estado === 1 ? 'status-active' : 'status-inactive'}">
-                            ${cliente.estado === 1 ? 'Activo' : 'Inactivo'}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-sm btn-edit" onclick="editClient(${cliente.id})" title="Editar">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="btn-sm btn-toggle" onclick="toggleClientStatus(${cliente.id})" title="Cambiar estado">
-                                <i class="fas fa-${cliente.estado === 1 ? 'times' : 'check'}"></i> ${cliente.estado === 1 ? 'Inactivar' : 'Activar'}
-                            </button>
-                            <!-- Eliminado: botón de eliminar -->
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function openAddUserModal() {
-            editingId = null;
-            document.getElementById('modalTitle').textContent = 'Agregar Nuevo Empleado';
-            document.getElementById('clientForm').reset();
-            document.getElementById('rol').value = 'empleado';
-            document.getElementById('clientModal').classList.add('active');
-        }
-
-        function editClient(id) {
-            const cliente = clientes.find(c => c.id === id);
-            if (cliente) {
-                editingId = id;
-                document.getElementById('modalTitle').textContent = 'Editar Empleado';
-                document.getElementById('tipoDocumento').value = cliente.tipoDocumento;
-                document.getElementById('numeroDocumento').value = cliente.numeroDocumento;
-                document.getElementById('nombre').value = cliente.nombre;
-                document.getElementById('apellido').value = cliente.apellido;
-                document.getElementById('email').value = cliente.email;
-                document.getElementById('rol').value = cliente.rol;
-                document.getElementById('telefono').value = cliente.telefono;
-                document.getElementById('contrasena').value = cliente.contrasena;
-                document.getElementById('direccion').value = cliente.direccion;
-                document.getElementById('clientModal').classList.add('active');
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('clientModal').classList.remove('active');
-            document.getElementById('clientForm').reset();
-            editingId = null;
-        }
-
-        function handleSaveClient(event) {
-            event.preventDefault();
-
-            const nuevoCliente = {
-                tipoDocumento: document.getElementById('tipoDocumento').value,
-                numeroDocumento: document.getElementById('numeroDocumento').value,
-                nombre: document.getElementById('nombre').value,
-                apellido: document.getElementById('apellido').value,
-                email: document.getElementById('email').value,
-                rol: document.getElementById('rol').value,
-                telefono: document.getElementById('telefono').value,
-                contrasena: document.getElementById('contrasena').value,
-                direccion: document.getElementById('direccion').value,
-                estado: 1,
-                fechaCreacion: new Date().toISOString()
-            };
-
-            if (editingId) {
-                const index = clientes.findIndex(c => c.id === editingId);
-                if (index !== -1) {
-                    clientes[index] = { ...clientes[index], ...nuevoCliente };
-                }
-            } else {
-                const newId = Math.max(...clientes.map(c => c.id), 0) + 1;
-                clientes.push({ id: newId, ...nuevoCliente });
-            }
-
-            renderClientsTable();
-            closeModal();
-            alert('Cliente guardado exitosamente');
-        }
-
-        function toggleClientStatus(id) {
-            const cliente = clientes.find(c => c.id === id);
-            if (cliente) {
-                cliente.estado = cliente.estado === 1 ? 0 : 1;
-                renderClientsTable();
-            }
-        }
-
-        document.getElementById('searchInput').addEventListener('keyup', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filtered = clientes.filter(c => 
-                c.nombre.toLowerCase().includes(searchTerm) ||
-                c.apellido.toLowerCase().includes(searchTerm) ||
-                c.email.toLowerCase().includes(searchTerm) ||
-                c.numeroDocumento.includes(searchTerm)
-            );
-            renderClientsTable(filtered);
-        });
-
-        document.getElementById('clientModal').addEventListener('click', (e) => {
-            if (e.target.id === 'clientModal') {
-                closeModal();
-            }
-        });
-
-        loadUserInfo();
-        renderClientsTable();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="../js/rrhh.js"></script>
 </body>
+
 </html>
