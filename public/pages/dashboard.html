@@ -10,9 +10,37 @@
 </head>
 <body>
     <div class="layout">
-        <!-- Replace the inline sidebar with a host container -->
-        <div id="sidebar-host"></div>
-      
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+                <p>ERP Textil</p>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="#"><i class="fas fa-industry"></i> RR HH </a></li>
+                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+                <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userNameDisplay">Admin</div>
+                    <div class="user-role" id="userRoleDisplay">Rol</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+              
         <main class="main-content">
             <div class="header">
                 <div>
