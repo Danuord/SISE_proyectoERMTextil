@@ -4,31 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
+
     <title>Registro de pagos | TextileFlow</title>
+
+    <!-- Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Estilos locales -->
     <link rel="stylesheet" href="../css/modules/pagos.css">
 </head>
 
+
 <body>
     <div class="layout">
+
+        <!-- ========================================================= -->
+        <!-- 🟦 SIDEBAR -->
+        <!-- ========================================================= -->
         <aside id="sidebar" class="sidebar">
+
+            <!-- Encabezado del sidebar -->
             <div class="sidebar-header">
                 <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
                 <p>ERP Textil</p>
             </div>
 
+            <!-- Menú principal -->
             <ul class="sidebar-menu">
                 <li><a href="dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
-                <li><a href="asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
+                <li><a href="rrhh.html"><i class="fas fa-industry"></i> RR HH</a></li>
+                <li><a href="asistencia.html"><i class="fas fa-industry"></i> Asistencias</a></li>
                 <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
                 <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
+                <li><a href="#"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
                 <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
                 <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
                 <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
             </ul>
 
+            <!-- Usuario + logout -->
             <div class="sidebar-footer">
                 <div class="user-info">
                     <div class="user-avatar">
@@ -37,13 +51,21 @@
                     <div class="user-name" id="userNameDisplay">Admin</div>
                     <div class="user-role" id="userRoleDisplay">Rol</div>
                 </div>
+
                 <button class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                 </button>
             </div>
+
         </aside>
-      
+
+
+        <!-- ========================================================= -->
+        <!-- 🟩 CONTENIDO PRINCIPAL -->
+        <!-- ========================================================= -->
         <main class="main-content">
+
+            <!-- Título -->
             <div class="header">
                 <div>
                     <h1>Registro de pagos</h1>
@@ -51,54 +73,134 @@
                 </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 📊 TARJETAS DE RESUMEN -->
+            <!-- ========================================================= -->
             <div class="cards-grid">
                 <div class="card">
-                    <h3>📦 Salario proyectado</h3>
-                    <div class="value">1200</div>
+                    <h3>📦 SALARIO PROYECTADO</h3>
+                    <div class="value">0</div>
                     <div class="unit">Diciembre</div>
                 </div>
+
                 <div class="card">
-                    <h3>⚠️ Salario neto</h3>
-                    <div class="value">1350</div>
+                    <h3>⚠️ SALARIO NETO MES ANTERIOR</h3>
+                    <div class="value">0</div>
                     <div class="unit">Diciembre</div>
                 </div>
+
                 <div class="card">
-                    <h3>🏭 Gráficos</h3>
+                    <h3>📊 Pagos Netos Últimos 3 Meses</h3>
+                    <canvas id="graficoSalarios" height="100"></canvas>
                 </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 🟨 ACCIONES: FILTRO + BOTONES -->
+            <!-- ========================================================= -->
             <div class="button-actions">
-                <button id="filterBtn" class="btn btn-secondary"><i class="fas fa-filter"></i> Filtrar</button>
-                <button id="addUserBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Registrar usuario</button>                                
-                <button id="editUserPlanilla" class="btn btn-primary"><i class="fas fa-plus"></i> Editar datos planilla</button>                
-                <button id="addSalaryBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Registrar nuevo salario</button>
+
+                <!-- Fila 1: Botón Filtrar + Panel -->
+                <div class="filter-group">
+
+                    <!-- Botón filtrar -->
+                    <button id="filterBtn" class="btn btn-secondary">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+
+                    <!-- Panel de filtrado -->
+                    <div id="filterPanel" class="filter-panel">
+                        <div class="filter-content">
+
+                            <label>Columna:</label>
+                            <select id="filterColumn">
+                                <option value="">Seleccione</option>
+                            </select>
+
+                            <label>Texto:</label>
+                            <input type="text" id="filterText" placeholder="Buscar...">
+
+                            <button class="btn" id="applyFilterBtn">Filtrar</button>
+                            <button class="btn" id="clearFilterBtn">Limpiar</button>
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Fila 2: Resto de botones -->
+                <div class="other-buttons">
+
+                    <!-- Exportar / Reportes -->
+                    <button id="reportBtn" class="btn btn-secondary">
+                        <i class="fas fa-save"></i>
+                    </button>
+
+                    <!-- Selector de columnas -->
+                    <div class="column-selector-container">
+                        <button id="columnSelectorBtn" class="btn btn-light">
+                            <i class="fas fa-columns"></i> Columnas
+                        </button>
+
+                        <div id="columnSelectorMenu" class="column-selector-menu hidden">
+                            <label><input type="checkbox" data-col="0" checked> Nombre</label>
+                            <label><input type="checkbox" data-col="1" checked> Cargo</label>
+                            <label><input type="checkbox" data-col="2" checked> Salario basico</label>
+                            <label><input type="checkbox" data-col="3" checked> Bonificaciones</label>
+                            <label><input type="checkbox" data-col="4" checked> Deducciones</label>
+                            <label><input type="checkbox" data-col="5" checked> Salario Neto</label>
+                            <label><input type="checkbox" data-col="6" checked> Mes</label>
+                            <label><input type="checkbox" data-col="7"> Detalle</label>
+                        </div>
+                    </div>
+
+                    <!-- Botón editar planilla -->
+                    <button id="editUserPlanilla" class="btn btn-primary">
+                        <i class="fas fa-pen"></i> Editar salarios
+                    </button>
+
+                    <!-- Botón agregar salario -->
+                    <button id="addSalaryBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nuevo salario
+                    </button>
+                </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 📄 TABLA DE PAGOS -->
+            <!-- ========================================================= -->
             <div class="table-container">
                 <table id="salaryTable">
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>Cargo</th>
-                            <th>Salario básico</th>
+                            <th class="sortable">Nombre</th>
+                            <th class="sortable">Cargo</th>
+                            <th class="sortable">Salario basico</th>
                             <th>Bonificaciones</th>
                             <th>Deducciones</th>
-                            <th>Salario Neto</th>
-                            <th>Mes</th>
-                            <th>Acción</th>
+                            <th class="sortable">Salario Neto</th>
+                            <th class="sortable">Mes</th>
+                            <th class="detalle-col hidden-col">Detalle</th>
                         </tr>
                     </thead>
-                    <tbody>
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
-            
+
+
+            <!-- ========================================================= -->
+            <!-- 🟦 MODAL: NUEVO SALARIO -->
+            <!-- ========================================================= -->
             <div id="addSalaryModal" class="modal">
                 <div class="modal-content">
-                    <span class="close-btn">&larr; Regresar</span>
+                    <span class="close-btn regresar-btn">Regresar</span>
                     <h2>Agregar nuevo salario</h2>
 
                     <form id="addSalaryForm">
+
                         <label for="employeeSelect">Empleado</label>
                         <select id="employeeSelect">
                             <option value="">Seleccione empleado</option>
@@ -107,12 +209,10 @@
                         <label for="salaryInput">Salario</label>
                         <div class="input-with-edit">
                             <input type="number" id="salaryInput" disabled>
-                            <button type="button" id="editSalaryBtn">Editar</button>
+                            <select id="periodo_pago">
+                                <option value="">Selecciona un periodo</option>
+                            </select>
                         </div>
-
-                        <select id="periodo_pago">
-                            <option value="">Selecciona un periodo</option>
-                        </select>
 
                         <label for="bonusInput">Bonificaciones</label>
                         <input type="number" id="bonusInput" placeholder="0">
@@ -123,58 +223,22 @@
                         <label for="commentInput">Comentario</label>
                         <textarea id="commentInput" placeholder="Opcional"></textarea>
 
-                        <button type="submit" class="btn btn-primary">Registrar Pago</button>
-                    </form>
-                </div>
-            </div>
-            
-            <div id="addUserModal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn">&larr; Regresar</span>
-                    <h2>Registrar nuevo usuario</h2>
+                        <button type="submit" id="btnRegistrarPago" class="btn btn-primary" disabled>
+                            Registrar Pago
+                        </button>
 
-                    <form id="addUserForm">
-                        <!-- Nombre -->
-                        <label for="firstNameInput">Nombres</label>
-                        <input type="text" id="firstNameInput" placeholder="Ingrese primer nombre" required>
-
-                        <!-- Apellido -->
-                        <label for="lastNameInput">Apellidos</label>
-                        <input type="text" id="lastNameInput" placeholder="Ingrese primer apellido" required>
-
-                        <!-- Documento -->
-                        <label for="documentInput">Documento</label>
-                        <input type="text" id="documentInput" placeholder="Ingrese el documento" required>
-
-                        <!-- Correo -->
-                        <label for="emailInput">Correo electrónico</label>
-                        <input type="email" id="emailInput" placeholder="correo@empresa.com" required>
-
-                        <!-- Contraseña -->
-                        <label for="passwordInput">Contraseña</label>
-                        <input type="password" id="passwordInput" placeholder="Ingrese contraseña" required>
-
-                        <!-- Rol -->
-                        <label for="roleSelect">Rol</label>
-                        <select id="roleSelect" required>
-                            <option value="">Seleccione un rol</option>
-                            <option value="Administrador">Administrador</option>
-                            <option value="Empleado">Empleado</option>
-                            <option value="Manager">Manager</option>
-                        </select>
-
-                        <!-- Teléfono -->
-                        <label for="phoneInput">Teléfono</label>
-                        <input type="text" id="phoneInput" placeholder="Opcional">
-
-                        <button type="submit" class="btn btn-primary">Registrar usuario</button>
                     </form>
                 </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 🟦 MODAL: EDITAR SALARIO INDIVIDUAL -->
+            <!-- ========================================================= -->
             <div id="editSalaryModal" class="modal">
                 <div class="modal-content">
-                    <span class="close-btn">&larr; Regresar</span>
+                    <span class="close-btn regresar-btn">Regresar</span>
+
                     <h2 id="editModalTitle">Editar salario: Nombre del empleado</h2>
 
                     <form id="editSalaryForm">
@@ -192,12 +256,17 @@
                 </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 🟦 MODAL: EDITAR PLANILLA COMPLETA -->
+            <!-- ========================================================= -->
             <div id="editUserPlanillaModal" class="modal">
                 <div class="modal-content">
-                    <span class="close-btn">&larr; Regresar</span>
+                    <span class="close-btn regresar-btn">Regresar</span>
                     <h2>Editar planilla</h2>
 
                     <form id="editPlanillaForm">
+
                         <label for="employeeSelectPlanilla">Empleado</label>
                         <select id="employeeSelectPlanilla">
                             <option value="">Seleccione empleado</option>
@@ -205,20 +274,38 @@
 
                         <label for="salaryInputPlanilla">Salario</label>
                         <div class="input-with-edit">
-                            <input type="number" id="salaryInputPlanilla" enabled>
+                            <input type="number" id="salaryInputPlanilla">
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar cambios</button>
                     </form>
+
                 </div>
             </div>
 
+
+            <!-- ========================================================= -->
+            <!-- 🟨 MENSAJE DE ESTADO -->
+            <!-- ========================================================= -->
             <div id="statusMessage" class="status-message"></div>
 
+
+            <!-- ========================================================= -->
+            <!-- 🟥 FOOTER -->
+            <!-- ========================================================= -->
             <footer>
                 <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
             </footer>
+
         </main>
     </div>
+
+
+    <!-- Librerías -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Script del módulo -->
     <script type="module" src="../js/pagos.js"></script>
+
 </body>
+</html>
