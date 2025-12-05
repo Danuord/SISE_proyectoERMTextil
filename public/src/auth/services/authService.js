@@ -18,7 +18,7 @@ class AuthService {
   async register(userData) {
     try {
       const { email, password, fullName, company, phone, newsletter } = userData;
-      
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -26,7 +26,7 @@ class AuthService {
         displayName: fullName
       });
 
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(db, 'usuario', user.uid), {
         uid: user.uid,
         email: email,
         displayName: fullName,
@@ -44,9 +44,9 @@ class AuthService {
       return { success: true, user };
     } catch (error) {
       console.error('Error en registro:', error);
-      return { 
-        success: false, 
-        error: this.handleAuthError(error.code) 
+      return {
+        success: false,
+        error: this.handleAuthError(error.code)
       };
     }
   }
@@ -54,38 +54,71 @@ class AuthService {
   async login(email, password) {
     try {
       console.log('🔐 AuthService.login() - Iniciando con:', email);
-      
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
-      console.log('Usuario autenticado en Firebase:', user.uid, user.email);
 
-      let userData = {};
+      console.log('✅ Usuario autenticado en Firebase Auth:', user.uid, user.email);
+
+      // Obtener datos completos del usuario desde Firestore
+      let userData = null;
       try {
-        console.log('Buscando documento en Firestore para uid:', user.uid);
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        userData = userDoc.data() || {};
-        console.log('Datos de Firestore obtenidos:', userData);
+        console.log('📦 Buscando datos en Firestore (colección: usuario)...');
+        const userDoc = await getDoc(doc(db, 'usuario', user.uid));
+
+        if (userDoc.exists()) {
+          const firestoreData = userDoc.data();
+          console.log('✅ Datos encontrados en Firestore:', firestoreData);
+
+          // Construir objeto de usuario completo
+          userData = {
+            uid: user.uid,
+            email: user.email,
+            nombre: firestoreData.nombre || '',
+            apellido: firestoreData.apellido || '',
+            displayName: firestoreData.nombre
+              ? `${firestoreData.nombre} ${firestoreData.apellido || ''}`.trim()
+              : user.displayName || user.email,
+            rol: firestoreData.rol || 'Empleado',
+            ...firestoreData
+          };
+
+          console.log('✅ Datos de usuario procesados:', userData);
+        } else {
+          console.warn('⚠️ No se encontró documento en Firestore, usando datos básicos');
+          userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || user.email,
+            rol: 'Empleado'
+          };
+        }
       } catch (e) {
-        console.warn('No se encontró documento de usuario en Firestore:', e);
+        console.error('❌ Error al obtener datos de Firestore:', e);
+        userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email,
+          rol: 'Empleado',
+          role: 'Empleado'
+        };
       }
 
-      console.log('Actualizando authStore...');
-      authStore.setUser(user, userData?.role || 'employee', userData?.permissions || []);
-
-      console.log('Guardando sesión en localStorage...');
+      // Guardar sesión en localStorage
+      console.log('💾 Guardando sesión en localStorage...');
       this.saveSession(user, userData);
 
-      console.log('Login exitoso');
-      return { success: true, user };
+      // Actualizar authStore
+      authStore.setUser(user, userData.rol || 'Empleado', userData.permissions || []);
+
+      console.log('✅✅✅ Login completado exitosamente');
+      return { success: true, user, userData };
     } catch (error) {
-      console.error('Error en login - Código:', error.code);
-      console.error('Mensaje completo:', error.message);
-      console.error('Error completo:', error);
+      console.error('❌ Error en login - Código:', error.code);
+      console.error('❌ Mensaje:', error.message);
       const errorMsg = this.handleAuthError(error.code);
-      console.error('Error mapeado:', errorMsg);
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: errorMsg
       };
     }
@@ -106,10 +139,10 @@ class AuthService {
   onAuthStateChanged(callback) {
     return onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDoc = await getDoc(doc(db, 'usuario', user.uid));
         const userData = userDoc.data();
         this.currentUser = { ...user, ...userData };
-        authStore.setUser(user, userData?.role, userData?.permissions);
+        authStore.setUser(user, userData?.rol || userData?.role, userData?.permissions);
       } else {
         this.currentUser = null;
         authStore.logout();
@@ -142,16 +175,17 @@ class AuthService {
     const sessionData = {
       uid: user.uid,
       email: user.email,
+      nombre: userData?.nombre || '',
+      apellido: userData?.apellido || '',
       displayName: userData?.displayName || user.displayName || 'Usuario',
-      role: userData?.role || 'employee',
+      rol: userData?.rol || 'Empleado',
       permissions: userData?.permissions || [],
       timestamp: Date.now()
     };
-    console.log('💾 Guardando sesión:', sessionData);
+    console.log('💾 Guardando sesión completa:', sessionData);
     localStorage.setItem('textileflow_session', JSON.stringify(sessionData));
     console.log('✅ Sesión guardada en localStorage');
   }
-
 
   clearSession() {
     localStorage.removeItem('textileflow_session');
@@ -164,7 +198,7 @@ class AuthService {
 
   handleAuthError(errorCode) {
     console.log('🔍 Analizando código de error:', errorCode, typeof errorCode);
-    
+
     const errorMessages = {
       'auth/email-already-in-use': 'El email ya está registrado',
       'auth/invalid-email': 'Email inválido',
@@ -176,7 +210,7 @@ class AuthService {
       'auth/operation-not-allowed': 'Operación no permitida',
       'auth/invalid-credential': 'Email o contraseña incorrectos'
     };
-    
+
     const message = errorMessages[errorCode] || 'Error de autenticación';
     console.log('✓ Mensaje de error mapeado:', message);
     return message;

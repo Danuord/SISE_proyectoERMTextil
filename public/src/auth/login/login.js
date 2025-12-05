@@ -67,12 +67,32 @@ class LoginPage {
             logger.info('Intentando login con:', email);
 
             const result = await authService.login(email, password);
-            
+
             console.log('Resultado de login:', result);
 
             if (result && result.success) {
                 console.log('Login exitoso');
                 this.showAlert('¡Bienvenido! Iniciando sesión...', 'success');
+
+                // Verificar que la sesión se guardó
+                const savedSession = localStorage.getItem('textileflow_session');
+                console.log('🔍 Verificando sesión guardada:', savedSession ? 'SÍ' : 'NO');
+
+                if (!savedSession && result.userData) {
+                    // Si no se guardó, guardarla manualmente
+                    console.warn('⚠️ Sesión no guardada, guardando manualmente...');
+                    const sessionData = {
+                        uid: result.user.uid,
+                        email: result.user.email,
+                        nombre: result.userData.nombre || '',
+                        apellido: result.userData.apellido || '',
+                        displayName: result.userData.displayName || result.user.email,
+                        rol: result.userData.rol || 'Empleado',
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('textileflow_session', JSON.stringify(sessionData));
+                    console.log('✅ Sesión guardada manualmente:', sessionData);
+                }
 
                 if (this.rememberMe.checked) {
                     localStorage.setItem('textileflow_remembered_email', email);

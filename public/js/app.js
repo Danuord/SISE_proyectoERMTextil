@@ -1,10 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
-import { 
-    getAuth, 
+import {
+    getAuth,
     signInWithEmailAndPassword,
-    sendPasswordResetEmail 
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -21,6 +22,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 console.log("Firebase inicializado correctamente!");
 
@@ -38,8 +40,66 @@ async function handleLogin(e) {
     alertContainer.innerHTML = '';
 
     try {
+        console.log('Iniciando login con:', email);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+
+        console.log('Usuario autenticado:', user.uid);
+
+        // Obtener datos del usuario desde Firestore
+        let userData = null;
+        try {
+            console.log('Buscando datos en Firestore (colección: usuario)...');
+            const userDoc = await getDoc(doc(db, 'usuario', user.uid));
+
+            if (userDoc.exists()) {
+                const firestoreData = userDoc.data();
+                console.log('Datos encontrados:', firestoreData);
+
+                userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    nombre: firestoreData.nombre || '',
+                    apellido: firestoreData.apellido || '',
+                    displayName: firestoreData.nombre
+                        ? `${firestoreData.nombre} ${firestoreData.apellido || ''}`.trim()
+                        : user.email,
+                    rol: firestoreData.rol || 'Empleado',
+                    ...firestoreData
+                };
+            } else {
+                console.warn('No se encontró documento en Firestore');
+                userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.email,
+                    rol: 'Empleado'
+                };
+            }
+        } catch (e) {
+            console.error('Error al obtener datos de Firestore:', e);
+            userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.email,
+                rol: 'Empleado'
+            };
+        }
+
+        // Guardar sesión en localStorage
+        const sessionData = {
+            uid: userData.uid,
+            email: userData.email,
+            nombre: userData.nombre || '',
+            apellido: userData.apellido || '',
+            displayName: userData.displayName,
+            rol: userData.rol,
+            timestamp: Date.now()
+        };
+
+        console.log('Guardando sesión:', sessionData);
+        localStorage.setItem('textileflow_session', JSON.stringify(sessionData));
+        console.log('Sesión guardada correctamente');
 
         alert("¡Inicio de sesión exitoso!");
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,40 +9,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
+
 <body>
     <div class="layout">
         <aside id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
-        <p>ERP Textil</p>
-    </div>
-
-    <ul class="sidebar-menu">
-        <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
-        <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
-        <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
-        <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-        <li><a href="./pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-        <li><a href="#"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
-        <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
-        <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-        <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
-    </ul>
-
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
+            <div class="sidebar-header">
+                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+                <p>ERP Textil</p>
             </div>
-            <div class="user-name" id="userNameDisplay">Admin</div>
-            <div class="user-role" id="userRoleDisplay">Rol</div>
-        </div>
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-        </button>
-    </div>
-</aside>
-      
+
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
+                <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
+                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+                <li><a href="./pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+                <li><a href="#"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userNameDisplay">Admin</div>
+                    <div class="user-role" id="userRoleDisplay">Rol</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
         <main class="main-content">
             <div class="header">
                 <div>
@@ -81,7 +83,7 @@
             <div class="content">
                 <h2>🎯 Bienvenido a TextileFlow</h2>
                 <p>Sistema ERP especializado para la gestión integral de empresas textiles.</p>
-                
+
                 <p style="line-height: 1.6;">
                     Desde este dashboard puedes acceder a todas las funcionalidades del sistema:
                 </p>
@@ -96,30 +98,28 @@
 
     <script type="module">
         import authService from '../src/auth/services/authService.js';
-        // NEW: import the reusable sidebar module
-        import { initSidebar } from '../js/sidebar.js';
 
-     
         // Get current session
         const session = authService.getSession();
 
-        // NEW: initialize the reusable sidebar
-        // This will render the sidebar template and populate user info
-        await initSidebar({
-            session,
-            onLogout: () => {
-                authService.logout();
-                window.location.href = './login.html';
-            }
-        });
+        // Sidebar ya está en el HTML, solo definir funciones
+        window.logout = function () {
+            authService.logout();
+            window.location.href = './login.html';
+        };
 
-        // Keep toggleMenu as-is; the component renders an <aside id="sidebar"> so this still works
-        window.toggleMenu = function() {
+        window.toggleMenu = function () {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('active');
         };
 
-        // Sidebar link auto-close on mobile is handled inside initSidebar, so this block can be removed
+        // Actualizar info del usuario
+        if (session) {
+            document.getElementById('userNameDisplay').textContent = session.displayName || session.email || 'Usuario';
+            document.getElementById('userRoleDisplay').textContent = session.role || session.rol || 'Rol';
+        }
+
+        // Sidebar link auto-close on mobile
         document.querySelectorAll('.sidebar-menu a').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
@@ -128,8 +128,7 @@
             });
         });
 
-        
-        // Status message remains unchanged
+        // Status message
         const statusDiv = document.getElementById('statusMessage');
         statusDiv.className = 'status-message show success';
         statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}! Tu sesión está activa.`;
@@ -139,5 +138,5 @@
         console.log('Usuario:', session);
     </script>
 </body>
-</html>
 
+</html>
