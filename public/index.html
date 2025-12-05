@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,27 +9,29 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <title>TextileFlow | ERP</title>
 </head>
+
 <body>
-    <script>     
+    <script>
         const session = localStorage.getItem('textileflow_session');
-               
+
         if (session) {
             try {
                 const sessionData = JSON.parse(session);
-                
+
                 if (sessionData && sessionData.email) {
                     window.location.href = './pages/dashboard.html';
                 } else {
                     localStorage.removeItem('textileflow_session');
-                    window.location.href = './init.html';
+                    window.location.href = './pages/login.html';
                 }
             } catch (e) {
                 localStorage.removeItem('textileflow_session');
-                window.location.href = './init.html';
+                window.location.href = './pages/login.html';
             }
         } else {
-            window.location.href = './init.html';
+            window.location.href = './pages/login.html';
         }
     </script>
 </body>
+
 </html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <title>Asistencia | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/modules/asistencia.css">
+</head>
+
+<body>
+    <div class="layout">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
+                <p>ERP Textil</p>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="./rrhh.html"><i class="fas fa-users"></i> RR HH </a></li>
+                <li><a href="./asistencia.html" class="active"><i class="fas fa-clock"></i> Asistencias </a></li>
+                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
+                <li><a href="./pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
+                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
+                <li><a href="#"><i class="fas fa-user"></i> Mi perfil</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-name" id="userNameDisplay">Usuario</div>
+                    <div class="user-role" id="userRoleDisplay">Rol</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Gestión de Asistencias</h1>
+                    <p id="headerSubtitle">Control de entrada y salida</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <!-- VISTA EMPLEADO -->
+            <div id="employeeView" class="view-container" style="display: none;">
+                <div class="cards-grid">
+                    <div class="card card-primary">
+                        <h3><i class="fas fa-clock"></i> Mi Asistencia de Hoy</h3>
+                        <div class="attendance-quick-actions">
+                            <button id="btnCheckIn" class="btn-attendance btn-check-in">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Marcar Entrada</span>
+                            </button>
+                            <button id="btnCheckOut" class="btn-attendance btn-check-out">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Marcar Salida</span>
+                            </button>
+                        </div>
+                        <div id="employeeTodayStatus" class="today-status"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-info-circle"></i> Horario de Hoy</h3>
+                        <div id="todaySchedule" class="schedule-info">
+                            <div class="schedule-item">
+                                <span class="schedule-label">Entrada:</span>
+                                <span id="scheduleEntry" class="schedule-time">--:--</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-label">Salida:</span>
+                                <span id="scheduleExit" class="schedule-time">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>Mi Historial Personal</h2>
+                    <div class="table-controls">
+                        <select id="employeeHistoryRange" class="filter-select">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30">Últimos 30 días</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="employeeHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>Horas</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeHistoryBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA ADMINISTRADOR -->
+            <div id="adminView" class="view-container" style="display: none;">
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="today">
+                            <i class="fas fa-calendar-day"></i> Hoy
+                        </button>
+                        <button class="tab-btn" data-tab="history">
+                            <i class="fas fa-history"></i> Historial
+                        </button>
+                        <button class="tab-btn" data-tab="stats">
+                            <i class="fas fa-chart-bar"></i> Estadísticas
+                        </button>
+                        <button class="tab-btn" data-tab="schedule">
+                            <i class="fas fa-cog"></i> Horarios
+                        </button>
+                    </div>
+
+                    <!-- TAB: HOY -->
+                    <div class="tab-content active" data-tab="today">
+                        <div class="cards-grid cards-grid-4">
+                            <div class="card card-stat">
+                                <div class="stat-icon stat-total">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="statTotal">0</div>
+                                    <div class="stat-label">Total Empleados</div>
+                                </div>
+                            </div>
+                            <div class="card card-stat">
+                                <div class="stat-icon stat-present">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="statPresent">0</div>
+                                    <div class="stat-label">Presentes</div>
+                                </div>
+                            </div>
+                            <div class="card card-stat">
+                                <div class="stat-icon stat-late">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="statLate">0</div>
+                                    <div class="stat-label">Tardanzas</div>
+                                </div>
+                            </div>
+                            <div class="card card-stat">
+                                <div class="stat-icon stat-absent">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="statAbsent">0</div>
+                                    <div class="stat-label">Ausentes</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Asistencias de Hoy</h2>
+                                <div class="section-actions">
+                                    <button class="btn-primary" onclick="openManualRegisterModal()">
+                                        <i class="fas fa-plus"></i> Registrar Manual
+                                    </button>
+                                    <button class="btn-secondary" onclick="openScheduleModal()">
+                                        <i class="fas fa-clock"></i> Configurar Horario
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-controls">
+                                <select id="todayStatusFilter" class="filter-select">
+                                    <option value="">Todos los estados</option>
+                                    <option value="complete">Completos</option>
+                                    <option value="incomplete">Incompletos</option>
+                                    <option value="late">Con tardanzas</option>
+                                </select>
+                            </div>
+
+                            <div class="table-container">
+                                <table id="todayAttendanceTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Empleado</th>
+                                            <th>Entrada Prog.</th>
+                                            <th>Entrada Real</th>
+                                            <th>Salida Prog.</th>
+                                            <th>Salida Real</th>
+                                            <th>Horas</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="todayAttendanceBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: HISTORIAL -->
+                    <div class="tab-content" data-tab="history">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Historial de Asistencias</h2>
+                            </div>
+
+                            <div class="table-controls">
+                                <select id="historyRange" class="filter-select">
+                                    <option value="7">Últimos 7 días</option>
+                                    <option value="30">Últimos 30 días</option>
+                                    <option value="custom">Rango personalizado</option>
+                                </select>
+                                <select id="historyEmployeeFilter" class="filter-select">
+                                    <option value="">Todos los empleados</option>
+                                </select>
+                                <select id="historyStatusFilter" class="filter-select">
+                                    <option value="">Todos los estados</option>
+                                    <option value="complete">Completos</option>
+                                    <option value="incomplete">Incompletos</option>
+                                    <option value="absent">Ausentes</option>
+                                </select>
+                                <div id="customDateRange" style="display: none;">
+                                    <input type="date" id="historyStartDate" class="date-input">
+                                    <input type="date" id="historyEndDate" class="date-input">
+                                    <button class="btn-secondary" onclick="applyCustomRange()">Aplicar</button>
+                                </div>
+                            </div>
+
+                            <div class="history-container" id="historyContainer"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="stats">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Estadísticas de Asistencia</h2>
+                            </div>
+
+                            <div class="stats-period-selector">
+                                <select id="statsPeriod" class="filter-select">
+                                    <option value="7">Últimos 7 días</option>
+                                    <option value="30">Últimos 30 días</option>
+                                </select>
+                            </div>
+
+                            <div class="charts-grid">
+                                <div class="card">
+                                    <h3>Asistencia Semanal</h3>
+                                    <canvas id="weeklyChart"></canvas>
+                                </div>
+                                <div class="card">
+                                    <h3>Tardanzas por Empleado</h3>
+                                    <canvas id="latenessChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="table-container">
+                                <h3>Estadísticas por Empleado</h3>
+                                <table id="statsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Empleado</th>
+                                            <th>Días Trabajados</th>
+                                            <th>Tardanzas</th>
+                                            <th>Horas Totales</th>
+                                            <th>Promedio/Día</th>
+                                            <th>% Asistencia</th>
+                                            <th>% Puntualidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="statsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="schedule">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Configuración de Horarios</h2>
+                            </div>
+
+                            <div class="schedule-config-grid">
+                                <div class="card">
+                                    <h3>Horario Por Defecto</h3>
+                                    <form id="defaultScheduleForm" class="schedule-form">
+                                        <div class="form-group">
+                                            <label>Hora de Entrada</label>
+                                            <input type="time" id="defaultEntry" value="08:00" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Hora de Salida</label>
+                                            <input type="time" id="defaultExit" value="17:00" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tolerancia (minutos)</label>
+                                            <input type="number" id="defaultTolerance" value="15" min="0" max="60"
+                                                required>
+                                        </div>
+                                        <button type="submit" class="btn-primary">
+                                            <i class="fas fa-save"></i> Guardar Horario Por Defecto
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="card">
+                                    <h3>Horarios Personalizados</h3>
+                                    <div id="customSchedulesList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- MODALES -->
+    <div id="manualRegisterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Asistencia Manual</h3>
+                <button class="btn-close" onclick="closeManualRegisterModal()">&times;</button>
+            </div>
+            <form id="manualRegisterForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Empleado *</label>
+                        <select id="manualEmployeeSelect" required>
+                            <option value="">-- Seleccionar --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" id="manualDate" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo *</label>
+                        <select id="manualType" required>
+                            <option value="entrada">Entrada</option>
+                            <option value="salida">Salida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora *</label>
+                        <input type="time" id="manualTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="manualNotes" rows="3" placeholder="Opcional"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeManualRegisterModal()">Cancelar</button>
+                    <button type="submit" class="btn-submit">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editAttendanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Asistencia</h3>
+                <button class="btn-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editAttendanceForm">
+                <input type="hidden" id="editAttendanceId">
+                <div class="form-info">
+                    <strong id="editEmployeeName"></strong> - <span id="editAttendanceDate"></span>
+                </div>
+                <div class="form-group">
+                    <label>Hora *</label>
+                    <input type="time" id="editTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="editNotes" rows="3"></textarea>
+                </div>
+                <div id="editHistory" class="edit-history"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn-submit">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Configurar Horario</h3>
+                <button class="btn-close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <form id="scheduleForm">
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="scheduleDate" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora de Entrada *</label>
+                        <input type="time" id="scheduleEntry" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora de Salida *</label>
+                        <input type="time" id="scheduleExit" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tolerancia (minutos) *</label>
+                    <input type="number" id="scheduleTolerance" value="15" min="0" max="60" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeScheduleModal()">Cancelar</button>
+                    <button type="submit" class="btn-submit">Guardar Horario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="module" src="../js/asistencias.js"></script>
+</body>
+
+</html>

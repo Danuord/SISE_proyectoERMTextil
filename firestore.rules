@@ -2,9 +2,15 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir lectura y escritura para usuarios autenticados
+    // REGLAS TEMPORALES PARA DESARROLLO CON EMULADOR
+    // Permitir todo acceso (solo para desarrollo local)
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
+    
+    // NOTA: En producción, cambiar a:
+    // match /{document=**} {
+    //   allow read, write: if request.auth != null;
+    // }
   }
 }
