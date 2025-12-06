@@ -1,16 +1,9 @@
 // ===================== IMPORTS DE FIREBASE =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import {
-    collection,
-    onSnapshot,
-    query,
-    where,
-    getDocs
-} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-console.log("✅ ASISTENCIAS.JS CARGADO");
+console.log("✅ ASISTENCIA.JS CARGADO");
 
 // ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
@@ -23,7 +16,6 @@ const firebaseConfig = {
     measurementId: "G-XE4Z2S0LRB"
 };
 
-// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -43,118 +35,44 @@ if (session) {
 }
 
 // ===================== CARGAR EMPLEADOS EN SELECT (TIEMPO REAL) =====================
-const manualEmployeeSelect = document.getElementById("manualEmployeeSelect");
+document.addEventListener("DOMContentLoaded", () => {
+    const manualEmployeeSelect = document.getElementById("manualEmployeeSelect");
 
-if (manualEmployeeSelect) {
-    console.log("📋 Configurando listener para empleados...");
+    if (manualEmployeeSelect) {
+        console.log("📋 Configurando listener para empleados...");
 
-    onSnapshot(collection(db, "usuario"), (snapshot) => {
-        console.log("📨 Empleados actualizados - Total:", snapshot.size);
+        onSnapshot(collection(db, "usuario"), (snapshot) => {
+            console.log(`📥 Empleados recibidos: ${snapshot.size}`);
 
-        manualEmployeeSelect.innerHTML = `<option value="">-- Seleccionar Empleado --</option>`;
+            manualEmployeeSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const option = document.createElement("option");
-            option.value = doc.id;
-            option.textContent = `${data.nombre} ${data.apellido}`;
-            option.dataset.email = data.email;
-            option.dataset.nombre = data.nombre;
-            option.dataset.apellido = data.apellido;
-            option.dataset.rol = data.rol;
-            manualEmployeeSelect.appendChild(option);
+            snapshot.forEach((doc) => {
+                const empleado = doc.data();
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = empleado.displayName || `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim() || empleado.email;
+                option.dataset.name = option.textContent;
+                manualEmployeeSelect.appendChild(option);
+            });
+
+            console.log("✅ Select de empleados poblado");
+        }, (error) => {
+            console.error("❌ Error al cargar empleados:", error);
         });
-
-        console.log("✅ Select de empleados poblado");
-    });
-}
-
-// ===================== BOTONES DE MARCAR ASISTENCIA (EMPLEADO) =====================
-const btnCheckIn = document.getElementById("btnCheckIn");
-const btnCheckOut = document.getElementById("btnCheckOut");
-
-if (btnCheckIn) {
-    btnCheckIn.addEventListener("click", async () => {
-        console.log("🔵 Marcando ENTRADA...");
-        await marcarAsistencia("entrada");
-    });
-}
-
-if (btnCheckOut) {
-    btnCheckOut.addEventListener("click", async () => {
-        console.log("🔴 Marcando SALIDA...");
-        await marcarAsistencia("salida");
-    });
-}
-
-// ===================== FUNCIÓN MARCAR ASISTENCIA =====================
-async function marcarAsistencia(tipo) {
-    if (!currentUser) {
-        showToast("❌ No hay sesión activa", "error");
-        return;
     }
+});
 
-    try {
-        const ahora = new Date();
-        const fecha = ahora.toISOString().split('T')[0]; // YYYY-MM-DD
-        const hora = ahora.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
-
-        // Verificar si ya marcó este tipo hoy
-        const q = query(
-            collection(db, "asistencias"),
-            where("userId", "==", currentUser.uid),
-            where("fecha", "==", fecha),
-            where("tipo", "==", tipo)
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            showToast(`❌ Ya marcaste ${tipo} hoy`, "error");
-            return;
-        }
-
-        // Crear ID único para el documento
-        const docId = `${currentUser.uid}_${fecha}_${tipo}`;
-
-        // Guardar en Firestore
-        await setDoc(doc(db, "asistencias", docId), {
-            userId: currentUser.uid,
-            userEmail: currentUser.email,
-            displayName: currentUser.displayName || `${currentUser.nombre} ${currentUser.apellido}`,
-            rol: currentUser.rol || currentUser.role,
-            fecha: fecha,
-            hora: hora,
-            timestamp: Timestamp.fromDate(ahora),
-            tipo: tipo,
-            createdAt: serverTimestamp()
-        });
-
-        console.log(`✅ ${tipo.toUpperCase()} guardada en Firestore`);
-        showToast(`✅ ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} registrada: ${hora}`, "success");
-
-        // Actualizar UI
-        actualizarEstadoHoy();
-
-    } catch (error) {
-        console.error("❌ Error al marcar asistencia:", error);
-        showToast(`❌ Error: ${error.message}`, "error");
-    }
-}
-
-// ===================== ACTUALIZAR ESTADO DEL DÍA =====================
+// ===================== ACTUALIZAR ESTADO DE HOY (EMPLEADO) =====================
 async function actualizarEstadoHoy() {
     if (!currentUser) return;
 
-    const ahora = new Date();
-    const fecha = ahora.toISOString().split('T')[0];
+    const hoy = new Date().toISOString().split('T')[0];
 
     try {
-        // Buscar entrada y salida de hoy
         const q = query(
             collection(db, "asistencias"),
             where("userId", "==", currentUser.uid),
-            where("fecha", "==", fecha)
+            where("fecha", "==", hoy)
         );
 
         const querySnapshot = await getDocs(q);
@@ -164,57 +82,77 @@ async function actualizarEstadoHoy() {
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.tipo === "entrada") entrada = data;
-            if (data.tipo === "salida") salida = data;
+            if (data.tipo === "entrada") entrada = data.hora;
+            if (data.tipo === "salida") salida = data.hora;
         });
 
-        // Actualizar botones
-        if (btnCheckIn) {
-            btnCheckIn.disabled = !!entrada;
-        }
-
-        if (btnCheckOut) {
-            btnCheckOut.disabled = !!salida || !entrada;
-        }
-
-        // Actualizar display de estado
+        const btnCheckIn = document.getElementById("btnCheckIn");
+        const btnCheckOut = document.getElementById("btnCheckOut");
         const statusDiv = document.getElementById("employeeTodayStatus");
-        if (statusDiv) {
-            let html = '<div class="status-item">';
 
-            if (entrada) {
-                html += `<span class="status-label">Entrada:</span><span class="status-value">${entrada.hora}</span>`;
-            } else {
-                html += `<span class="status-label">Entrada:</span><span class="status-value">No registrada</span>`;
-            }
-
-            html += '</div><div class="status-item">';
-
-            if (salida) {
-                html += `<span class="status-label">Salida:</span><span class="status-value">${salida.hora}</span>`;
-            } else {
-                html += `<span class="status-label">Salida:</span><span class="status-value">No registrada</span>`;
-            }
-
-            html += '</div>';
-            statusDiv.innerHTML = html;
+        if (entrada && salida) {
+            if (btnCheckIn) btnCheckIn.disabled = true;
+            if (btnCheckOut) btnCheckOut.disabled = true;
+            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada: ${entrada} | Salida: ${salida}</p>`;
+        } else if (entrada) {
+            if (btnCheckIn) btnCheckIn.disabled = true;
+            if (btnCheckOut) btnCheckOut.disabled = false;
+            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada registrada: ${entrada}</p>`;
+        } else {
+            if (btnCheckIn) btnCheckIn.disabled = false;
+            if (btnCheckOut) btnCheckOut.disabled = true;
+            if (statusDiv) statusDiv.innerHTML = `<p>⏳ Sin registro hoy</p>`;
         }
-
-        console.log("✅ Estado actualizado - Entrada:", entrada?.hora || "No", "| Salida:", salida?.hora || "No");
-
     } catch (error) {
         console.error("❌ Error al actualizar estado:", error);
     }
 }
 
+// ===================== MARCAR ASISTENCIA (EMPLEADO) =====================
+async function marcarAsistencia(tipo) {
+    if (!currentUser) {
+        showToast("❌ No hay usuario autenticado", "error");
+        return;
+    }
+
+    const hoy = new Date().toISOString().split('T')[0];
+    const ahora = new Date();
+    const hora = ahora.toTimeString().slice(0, 5);
+
+    try {
+        const docId = `${currentUser.uid}_${hoy}_${tipo}`;
+
+        await setDoc(doc(db, "asistencias", docId), {
+            userId: currentUser.uid,
+            displayName: currentUser.displayName || `${currentUser.nombre || ''} ${currentUser.apellido || ''}`.trim(),
+            fecha: hoy,
+            hora: hora,
+            tipo: tipo,
+            timestamp: Timestamp.fromDate(ahora),
+            source: "self",
+            createdAt: serverTimestamp()
+        });
+
+        showToast(`✅ ${tipo === 'entrada' ? 'Entrada' : 'Salida'} registrada: ${hora}`, "success");
+        actualizarEstadoHoy();
+
+    } catch (error) {
+        console.error("❌ Error al marcar asistencia:", error);
+        showToast(`❌ Error: ${error.message}`, "error");
+    }
+}
+
+window.markCheckIn = () => marcarAsistencia("entrada");
+window.markCheckOut = () => marcarAsistencia("salida");
+
 // ===================== REGISTRO MANUAL (ADMINISTRADOR) =====================
 const manualRegisterForm = document.getElementById("manualRegisterForm");
-
 if (manualRegisterForm) {
     manualRegisterForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const employeeId = document.getElementById("manualEmployeeSelect").value;
+        const employeeName = document.getElementById("manualEmployeeSelect").selectedOptions[0]?.dataset.name;
         const fecha = document.getElementById("manualDate").value;
         const tipo = document.getElementById("manualType").value;
         const hora = document.getElementById("manualTime").value;
@@ -225,42 +163,23 @@ if (manualRegisterForm) {
         }
 
         try {
-            // Obtener datos del empleado seleccionado
-            const selectedOption = manualEmployeeSelect.options[manualEmployeeSelect.selectedIndex];
-            const employeeEmail = selectedOption.dataset.email;
-            const employeeName = `${selectedOption.dataset.nombre} ${selectedOption.dataset.apellido}`;
-            const employeeRol = selectedOption.dataset.rol;
-
-            // Crear ID único
             const docId = `${employeeId}_${fecha}_${tipo}`;
 
-            // Crear timestamp desde fecha y hora
-            const fechaHora = new Date(`${fecha}T${hora}:00`);
-
-            // Guardar en Firestore
             await setDoc(doc(db, "asistencias", docId), {
                 userId: employeeId,
-                userEmail: employeeEmail,
                 displayName: employeeName,
-                rol: employeeRol,
                 fecha: fecha,
                 hora: hora,
-                timestamp: Timestamp.fromDate(fechaHora),
                 tipo: tipo,
+                timestamp: Timestamp.fromDate(new Date(`${fecha}T${hora}:00`)),
                 source: "manual",
                 registeredBy: currentUser.uid,
                 createdAt: serverTimestamp()
             });
 
-            console.log(`✅ Asistencia manual guardada: ${employeeName} - ${tipo} - ${fecha} ${hora}`);
             showToast(`✅ Asistencia registrada para ${employeeName}`, "success");
-
-            // Cerrar modal y resetear form
-            const modal = document.getElementById("manualRegisterModal");
-            if (modal) modal.classList.remove("active");
+            closeManualRegisterModal();
             manualRegisterForm.reset();
-
-            // Recargar lista de asistencias
             cargarAsistenciasHoy();
 
         } catch (error) {
@@ -284,59 +203,127 @@ async function cargarAsistenciasHoy() {
         );
 
         const querySnapshot = await getDocs(q);
-
         tbody.innerHTML = "";
 
+        const usuariosSnapshot = await getDocs(collection(db, "usuario"));
+        const totalEmpleados = usuariosSnapshot.size;
+
         if (querySnapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay registros hoy</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay registros hoy</td></tr>';
+            actualizarEstadisticas(totalEmpleados, 0, 0, totalEmpleados);
             return;
         }
 
-        // Agrupar por empleado
         const porEmpleado = {};
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
             if (!porEmpleado[data.userId]) {
                 porEmpleado[data.userId] = {
+                    userId: data.userId,
                     nombre: data.displayName,
                     entrada: null,
-                    salida: null
+                    salida: null,
+                    horaEntrada: null
                 };
             }
 
             if (data.tipo === "entrada") {
                 porEmpleado[data.userId].entrada = data.hora;
+                porEmpleado[data.userId].horaEntrada = data.hora;
             } else if (data.tipo === "salida") {
                 porEmpleado[data.userId].salida = data.hora;
             }
         });
 
-        // Crear filas
+        let presentes = 0;
+        let tardanzas = 0;
+        let ausentes = totalEmpleados - Object.keys(porEmpleado).length;
+
         Object.values(porEmpleado).forEach(emp => {
             const tr = document.createElement("tr");
-
             const entrada = emp.entrada || "--:--";
             const salida = emp.salida || "--:--";
-            const estado = emp.entrada && emp.salida ? "Completo" : emp.entrada ? "Incompleto" : "Ausente";
-            const statusClass = emp.entrada && emp.salida ? "complete" : emp.entrada ? "incomplete" : "absent";
+
+            let horas = "--";
+            if (emp.entrada && emp.salida) {
+                const [hE, mE] = emp.entrada.split(':').map(Number);
+                const [hS, mS] = emp.salida.split(':').map(Number);
+                const minutosTotal = (hS * 60 + mS) - (hE * 60 + mE);
+                horas = (minutosTotal / 60).toFixed(2);
+            }
+
+            let estado = "Ausente";
+            let statusClass = "absent";
+            let esTarde = false;
+
+            if (emp.entrada && emp.salida) {
+                estado = "Completo";
+                statusClass = "complete";
+                presentes++;
+            } else if (emp.entrada) {
+                estado = "Incompleto";
+                statusClass = "incomplete";
+                presentes++;
+            }
+
+            if (emp.horaEntrada) {
+                const [h, m] = emp.horaEntrada.split(':').map(Number);
+                if (h > 8 || (h === 8 && m > 30)) {
+                    esTarde = true;
+                    tardanzas++;
+                    statusClass = "late";
+                }
+            }
 
             tr.innerHTML = `
                 <td>${emp.nombre}</td>
+                <td>08:00</td>
                 <td>${entrada}</td>
+                <td>17:00</td>
                 <td>${salida}</td>
-                <td><span class="status-badge status-${statusClass}">${estado}</span></td>
+                <td>${horas !== "--" ? horas + "h" : "--"}</td>
+                <td><span class="status-badge status-${statusClass}">${esTarde ? "Tarde" : estado}</span></td>
+                <td>
+                    <button class="btn-icon" onclick="openEditModal('${emp.userId}', '${entrada}', '${salida}')" title="Editar">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </td>
             `;
 
             tbody.appendChild(tr);
         });
 
         console.log(`✅ Asistencias de hoy cargadas: ${Object.keys(porEmpleado).length} empleados`);
+        actualizarEstadisticas(totalEmpleados, presentes, tardanzas, ausentes);
 
     } catch (error) {
         console.error("❌ Error al cargar asistencias:", error);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar datos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Error al cargar datos</td></tr>';
     }
+}
+
+// ===================== ACTUALIZAR ESTADÍSTICAS =====================
+function actualizarEstadisticas(total, presentes, tardanzas, ausentes) {
+    const statTotal = document.getElementById("statTotal");
+    const statPresent = document.getElementById("statPresent");
+    const statLate = document.getElementById("statLate");
+    const statAbsent = document.getElementById("statAbsent");
+    const statDate = document.getElementById("statDate");
+
+    if (statTotal) statTotal.textContent = total;
+    if (statPresent) statPresent.textContent = presentes;
+    if (statLate) statLate.textContent = tardanzas;
+    if (statAbsent) statAbsent.textContent = ausentes;
+
+    if (statDate) {
+        const hoy = new Date();
+        const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+        const fechaFormateada = hoy.toLocaleDateString('es-ES', opciones);
+        statDate.textContent = fechaFormateada;
+    }
+
+    console.log(`📊 Estadísticas: Total=${total}, Presentes=${presentes}, Tardanzas=${tardanzas}, Ausentes=${ausentes}`);
 }
 
 // ===================== UTILIDADES =====================
@@ -366,24 +353,283 @@ window.closeManualRegisterModal = function () {
     if (modal) modal.classList.remove("active");
 };
 
+window.openEditModal = function (userId, entryTime, exitTime) {
+    const modal = document.getElementById("editAttendanceModal");
+    if (modal) {
+        modal.classList.add("active");
+        document.getElementById("editUserId").value = userId;
+        document.getElementById("editEntryTime").value = entryTime !== "--:--" ? entryTime : "";
+        document.getElementById("editExitTime").value = exitTime !== "--:--" ? exitTime : "";
+        document.getElementById("editNotes").value = "";
+        console.log("📝 Abriendo modal de edición:", { userId, entryTime, exitTime });
+    }
+};
+
+window.closeEditModal = function () {
+    const modal = document.getElementById("editAttendanceModal");
+    if (modal) modal.classList.remove("active");
+};
+
+window.openScheduleModal = function () {
+    const modal = document.getElementById("scheduleModal");
+    if (modal) modal.classList.add("active");
+};
+
+window.closeScheduleModal = function () {
+    const modal = document.getElementById("scheduleModal");
+    if (modal) modal.classList.remove("active");
+};
+
+// ===================== FORMULARIO DE EDICIÓN =====================
+const editForm = document.getElementById("editAttendanceForm");
+if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const userId = document.getElementById("editUserId").value;
+        const entryTime = document.getElementById("editEntryTime").value;
+        const exitTime = document.getElementById("editExitTime").value;
+        const hoy = new Date().toISOString().split('T')[0];
+
+        console.log("💾 Guardando edición:", { userId, entryTime, exitTime, hoy });
+
+        try {
+            if (entryTime) {
+                const entryDocId = `${userId}_${hoy}_entrada`;
+                await setDoc(doc(db, "asistencias", entryDocId), {
+                    userId: userId,
+                    fecha: hoy,
+                    hora: entryTime,
+                    tipo: "entrada",
+                    timestamp: Timestamp.fromDate(new Date(`${hoy}T${entryTime}:00`)),
+                    source: "manual_edit",
+                    editedBy: currentUser.uid,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                console.log("✅ Entrada actualizada");
+            }
+
+            if (exitTime) {
+                const exitDocId = `${userId}_${hoy}_salida`;
+                await setDoc(doc(db, "asistencias", exitDocId), {
+                    userId: userId,
+                    fecha: hoy,
+                    hora: exitTime,
+                    tipo: "salida",
+                    timestamp: Timestamp.fromDate(new Date(`${hoy}T${exitTime}:00`)),
+                    source: "manual_edit",
+                    editedBy: currentUser.uid,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                console.log("✅ Salida actualizada");
+            }
+
+            showToast("✅ Asistencia actualizada correctamente", "success");
+            closeEditModal();
+            cargarAsistenciasHoy();
+
+        } catch (error) {
+            console.error("❌ Error al actualizar asistencia:", error);
+            showToast(`❌ Error: ${error.message}`, "error");
+        }
+    });
+}
+
+// ===================== TABS =====================
+function switchTab(tabName) {
+    console.log("Cambiando a tab:", tabName);
+
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => btn.classList.remove('active'));
+
+    const selectedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+        console.log("✅ Botón activado:", tabName);
+    }
+
+    const selectedContent = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+        console.log("✅ Contenido activado:", tabName);
+    }
+
+    if (tabName === 'today') {
+        cargarAsistenciasHoy();
+    }
+}
+
+// ===================== HISTORIAL EMPLEADO =====================
+async function loadEmployeeHistory(days = 7) {
+    if (!currentUser) return;
+
+    const tbody = document.getElementById("employeeHistoryBody");
+    if (!tbody) return;
+
+    try {
+        const fechaInicio = new Date();
+        fechaInicio.setDate(fechaInicio.getDate() - days);
+        const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
+
+        const q = query(
+            collection(db, "asistencias"),
+            where("userId", "==", currentUser.uid),
+            where("fecha", ">=", fechaInicioStr)
+        );
+
+        const querySnapshot = await getDocs(q);
+        tbody.innerHTML = "";
+
+        if (querySnapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay registros</td></tr>';
+            return;
+        }
+
+        const porFecha = {};
+
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if (!porFecha[data.fecha]) {
+                porFecha[data.fecha] = { entrada: null, salida: null };
+            }
+
+            if (data.tipo === "entrada") porFecha[data.fecha].entrada = data.hora;
+            if (data.tipo === "salida") porFecha[data.fecha].salida = data.hora;
+        });
+
+        Object.keys(porFecha).sort().reverse().forEach(fecha => {
+            const dia = porFecha[fecha];
+            const tr = document.createElement("tr");
+            const entrada = dia.entrada || "--:--";
+            const salida = dia.salida || "--:--";
+
+            let horas = "--";
+            if (dia.entrada && dia.salida) {
+                const [hE, mE] = dia.entrada.split(':').map(Number);
+                const [hS, mS] = dia.salida.split(':').map(Number);
+                const minutosTotal = (hS * 60 + mS) - (hE * 60 + mE);
+                horas = (minutosTotal / 60).toFixed(2);
+            }
+
+            const estado = dia.entrada && dia.salida ? "Completo" : dia.entrada ? "Incompleto" : "Ausente";
+            const statusClass = dia.entrada && dia.salida ? "complete" : dia.entrada ? "incomplete" : "absent";
+
+            tr.innerHTML = `
+                <td>${fecha}</td>
+                <td>${entrada}</td>
+                <td>${salida}</td>
+                <td>${horas !== "--" ? horas + "h" : "--"}</td>
+                <td><span class="status-badge status-${statusClass}">${estado}</span></td>
+            `;
+
+            tbody.appendChild(tr);
+        });
+
+        console.log(`✅ Historial cargado: ${Object.keys(porFecha).length} días`);
+
+    } catch (error) {
+        console.error("❌ Error al cargar historial:", error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar historial</td></tr>';
+    }
+}
+
+// ===================== SETUP EVENT LISTENERS =====================
+function setupEventListeners() {
+    console.log("🎯 Configurando event listeners...");
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    const employeeHistoryRange = document.getElementById('employeeHistoryRange');
+    if (employeeHistoryRange) {
+        employeeHistoryRange.addEventListener('change', (e) => {
+            loadEmployeeHistory(parseInt(e.target.value));
+        });
+    }
+
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.classList.remove('active');
+        }
+    });
+
+    console.log("✅ Event listeners configurados");
+}
+
 // ===================== INICIALIZACIÓN =====================
 document.addEventListener("DOMContentLoaded", () => {
     console.log("🚀 Inicializando módulo de asistencias...");
 
-    // Actualizar estado si es empleado
-    if (currentUser && !isAdmin) {
-        actualizarEstadoHoy();
+    mostrarPanelSegunRol();
+    setupEventListeners();
+
+    if (isAdmin) {
+        const firstTab = document.querySelector('.tab-btn[data-tab="today"]');
+        if (firstTab) firstTab.classList.add('active');
+
+        const firstTabContent = document.querySelector('.tab-content[data-tab="today"]');
+        if (firstTabContent) firstTabContent.classList.add('active');
+
+        cargarAsistenciasHoy();
     }
 
-    // Cargar asistencias si es admin
-    if (isAdmin) {
-        cargarAsistenciasHoy();
+    if (currentUser && !isAdmin) {
+        actualizarEstadoHoy();
+        loadEmployeeHistory(7);
     }
 
     console.log("✅ Módulo de asistencias listo");
 });
 
-// Sidebar y logout
+// ===================== MOSTRAR PANEL SEGÚN ROL =====================
+function mostrarPanelSegunRol() {
+    const employeeView = document.getElementById("employeeView");
+    const adminView = document.getElementById("adminView");
+
+    console.log("🎨 Mostrando panel para:", isAdmin ? "Administrador" : "Empleado");
+
+    if (isAdmin) {
+        if (employeeView) employeeView.style.display = "none";
+        if (adminView) adminView.style.display = "block";
+        console.log("✅ Panel de administrador visible");
+    } else {
+        if (employeeView) employeeView.style.display = "block";
+        if (adminView) adminView.style.display = "none";
+        console.log("✅ Panel de empleado visible");
+    }
+
+    cargarInfoUsuario();
+}
+
+// ===================== CARGAR INFO USUARIO EN SIDEBAR =====================
+function cargarInfoUsuario() {
+    const userNameElement = document.getElementById("userNameDisplay");
+    const userRoleElement = document.getElementById("userRoleDisplay");
+
+    console.log("📝 Cargando info de usuario en sidebar...");
+
+    if (currentUser) {
+        const displayName = currentUser.displayName || `${currentUser.nombre || ''} ${currentUser.apellido || ''}`.trim() || currentUser.email;
+        const role = currentUser.rol || currentUser.role || 'Usuario';
+
+        if (userNameElement) {
+            userNameElement.textContent = displayName;
+            console.log("✅ Nombre actualizado:", displayName);
+        }
+
+        if (userRoleElement) {
+            userRoleElement.textContent = role;
+            console.log("✅ Rol actualizado:", role);
+        }
+    }
+}
+
+// ===================== SIDEBAR Y LOGOUT =====================
 window.toggleMenu = function () {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('active');
