@@ -79,19 +79,11 @@ async function actualizarEstadoHoy() {
 
         let entrada = null;
         let salida = null;
-        let entradaSource = null;
-        let salidaSource = null;
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.tipo === "entrada") {
-                entrada = data.hora;
-                entradaSource = data.source || "self";
-            }
-            if (data.tipo === "salida") {
-                salida = data.hora;
-                salidaSource = data.source || "self";
-            }
+            if (data.tipo === "entrada") entrada = data.hora;
+            if (data.tipo === "salida") salida = data.hora;
         });
 
         const btnCheckIn = document.getElementById("btnCheckIn");
@@ -101,50 +93,19 @@ async function actualizarEstadoHoy() {
         if (entrada && salida) {
             if (btnCheckIn) btnCheckIn.disabled = true;
             if (btnCheckOut) btnCheckOut.disabled = true;
-            if (statusDiv) {
-                const entradaLabel = entradaSource === "manual" ? " (Admin)" : "";
-                const salidaLabel = salidaSource === "manual" ? " (Admin)" : "";
-                statusDiv.innerHTML = `<p>Entrada: ${entrada}${entradaLabel} | Salida: ${salida}${salidaLabel}</p>`;
-            }
+            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada: ${entrada} | Salida: ${salida}</p>`;
         } else if (entrada) {
             if (btnCheckIn) btnCheckIn.disabled = true;
             if (btnCheckOut) btnCheckOut.disabled = false;
-            if (statusDiv) {
-                const entradaLabel = entradaSource === "manual" ? " (Registrado por Admin)" : "";
-                statusDiv.innerHTML = `<p>Entrada registrada: ${entrada}${entradaLabel}</p>`;
-            }
+            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada registrada: ${entrada}</p>`;
         } else {
             if (btnCheckIn) btnCheckIn.disabled = false;
             if (btnCheckOut) btnCheckOut.disabled = true;
-            if (statusDiv) statusDiv.innerHTML = `<p>Sin registro hoy</p>`;
+            if (statusDiv) statusDiv.innerHTML = `<p>⏳ Sin registro hoy</p>`;
         }
-
-        cargarHorarioHoy();
-
     } catch (error) {
         console.error("❌ Error al actualizar estado:", error);
     }
-}
-
-// ===================== CARGAR HORARIO DE HOY (EMPLEADO) =====================
-function cargarHorarioHoy() {
-    const scheduleDiv = document.getElementById("todaySchedule");
-    if (!scheduleDiv) return;
-
-    // Por ahora mostramos horario por defecto, luego se puede personalizar
-    scheduleDiv.innerHTML = `
-        <div class="schedule-info">
-            <div class="schedule-item">
-                <strong>Entrada:</strong> 08:00 AM
-            </div>
-            <div class="schedule-item">
-                <strong>Salida:</strong> 05:00 PM
-            </div>
-            <div class="schedule-item">
-                <strong>Tolerancia:</strong> 15 minutos
-            </div>
-        </div>
-    `;
 }
 
 // ===================== MARCAR ASISTENCIA (EMPLEADO) =====================
@@ -325,7 +286,7 @@ async function cargarAsistenciasHoy() {
                 <td><span class="status-badge status-${statusClass}">${esTarde ? "Tarde" : estado}</span></td>
                 <td>
                     <button class="btn-icon" onclick="openEditModal('${emp.userId}', '${entrada}', '${salida}')" title="Editar">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-edit"></i> Editar
                     </button>
                 </td>
             `;
@@ -430,7 +391,7 @@ if (editForm) {
         const exitTime = document.getElementById("editExitTime").value;
         const hoy = new Date().toISOString().split('T')[0];
 
-        console.log("Guardando edición:", { userId, entryTime, exitTime, hoy });
+        console.log("💾 Guardando edición:", { userId, entryTime, exitTime, hoy });
 
         try {
             if (entryTime) {
@@ -445,7 +406,7 @@ if (editForm) {
                     editedBy: currentUser.uid,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                console.log("Entrada actualizada");
+                console.log("✅ Entrada actualizada");
             }
 
             if (exitTime) {
@@ -579,13 +540,11 @@ async function loadEmployeeHistory(days = 7) {
 function setupEventListeners() {
     console.log("🎯 Configurando event listeners...");
 
-    // Tabs
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    // Historial empleado
     const employeeHistoryRange = document.getElementById('employeeHistoryRange');
     if (employeeHistoryRange) {
         employeeHistoryRange.addEventListener('change', (e) => {
@@ -593,20 +552,6 @@ function setupEventListeners() {
         });
     }
 
-    // Botones de marcar entrada/salida
-    const btnCheckIn = document.getElementById('btnCheckIn');
-    if (btnCheckIn) {
-        btnCheckIn.addEventListener('click', markCheckIn);
-        console.log("✅ Listener de entrada agregado");
-    }
-
-    const btnCheckOut = document.getElementById('btnCheckOut');
-    if (btnCheckOut) {
-        btnCheckOut.addEventListener('click', markCheckOut);
-        console.log("✅ Listener de salida agregado");
-    }
-
-    // Cerrar modales al hacer click fuera
     window.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal')) {
             e.target.classList.remove('active');
