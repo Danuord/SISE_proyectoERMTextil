@@ -4,46 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Asistencia | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/dashboard.css">
-    <link rel="stylesheet" href="../css/modules/asistencia.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/asistencia.css">
 </head>
 
 <body>
     <div class="layout">
-        <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
-                <p>ERP Textil</p>
-            </div>
-
-            <ul class="sidebar-menu">
-                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="./rrhh.html"><i class="fas fa-users"></i> RR HH </a></li>
-                <li><a href="./asistencia.html" class="active"><i class="fas fa-clock"></i> Asistencias </a></li>
-                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-                <li><a href="./pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
-                <li><a href="#"><i class="fas fa-user"></i> Mi perfil</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
-            </ul>
-
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-name" id="userNameDisplay">Usuario</div>
-                    <div class="user-role" id="userRoleDisplay">Rol</div>
-                </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </div>
-        </aside>
+        <div id="sidebar-container"></div>
 
         <main class="main-content">
             <div class="header">
@@ -486,7 +456,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script type="module" src="../js/asistencias.js"></script>
+    <!-- Sidebar Component -->
+    <script type="module" src="../../components/sidebar.js"></script>
+
+    <!-- Note: asistencia.html is dual-view (admin/employee), no requireAdmin needed -->
+    <script type="module" src="../../js/asistencias.js"></script>
 </body>
 
 </html>

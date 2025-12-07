@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
 
     <title>Registro de pagos | TextileFlow</title>
 
@@ -11,58 +12,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- Estilos locales -->
-    <link rel="stylesheet" href="../css/modules/pagos.css">
+    <link rel="stylesheet" href="../../css/modules/pagos.css">
 </head>
 
 
 <body>
     <div class="layout">
+        <!-- Sidebar Component -->
+        <div id="sidebar-container"></div>
 
-        <!-- ========================================================= -->
-        <!-- 🟦 SIDEBAR -->
-        <!-- ========================================================= -->
-        <aside id="sidebar" class="sidebar">
-
-            <!-- Encabezado del sidebar -->
-            <div class="sidebar-header">
-                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
-                <p>ERP Textil</p>
-            </div>
-
-            <!-- Menú principal -->
-            <ul class="sidebar-menu">
-                <li><a href="dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="rrhh.html"><i class="fas fa-industry"></i> RR HH</a></li>
-                <li><a href="asistencia.html"><i class="fas fa-industry"></i> Asistencias</a></li>
-                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-                <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                <li><a href="#"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
-                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
-            </ul>
-
-            <!-- Usuario + logout -->
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-name" id="userNameDisplay">Admin</div>
-                    <div class="user-role" id="userRoleDisplay">Rol</div>
-                </div>
-
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </div>
-
-        </aside>
-
-
-        <!-- ========================================================= -->
-        <!-- 🟩 CONTENIDO PRINCIPAL -->
-        <!-- ========================================================= -->
         <main class="main-content">
 
             <!-- Título -->
@@ -190,7 +148,6 @@
                 </table>
             </div>
 
-
             <!-- ========================================================= -->
             <!-- 🟦 MODAL: NUEVO SALARIO -->
             <!-- ========================================================= -->
@@ -304,8 +261,18 @@
     <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Sidebar Component -->
+    <script type="module" src="../../components/sidebar.js"></script>
+
+    <!-- Access Control -->
+    <script type="module">
+        import { requireAdmin } from '../../components/auth-guard.js';
+        requireAdmin();
+    </script>
+
     <!-- Script del módulo -->
-    <script type="module" src="../js/pagos.js"></script>
+    <script type="module" src="../../js/pagos.js"></script>
 
 </body>
+
 </html>

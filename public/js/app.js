@@ -103,7 +103,15 @@ async function handleLogin(e) {
 
         alert("¡Inicio de sesión exitoso!");
 
-        window.location.href = "/pages/dashboard.html";
+        // Redirigir según el rol del usuario
+        const rol = (userData.rol || '').toLowerCase();
+        if (rol === 'administrador' || rol === 'admin') {
+            console.log('Redirigiendo a dashboard de administrador');
+            window.location.href = "/pages/admin/dashboard.html";
+        } else {
+            console.log('Redirigiendo a dashboard de empleado');
+            window.location.href = "/pages/employee/dashboard.html";
+        }
 
     } catch (error) {
         console.error("Código de error:", error.code);

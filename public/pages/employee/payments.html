@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <title>Mis Pagos | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/employee/common.css">
+    <link rel="stylesheet" href="../../css/modules/employee/payments.css">
+</head>
+
+<body>
+    <div class="layout">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Mis Pagos</h1>
+                    <p>Historial de pagos y liquidaciones</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3><i class="fas fa-calendar-month"></i> Este Mes</h3>
+                    <p class="amount" id="totalThisMonth">S/ 0.00</p>
+                    <p class="subtitle">Total pagado</p>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-chart-line"></i> Este Año</h3>
+                    <p class="amount" id="totalThisYear">S/ 0.00</p>
+                    <p class="subtitle">Acumulado anual</p>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Último Pago</h3>
+                    <p class="amount" id="lastPayment">S/ 0.00</p>
+                    <p class="subtitle" id="lastPaymentDate">-</p>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="filters-section">
+                <h3><i class="fas fa-filter"></i> Filtros</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Desde</label>
+                        <input type="date" id="filterStartDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>Hasta</label>
+                        <input type="date" id="filterEndDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>Estado</label>
+                        <select id="filterStatus">
+                            <option value="">Todos</option>
+                            <option value="pagado">Pagado</option>
+                            <option value="pendiente">Pendiente</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn-filter" onclick="applyFilters()">
+                            <i class="fas fa-search"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Historial de Pagos</h3>
+                    <div class="table-actions">
+                        <button class="btn-icon" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF
+                        </button>
+                        <button class="btn-icon" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i>
+                            Excel
+                        </button>
+                    </div>
+                </div>
+                <table id="paymentsTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsBody">
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No hay pagos registrados</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script type="module" src="../../components/sidebar.js"></script>
+    <script type="module" src="../../js/employee-payments.js"></script>
+</body>
+
+</html>

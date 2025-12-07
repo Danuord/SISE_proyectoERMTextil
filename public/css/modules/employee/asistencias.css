@@ -1,0 +1,174 @@
+/* Employee Attendance Page Styles */
+
+/* Main Attendance Buttons - LARGE & PROMINENT */
+.attendance-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.btn-large {
+    padding: 2rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    min-height: 180px;
+}
+
+.btn-large i {
+    font-size: 3rem;
+}
+
+.btn-large span {
+    font-size: 1.25rem;
+}
+
+.btn-check-in {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    color: white;
+}
+
+.btn-check-in:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(76, 175, 80, 0.4);
+}
+
+.btn-check-out {
+    background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+    color: white;
+}
+
+.btn-check-out:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(244, 67, 54, 0.4);
+}
+
+.btn-large:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
+    transform: none !important;
+}
+
+.btn-large:active:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+/* Today Status - Hidden by default, shown after check-in */
+.today-status {
+    margin-top: 2rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    color: white;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Schedule Card */
+.schedule-card {
+    margin-top: 2rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.schedule-card h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.schedule-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.schedule-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.schedule-label {
+    display: block;
+    font-weight: 600;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-time {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .attendance-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-large {
+        min-height: 150px;
+    }
+
+    .schedule-info {
+        grid-template-columns: 1fr;
+    }
+}

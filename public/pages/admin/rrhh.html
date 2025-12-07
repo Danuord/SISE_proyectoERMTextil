@@ -4,46 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>RRHH - Gestión de Usuarios | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/dashboard.css">
-    <link rel="stylesheet" href="../css/modules/rrhh.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/rrhh.css">
 </head>
 
 <body>
     <div class="layout">
-        <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
-                <p>ERP Textil</p>
-            </div>
-
-            <ul class="sidebar-menu">
-                <li><a href="./dashboard.html"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="./rrhh.html"><i class="fas fa-industry"></i> RR HH </a></li>
-                <li><a href="./asistencia.html"><i class="fas fa-industry"></i> Asistencias </a></li>
-                <li><a href="#"><i class="fas fa-boxes"></i> Inventario</a></li>
-                <li><a href="pagos.html"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                <li><a href="#"><i class="fa-brands fa-sellsy"></i>Ventas</a></li>
-                <li><a href="#"><i class="fas fa-users"></i> Mi perfil</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
-            </ul>
-
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-name" id="userNameDisplay">Usuario</div>
-                    <div class="user-role" id="userRoleDisplay">Admin</div>
-                </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </div>
-        </aside>
+        <!-- Sidebar Component -->
+        <div id="sidebar-container"></div>
 
         <main class="main-content">
             <div class="header">
@@ -218,7 +189,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script type="module" src="../js/rrhh.js"></script>
+
+    <!-- Sidebar Component -->
+    <script type="module" src="../../components/sidebar.js"></script>
+
+    <!-- Access Control -->
+    <script type="module">
+        import { requireAdmin } from '../../components/auth-guard.js';
+        requireAdmin();
+    </script>
+
+    <script type="module" src="../../js/rrhh.js"></script>
 </body>
 
 </html>

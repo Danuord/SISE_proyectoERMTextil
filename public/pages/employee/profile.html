@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <title>Mi Perfil | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/employee/common.css">
+    <link rel="stylesheet" href="../../css/modules/employee/profile.css">
+</head>
+
+<body>
+    <div class="layout">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Mi Perfil</h1>
+                    <p>Información personal y configuración</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Profile Header Card -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h2 id="profileName">Cargando...</h2>
+                    <p id="profileRole">Empleado</p>
+                </div>
+            </div>
+
+            <!-- Información Personal -->
+            <div class="content-section">
+                <h2><i class="fas fa-user-edit"></i> Datos Personales</h2>
+                <div class="info-badge">
+                    <i class="fas fa-info-circle"></i>
+                    Actualiza tu información personal aquí
+                </div>
+                <form id="profileForm" class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Nombre</label>
+                        <input type="text" id="nombre" required placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Apellido</label>
+                        <input type="text" id="apellido" required placeholder="Tu apellido">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Teléfono</label>
+                        <input type="tel" id="telefono" placeholder="Número de teléfono">
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion" placeholder="Tu dirección">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-tag"></i> Rol (No editable)</label>
+                        <input type="text" id="rol" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Fecha de Contratación (No editable)</label>
+                        <input type="text" id="fechaContratacion" disabled>
+                    </div>
+                    <div class="form-actions full-width">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Cambiar Contraseña -->
+            <div class="content-section">
+                <h2><i class="fas fa-lock"></i> Cambiar Contraseña</h2>
+                <div class="info-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Mantén tu cuenta segura actualizando tu contraseña regularmente
+                </div>
+                <form id="passwordForm" class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Contraseña Actual</label>
+                        <input type="password" id="currentPassword" autocomplete="current-password" required
+                            placeholder="Contraseña actual">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                        <input type="password" id="newPassword" autocomplete="new-password" required
+                            placeholder="Nueva contraseña (mín. 8 caracteres)">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirmar Contraseña</label>
+                        <input type="password" id="confirmPassword" autocomplete="new-password" required
+                            placeholder="Confirma tu nueva contraseña">
+                    </div>
+                    <div class="form-actions full-width">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-check"></i> Cambiar Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <script type="module" src="../../components/sidebar.js"></script>
+    <script type="module" src="../../js/employee-profile.js"></script>
+</body>
+
+</html>
