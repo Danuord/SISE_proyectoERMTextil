@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <title>Mi Dashboard | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/employee/common.css">
+    <link rel="stylesheet" href="../../css/modules/employee/dashboard.css">
+</head>
+
+<body>
+    <div class="layout">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Mi Dashboard</h1>
+                    <p>Bienvenido de vuelta</p>
+                </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Resumen de Asistencias -->
+            <div class="cards-grid cards-grid-3">
+                <div class="card card-stat">
+                    <div class="stat-icon stat-present">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="statDaysPresent">0</div>
+                        <div class="stat-label">Días Presente (Mes)</div>
+                    </div>
+                </div>
+                <div class="card card-stat">
+                    <div class="stat-icon stat-late">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="statDaysLate">0</div>
+                        <div class="stat-label">Tardanzas (Mes)</div>
+                    </div>
+                </div>
+                <div class="card card-stat">
+                    <div class="stat-icon stat-total">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="statTotalHours">0h</div>
+                        <div class="stat-label">Horas Trabajadas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimos Pagos -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Últimos Pagos Recibidos</h2>
+                    <a href="./payments.html" class="btn-secondary">Ver Todos</a>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentPaymentsBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Accesos Rápidos -->
+            <div class="content-section">
+                <h2>Accesos Rápidos</h2>
+                <div class="cards-grid cards-grid-3">
+                    <a href="./asistencias.html" class="card card-link">
+                        <i class="fas fa-clock fa-2x"></i>
+                        <h3>Mis Asistencias</h3>
+                        <p>Ver y marcar asistencias</p>
+                    </a>
+                    <a href="./payments.html" class="card card-link">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                        <h3>Mis Pagos</h3>
+                        <p>Historial de pagos</p>
+                    </a>
+                    <a href="./profile.html" class="card card-link">
+                        <i class="fas fa-user-circle fa-2x"></i>
+                        <h3>Mi Perfil</h3>
+                        <p>Editar información personal</p>
+                    </a>
+                </div>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script type="module" src="../../components/sidebar.js"></script>
+    <script type="module" src="../../js/employee-dashboard.js"></script>
+</body>
+
+</html>
