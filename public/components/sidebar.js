@@ -44,7 +44,7 @@ class Sidebar {
                     <li><a href="./dashboard.html" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                     <li><a href="./rrhh.html" data-page="rrhh"><i class="fas fa-users"></i> RR HH</a></li>
                     <li><a href="./asistencia.html" data-page="asistencia"><i class="fas fa-clock"></i> Asistencias</a></li>
-                    <li><a href="#" data-page="inventario"><i class="fas fa-boxes"></i> Inventario</a></li>
+                    <li><a href="./inventario.html" data-page="inventario"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="./pagos.html" data-page="pagos"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
                     <li><a href="#" data-page="ventas"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
                     <li><a href="#" data-page="reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>
