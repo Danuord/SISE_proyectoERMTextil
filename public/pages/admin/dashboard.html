@@ -8,6 +8,8 @@
     <title>Dashboard | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/dashboard.css">
 </head>
 
 <body>
@@ -84,11 +86,7 @@
             sidebar.classList.toggle('active');
         };
 
-        // Actualizar info del usuario
-        if (session) {
-            document.getElementById('userNameDisplay').textContent = session.displayName || session.email || 'Usuario';
-            document.getElementById('userRoleDisplay').textContent = session.role || session.rol || 'Rol';
-        }
+        // User info is handled by sidebar component
 
         // Sidebar link auto-close on mobile
         document.querySelectorAll('.sidebar-menu a').forEach(link => {

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/asistencia.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/asistencia.css">
 </head>
 
 <body>
@@ -28,65 +30,6 @@
 
             <div id="statusMessage" class="status-message"></div>
 
-            <!-- VISTA EMPLEADO -->
-            <div id="employeeView" class="view-container" style="display: none;">
-                <div class="cards-grid">
-                    <div class="card card-primary">
-                        <h3><i class="fas fa-clock"></i> Mi Asistencia de Hoy</h3>
-                        <div class="attendance-quick-actions">
-                            <button id="btnCheckIn" class="btn-attendance btn-check-in">
-                                <i class="fas fa-sign-in-alt"></i>
-                                <span>Marcar Entrada</span>
-                            </button>
-                            <button id="btnCheckOut" class="btn-attendance btn-check-out">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Marcar Salida</span>
-                            </button>
-                        </div>
-                        <div id="employeeTodayStatus" class="today-status"></div>
-                    </div>
-
-                    <div class="card">
-                        <h3><i class="fas fa-info-circle"></i> Horario de Hoy</h3>
-                        <div id="todaySchedule" class="schedule-info">
-                            <div class="schedule-item">
-                                <span class="schedule-label">Entrada:</span>
-                                <span id="scheduleEntry" class="schedule-time">--:--</span>
-                            </div>
-                            <div class="schedule-item">
-                                <span class="schedule-label">Salida:</span>
-                                <span id="scheduleExit" class="schedule-time">--:--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-section">
-                    <h2>Mi Historial Personal</h2>
-                    <div class="table-controls">
-                        <select id="employeeHistoryRange" class="filter-select">
-                            <option value="7">Últimos 7 días</option>
-                            <option value="30">Últimos 30 días</option>
-                        </select>
-                    </div>
-                    <div class="table-container">
-                        <table id="employeeHistoryTable">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Entrada</th>
-                                    <th>Salida</th>
-                                    <th>Horas</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employeeHistoryBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISTA ADMINISTRADOR -->
             <div id="adminView" class="view-container" style="display: none;">
                 <div class="tabs-container">
                     <div class="tabs-header">
@@ -104,7 +47,6 @@
                         </button>
                     </div>
 
-                    <!-- TAB: HOY -->
                     <div class="tab-content active" data-tab="today">
                         <div class="cards-grid cards-grid-5">
                             <div class="card card-stat">
@@ -363,7 +305,6 @@
         </div>
     </div>
 
-    <!-- MODAL: EDITAR ASISTENCIA -->
     <div id="editAttendanceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -456,10 +397,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
-
-    <!-- Note: asistencia.html is dual-view (admin/employee), no requireAdmin needed -->
     <script type="module" src="../../js/asistencias.js"></script>
 </body>
 
