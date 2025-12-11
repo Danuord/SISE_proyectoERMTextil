@@ -10,9 +10,6 @@ class Sidebar {
         this.currentPage = window.location.pathname;
     }
 
-    /**
-     * Renderiza el sidebar en el contenedor especificado
-     */
     render(containerId = 'sidebar-container') {
         const container = document.getElementById(containerId);
         if (!container) {
@@ -27,11 +24,11 @@ class Sidebar {
         this.setActivePage();
 
         console.log(`✅ Sidebar renderizado (${this.isAdminUser ? 'Admin' : 'Empleado'})`);
+        console.log(`👤 Usuario:`, this.user);
+        console.log(`📝 Display Name:`, this.getUserDisplayName());
+        console.log(`🎭 Role:`, this.getUserRole());
     }
 
-    /**
-     * Genera el HTML del sidebar para administradores
-     */
     getAdminSidebar() {
         return `
             <aside id="sidebar" class="sidebar">
@@ -41,14 +38,14 @@ class Sidebar {
                 </div>
 
                 <ul class="sidebar-menu">
-                    <li><a href="./dashboard.html" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li><a href="./rrhh.html" data-page="rrhh"><i class="fas fa-users"></i> RR HH</a></li>
-                    <li><a href="./asistencia.html" data-page="asistencia"><i class="fas fa-clock"></i> Asistencias</a></li>
-                    <li><a href="#" data-page="inventario"><i class="fas fa-boxes"></i> Inventario</a></li>
-                    <li><a href="./pagos.html" data-page="pagos"><i class="fa-solid fa-cash-register"></i> Pagos</a></li>
-                    <li><a href="#" data-page="ventas"><i class="fa-brands fa-sellsy"></i> Ventas</a></li>
-                    <li><a href="#" data-page="reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                    <li><a href="#" data-page="configuracion"><i class="fas fa-cog"></i> Configuración</a></li>
+                    <li><a href="/pages/admin/dashboard.html" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="/pages/admin/rrhh.html" data-page="rrhh"><i class="fas fa-users"></i>Gestion de usuarios</a></li>
+                    <li><a href="/pages/admin/asistencia.html" data-page="asistencia"><i class="fas fa-clock"></i>Control de asistencias</a></li>
+                    <li><a href="#" data-page="inventario"><i class="fas fa-boxes"></i>Control de inventario</a></li>
+                    <li><a href="/pages/admin/pagos.html" data-page="pagos"><i class="fa-solid fa-cash-register"></i>Pagos Empleados</a></li>
+                    <li><a href="#" data-page="ventas"><i class="fa-brands fa-sellsy"></i>Control de ventas</a></li>
+                    <li><a href="#" data-page="reportes"><i class="fas fa-chart-bar"></i>Reportes</a></li>
+                    <li><a href="#" data-page="configuracion"><i class="fas fa-cog"></i>Configuración</a></li>
                 </ul>
 
                 <div class="sidebar-footer">
@@ -67,9 +64,6 @@ class Sidebar {
         `;
     }
 
-    /**
-     * Genera el HTML del sidebar para empleados
-     */
     getEmployeeSidebar() {
         return `
             <aside id="sidebar" class="sidebar">
@@ -101,9 +95,6 @@ class Sidebar {
         `;
     }
 
-    /**
-     * Obtiene el nombre para mostrar del usuario
-     */
     getUserDisplayName() {
         if (!this.user) return 'Usuario';
 
@@ -113,17 +104,11 @@ class Sidebar {
             'Usuario';
     }
 
-    /**
-     * Obtiene el rol del usuario
-     */
     getUserRole() {
         if (!this.user) return 'Rol';
         return this.user.rol || this.user.role || 'Usuario';
     }
 
-    /**
-     * Marca la página activa en el menú
-     */
     setActivePage() {
         const links = document.querySelectorAll('.sidebar-menu a');
         const currentPath = window.location.pathname;
@@ -131,16 +116,12 @@ class Sidebar {
         links.forEach(link => {
             const href = link.getAttribute('href');
 
-            // Comparar rutas
             if (href && (currentPath.endsWith(href) || currentPath.includes(href.replace('./', '')))) {
                 link.parentElement.classList.add('active');
             }
         });
     }
 
-    /**
-     * Adjunta event listeners
-     */
     attachEventListeners() {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
@@ -150,7 +131,6 @@ class Sidebar {
             });
         }
 
-        // Toggle menu en móvil
         const toggleBtn = document.querySelector('.toggle-menu-btn');
         const sidebar = document.getElementById('sidebar');
 
@@ -162,13 +142,8 @@ class Sidebar {
     }
 }
 
-// Auto-inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = new Sidebar();
     sidebar.render();
 });
-
-// Exportar para uso manual si es necesario
 export default Sidebar;
-
-console.log("✅ Sidebar Component cargado");
