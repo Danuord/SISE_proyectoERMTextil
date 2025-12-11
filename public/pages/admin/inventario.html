@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+
+    <title>Registro de pagos | TextileFlow</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Estilos locales -->
+    <link rel="stylesheet" href="../../css/modules/inventario.css">
+</head>
+
+<body>
+    <div class="layout">
+
+        <div id="sidebar-container"></div>
+        
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Control de Inventario</h1>
+                    <p>Resumen y gestión inventario</p>
+                </div>
+            </div>
+
+            <!-- sección categorias -->
+            <div class="categoria-section">
+
+                <!-- Encabezado desplegable -->
+                <div class="categoria-header" id="toggleCategoria">
+                    <h2>Categorías</h2>
+                    <span>Ingresa nuevas categorías o visualiza las ya creadas</span>
+                    <i class="fa fa-chevron-down categoria-icon"></i>
+                </div>
+
+                <!-- Contenido oculto -->
+                <div class="categoria-content" id="categoriaContent">
+
+                    <button class="btn btn-primary" id="btnAddCategoria">
+                        <i class="fa fa-plus"></i> Nueva Categoría
+                    </button>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCategorias">
+                            <!-- Cargar con onSnapshot -->
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+            
+            <!-- sección artículos -->
+            <div class="container">
+                <h2>Artículos</h2>
+                <button class="btn btn-primary" id="btnAddArticulo">
+                    <i class="fa fa-plus"></i> Nuevo Artículo
+                </button>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Característica</th>
+                            <th>Detalle</th>
+                            <th>Precio Base</th>
+                            <th>Stock</th>
+                            <th>Descripción</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaArticulos">
+                        <!-- Cargar con onSnapshot -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- modal agregar categoria -->
+            <div class="modal" id="modalCategoria">
+                <div class="modal-content">
+                    <div class="modal-header">Nueva Categoría</div>
+                    <input type="text" placeholder="Nombre" id="catNombre" />
+                    <input type="text" placeholder="Descripción" id="catDesc" />
+                    <button class="btn btn-primary" id="guardarCategoria">Guardar</button>
+                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- modal agregar articulo -->
+            <div class="modal" id="modalArticulo">
+                <div class="modal-content">
+                    <div class="modal-header">Nuevo Artículo</div>
+
+                    <input type="text" placeholder="Nombre del artículo" id="artNombre" />
+                    <input type="text" placeholder="Descripción" id="artDesc" />
+                    <input type="number" placeholder="Precio base" id="artPrecio" />
+                    <input type="number" placeholder="Cantidad" id="artCantidad" />
+
+                    <label for="artImagen">Imagen del artículo</label>
+                    <input type="file" id="artImagen" accept="image/*" />
+
+                    <label>Categoría</label>
+                    <select id="selectCategorias">
+                        <option value="">-- Cargando categorías --</option>
+                    </select>
+
+                    <label>Característica</label>
+                    <div class="input-with-edit">
+                        <select id="selectAtributosArt">
+                            <option value="">-- Cargando características --</option>
+                        </select>
+                        <button id="btnAddAtributo">+</button>
+                    </div>
+
+                    <div class="input-with-edit">
+                        <select id="selectValor">
+                            <option value="">-- Selecciona una característica primero --</option>
+                        </select>
+                        <button id="btnAddValor">+</button>
+                    </div>
+
+                    <button class="btn btn-primary" id="guardarArticulo">Guardar</button>
+                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- modal agregar atributo -->
+            <div class="modal" id="modalAtributo">
+                <div class="modal-content">
+                    <div class="modal-header">Nueva Característica</div>
+                    <label>Nombre del atributo</label>
+                    <input type="text" id="attrNombre" placeholder="Ejemplo: Talla, Color, Material" />
+                    <button class="btn btn-primary" id="guardarAtributo">Guardar</button>
+                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- modal agregar valor -->
+            <div class="modal" id="modalValor">
+                <div class="modal-content">
+                    <div class="modal-header">Nuevo Valor</div>
+                    <label>Selecciona característica</label>
+                    <select id="selectAtributos">
+                        <option value="">-- Cargando características --</option>
+                    </select>
+                    <label>Valor</label>
+                    <input type="text" id="inputValor" placeholder="Ejemplo: S, M, Rojo, Algodón" />
+                    <button class="btn btn-primary" id="btnGuardarValor">Guardar</button>
+                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                </div>
+            </div>
+            
+            <!-- modal editar articulo -->
+            <div class="modal" id="modalEditarArticulo">
+                <div class="modal-content">
+
+                    <h2>Editar Artículo</h2>
+
+                    <label>Nombre del artículo</label>
+                    <div class="edit-group">
+                        <input type="text" id="editNombre" disabled>
+                    </div>
+
+                    <label>Categoría</label>
+                    <select id="editCategoria" disabled></select>
+
+                    <label>Precio Base</label>
+                    <div class="edit-group">
+                        <input type="number" id="editPrecio" disabled>
+                    </div>
+
+                    <label>Stock</label>
+                    <div class="edit-group">
+                        <input type="number" id="editStock" disabled>
+                    </div>
+
+                    <label>Descripción</label>
+                    <div class="edit-group">
+                        <textarea id="editDescripcion" disabled></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" id="btnEditarGuardar" data-modo="editar">Editar</button>
+                    <button class="btn btn-danger" onclick="cerrarModal('modalEditarArticulo')">Cerrar</button>
+
+                </div>
+            </div>
+
+            <script>
+                function cerrarModal(id){ document.getElementById(id).style.display = 'none'; }
+            </script>
+        </main>
+    </div>
+
+    <script type="module" src="../../components/sidebar.js"></script>
+    <script type="module">
+        import { requireAdmin } from '../../components/auth-guard.js';
+        requireAdmin();
+    </script>
+    <script type="module" src="../../js/inventario.js"></script>
+</body>
