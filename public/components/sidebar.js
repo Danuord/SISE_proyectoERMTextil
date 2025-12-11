@@ -41,7 +41,7 @@ class Sidebar {
                     <li><a href="/pages/admin/dashboard.html" data-page="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                     <li><a href="/pages/admin/rrhh.html" data-page="rrhh"><i class="fas fa-users"></i>Gestion de usuarios</a></li>
                     <li><a href="/pages/admin/asistencia.html" data-page="asistencia"><i class="fas fa-clock"></i>Control de asistencias</a></li>
-                    <li><a href="#" data-page="inventario"><i class="fas fa-boxes"></i>Control de inventario</a></li>
+                    <li><a href="/pages/admin/inventario.html" data-page="inventario"><i class="fas fa-boxes"></i>Control de inventario</a></li>
                     <li><a href="/pages/admin/pagos.html" data-page="pagos"><i class="fa-solid fa-cash-register"></i>Pagos Empleados</a></li>
                     <li><a href="#" data-page="ventas"><i class="fa-brands fa-sellsy"></i>Control de ventas</a></li>
                     <li><a href="#" data-page="reportes"><i class="fas fa-chart-bar"></i>Reportes</a></li>
