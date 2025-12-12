@@ -7,10 +7,12 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Asistencia | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/asistencia.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/asistencia.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -102,9 +104,6 @@
                                 <div class="section-actions">
                                     <button class="btn-primary" onclick="openManualRegisterModal()">
                                         <i class="fas fa-plus"></i> Registrar Manual
-                                    </button>
-                                    <button class="btn-secondary" onclick="openScheduleModal()">
-                                        <i class="fas fa-clock"></i> Configurar Horario
                                     </button>
                                 </div>
                             </div>
@@ -245,8 +244,52 @@
                                 </div>
 
                                 <div class="card">
-                                    <h3>Horarios Personalizados</h3>
-                                    <div id="customSchedulesList"></div>
+                                    <h3>Horarios Personalizados por Día</h3>
+                                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 20px;">
+                                        Configura horarios específicos para cada día de la semana. Si no se configura,
+                                        se usará el horario por defecto.
+                                    </p>
+
+                                    <div class="form-group">
+                                        <label>Seleccionar Día</label>
+                                        <select id="customDaySelect" class="filter-select">
+                                            <option value="">-- Seleccionar día --</option>
+                                            <option value="lunes">Lunes</option>
+                                            <option value="martes">Martes</option>
+                                            <option value="miercoles">Miércoles</option>
+                                            <option value="jueves">Jueves</option>
+                                            <option value="viernes">Viernes</option>
+                                            <option value="sabado">Sábado</option>
+                                            <option value="domingo">Domingo</option>
+                                        </select>
+                                    </div>
+
+                                    <form id="customScheduleForm" class="schedule-form" style="display: none;">
+                                        <div class="form-group">
+                                            <label>Hora de Entrada</label>
+                                            <input type="time" id="customEntry" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Hora de Salida</label>
+                                            <input type="time" id="customExit" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tolerancia (minutos)</label>
+                                            <input type="number" id="customTolerance" value="15" min="0" max="60"
+                                                required>
+                                        </div>
+                                        <div style="display: flex; gap: 10px;">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fas fa-save"></i> Guardar Horario
+                                            </button>
+                                            <button type="button" class="btn-secondary"
+                                                onclick="deleteCustomSchedule()">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <div id="customSchedulesList" style="margin-top: 20px;"></div>
                                 </div>
                             </div>
                         </div>
@@ -397,8 +440,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script type="module" src="../../components/sidebar.js"></script>
-    <script type="module" src="../../js/asistencias.js"></script>
+    <script src="../../components/sidebar.js" type="module"></script>
+    <script src="../../components/auth-guard.js" type="module"></script>
+    <script src="../../js/asistencias.js" type="module"></script>
+    <script src="../../js/schedules.js" type="module"></script>
 </body>
 
 </html>

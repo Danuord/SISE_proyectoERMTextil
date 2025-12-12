@@ -1,15 +1,16 @@
 .sidebar {
   position: fixed;
   left: 0;
-  top: 60px;
-  width: 250px;
-  height: calc(100vh - 60px);
-  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-  border-right: 1px solid #dee2e6;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   overflow-y: auto;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  z-index: 999;
+  z-index: 1000;
+  padding: 20px 0;
 }
 
 .sidebar.collapsed {
@@ -17,8 +18,24 @@
 }
 
 .sidebar-header {
-  padding: 15px;
-  border-bottom: 1px solid #dee2e6;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.sidebar-header h1 {
+  font-size: 24px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sidebar-header p {
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .sidebar-toggle {
@@ -39,96 +56,108 @@
   transform: scale(1.1);
 }
 
-.sidebar-nav {
-  padding: 20px 0;
+
+.sidebar-menu {
+  list-style: none;
 }
 
-.nav-section {
-  margin-bottom: 20px;
+.sidebar-menu li {
+  margin: 0;
 }
 
-.section-title {
-  padding: 0 15px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-}
-
-.sidebar-link {
+.sidebar-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 15px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 15px;
-  color: #495057;
-  text-decoration: none;
-  font-size: 14px;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
+  font-size: 14px;
 }
 
-.sidebar-link:hover {
-  background-color: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  border-left-color: #667eea;
-  transform: translateX(4px);
+.sidebar-menu a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: white;
+  padding-left: 25px;
 }
 
-.sidebar-link.active {
-  background-color: rgba(102, 126, 234, 0.15);
-  color: #667eea;
-  border-left-color: #667eea;
-  font-weight: 600;
-}
-
-.sidebar-link i {
-  font-size: 16px;
+.sidebar-menu a i {
   width: 20px;
   text-align: center;
+}
+
+.sidebar-menu a.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-left-color: white;
+  font-weight: 600;
 }
 
 .sidebar-footer {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-  background: white;
+  width: 100%;
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.user-details {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 24px;
 }
 
 .user-name {
+  font-weight: bold;
   font-size: 13px;
-  font-weight: 600;
-  color: #212529;
-  margin: 0;
+  margin-bottom: 3px;
 }
 
 .user-role {
-  font-size: 11px;
-  color: #6c757d;
+  font-size: 12px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 0;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.logout-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 0, 0, 0.3);
+  border-color: rgba(255, 0, 0, 0.5);
+}
+
+.logout-btn i {
+  font-size: 16px;
 }
 
 .sidebar.collapsed {
@@ -178,4 +207,22 @@
   .main-content-wrapper.sidebar-collapsed {
     margin-left: 70px;
   }
+}
+
+/* Scrollbar Styles */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }

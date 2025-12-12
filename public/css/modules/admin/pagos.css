@@ -1,6 +1,3 @@
-/* Admin Pagos (Payments) Specific Styles */
-
-/* Payment Summary Cards */
 .payment-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -51,7 +48,6 @@
     color: #667eea;
 }
 
-/* Payment Form */
 .payment-form {
     background: white;
     padding: 2rem;
@@ -76,7 +72,6 @@
     grid-template-columns: 1fr;
 }
 
-/* Payment Method Selector */
 .payment-methods {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -116,7 +111,6 @@
     color: white;
 }
 
-/* Payment History */
 .payment-history {
     background: white;
     padding: 1.5rem;
@@ -162,7 +156,6 @@
     color: #28a745;
 }
 
-/* Filters */
 .payment-filters {
     background: white;
     padding: 1.5rem;
@@ -183,7 +176,6 @@
     align-items: end;
 }
 
-/* Export Options */
 .export-section {
     display: flex;
     justify-content: space-between;
@@ -222,7 +214,6 @@
     opacity: 0.8;
 }
 
-/* Payment Status */
 .payment-status {
     display: inline-block;
     padding: 0.35rem 0.75rem;
@@ -246,7 +237,6 @@
     color: #721c24;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .payment-summary {
         grid-template-columns: 1fr;
