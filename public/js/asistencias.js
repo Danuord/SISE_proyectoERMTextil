@@ -1,7 +1,7 @@
 // ===================== IMPORTS DE FIREBASE =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 console.log("✅ ASISTENCIA.JS CARGADO");
 
@@ -197,6 +197,23 @@ async function cargarAsistenciasHoy() {
     const hoy = new Date().toISOString().split('T')[0];
 
     try {
+        // Cargar configuración de horarios dinámicamente
+        let horaInicio = '08:30';
+        let horaFin = '17:30';
+
+        try {
+            const configRef = doc(db, "configuracion_sistema", "asistencias");
+            const configSnap = await getDoc(configRef);
+            if (configSnap.exists()) {
+                const config = configSnap.data();
+                horaInicio = config.horaInicio || '08:30';
+                horaFin = config.horaFin || '17:30';
+                console.log(`✅ Horarios cargados: Entrada ${horaInicio}, Salida ${horaFin}`);
+            }
+        } catch (configError) {
+            console.warn('⚠️ No se pudo cargar configuración de horarios, usando valores por defecto');
+        }
+
         const q = query(
             collection(db, "asistencias"),
             where("fecha", "==", hoy)
@@ -240,6 +257,10 @@ async function cargarAsistenciasHoy() {
         let tardanzas = 0;
         let ausentes = totalEmpleados - Object.keys(porEmpleado).length;
 
+        // Convertir hora de inicio a minutos para comparación
+        const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
+        const minutosInicio = horaInicioH * 60 + horaInicioM;
+
         Object.values(porEmpleado).forEach(emp => {
             const tr = document.createElement("tr");
             const entrada = emp.entrada || "--:--";
@@ -267,9 +288,11 @@ async function cargarAsistenciasHoy() {
                 presentes++;
             }
 
+            // Detectar tardanza usando hora de inicio configurada
             if (emp.horaEntrada) {
                 const [h, m] = emp.horaEntrada.split(':').map(Number);
-                if (h > 8 || (h === 8 && m > 30)) {
+                const minutosEntrada = h * 60 + m;
+                if (minutosEntrada > minutosInicio) {
                     esTarde = true;
                     tardanzas++;
                     statusClass = "late";
@@ -278,9 +301,9 @@ async function cargarAsistenciasHoy() {
 
             tr.innerHTML = `
                 <td>${emp.nombre}</td>
-                <td>08:00</td>
+                <td>${horaInicio}</td>
                 <td>${entrada}</td>
-                <td>17:00</td>
+                <td>${horaFin}</td>
                 <td>${salida}</td>
                 <td>${horas !== "--" ? horas + "h" : "--"}</td>
                 <td><span class="status-badge status-${statusClass}">${esTarde ? "Tarde" : estado}</span></td>
@@ -392,9 +415,55 @@ function showToast(message, type = "info") {
 }
 
 // ===================== MODALES =====================
-window.openManualRegisterModal = function () {
+window.openManualRegisterModal = async function () {
     const modal = document.getElementById("manualRegisterModal");
-    if (modal) modal.classList.add("active");
+    if (modal) {
+        modal.classList.add("active");
+
+        // Cargar configuración de horarios dinámicamente
+        try {
+            const docRef = doc(db, "configuracion_sistema", "asistencias");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const config = docSnap.data();
+                const horaInicio = config.horaInicio || '08:30';
+                const horaFin = config.horaFin || '17:30';
+
+                // Pre-llenar hora según el tipo seleccionado
+                const tipoSelect = document.getElementById("manualType");
+                const horaInput = document.getElementById("manualTime");
+
+                // Listener para cambiar hora cuando cambia el tipo
+                const updateTimeByType = () => {
+                    if (tipoSelect.value === 'entrada') {
+                        horaInput.value = horaInicio;
+                    } else if (tipoSelect.value === 'salida') {
+                        horaInput.value = horaFin;
+                    }
+                };
+
+                // Aplicar al abrir
+                updateTimeByType();
+
+                // Aplicar cuando cambia el tipo
+                tipoSelect.removeEventListener('change', updateTimeByType); // Evitar duplicados
+                tipoSelect.addEventListener('change', updateTimeByType);
+
+                console.log(`✅ Horarios cargados: Entrada ${horaInicio}, Salida ${horaFin}`);
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar configuración de horarios:', error);
+            // Usar valores por defecto si falla
+            const horaInput = document.getElementById("manualTime");
+            const tipoSelect = document.getElementById("manualType");
+            if (tipoSelect.value === 'entrada') {
+                horaInput.value = '08:30';
+            } else {
+                horaInput.value = '17:30';
+            }
+        }
+    }
 };
 
 window.closeManualRegisterModal = function () {
@@ -835,6 +904,7 @@ async function cargarEstadisticasGenerales(days = 7) {
                 totalDias: 0,
                 diasCompletos: 0,
                 tardanzas: 0,
+                diasPuntuales: 0,
                 totalHoras: 0
             };
         });
@@ -881,6 +951,8 @@ async function cargarEstadisticasGenerales(days = 7) {
                     const [h, m] = dia.entrada.split(':').map(Number);
                     if (h > 8 || (h === 8 && m > 30)) {
                         usuariosMap[userId].tardanzas++;
+                    } else {
+                        usuariosMap[userId].diasPuntuales++;
                     }
                 }
             });
@@ -899,15 +971,16 @@ async function cargarEstadisticasGenerales(days = 7) {
                 const tr = document.createElement('tr');
                 const promHoras = stats.diasCompletos > 0 ? (stats.totalHoras / stats.diasCompletos).toFixed(2) : "0.00";
                 const asistencia = stats.totalDias > 0 ? ((stats.diasCompletos / stats.totalDias) * 100).toFixed(0) : "0";
+                const puntualidad = stats.totalDias > 0 ? ((stats.diasPuntuales / stats.totalDias) * 100).toFixed(0) : "0";
 
                 tr.innerHTML = `
                     <td>${stats.displayName}</td>
                     <td>${stats.totalDias}</td>
-                    <td>${stats.diasCompletos}</td>
                     <td>${stats.tardanzas}</td>
                     <td>${stats.totalHoras.toFixed(2)}h</td>
                     <td>${promHoras}h</td>
                     <td><span class="status-badge ${asistencia >= 90 ? 'status-complete' : asistencia >= 70 ? 'status-incomplete' : 'status-absent'}">${asistencia}%</span></td>
+                    <td><span class="status-badge ${puntualidad >= 90 ? 'status-complete' : puntualidad >= 70 ? 'status-incomplete' : 'status-absent'}">${puntualidad}%</span></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1046,6 +1119,7 @@ function renderLatenessChart(usuariosMap) {
         // Destruir gráfico anterior si existe
         if (latenessChartInstance) {
             latenessChartInstance.destroy();
+            latenessChartInstance = null;
         }
 
         // Obtener top 10 empleados con más tardanzas
@@ -1070,7 +1144,7 @@ function renderLatenessChart(usuariosMap) {
 
         const ctx = canvas.getContext('2d');
         latenessChartInstance = new Chart(ctx, {
-            type: 'horizontalBar',
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{

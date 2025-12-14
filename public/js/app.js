@@ -3,7 +3,9 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebas
 import {
     getAuth,
     signInWithEmailAndPassword,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    setPersistence,
+    browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
@@ -41,6 +43,11 @@ async function handleLogin(e) {
 
     try {
         console.log('Iniciando login con:', email);
+
+        // Configurar persistencia de Firebase Auth
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('✅ Persistencia de Firebase Auth configurada');
+
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <title>Mi Perfil | TextileFlow Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/profile.css">
+</head>
+
+<body>
+    <div class="layout">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1><i class="fas fa-user-shield"></i> Mi Perfil de Administrador</h1>
+                    <p>Información personal y configuración de cuenta</p>
+                </div>
+            </div>
+
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="profile-info">
+                    <h2 id="profileName">Cargando...</h2>
+                    <p id="profileRole">Administrador</p>
+                    <span class="profile-badge"><i class="fas fa-crown"></i> Admin</span>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2><i class="fas fa-user-edit"></i> Datos Personales</h2>
+                <div class="info-badge">
+                    <i class="fas fa-info-circle"></i>
+                    Actualiza tu información personal aquí
+                </div>
+                <form id="profileForm" class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Nombre</label>
+                        <input type="text" id="nombre" required placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Apellido</label>
+                        <input type="text" id="apellido" required placeholder="Tu apellido">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Teléfono</label>
+                        <input type="tel" id="telefono" placeholder="Número de teléfono">
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion" placeholder="Tu dirección">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> DNI</label>
+                        <input type="text" id="dni" placeholder="Documento de identidad">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-tag"></i> Rol (No editable)</label>
+                        <input type="text" id="rol" value="Administrador" disabled>
+                    </div>
+                    <div class="form-actions full-width">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-section">
+                <h2><i class="fas fa-lock"></i> Cambiar Contraseña</h2>
+                <div class="info-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Mantén tu cuenta segura actualizando tu contraseña regularmente
+                </div>
+                <form id="passwordForm" class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Contraseña Actual</label>
+                        <input type="password" id="currentPassword" autocomplete="current-password" required
+                            placeholder="Contraseña actual">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                        <input type="password" id="newPassword" autocomplete="new-password" required
+                            placeholder="Nueva contraseña (mín. 8 caracteres)">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirmar Nueva Contraseña</label>
+                        <input type="password" id="confirmPassword" autocomplete="new-password" required
+                            placeholder="Confirma la nueva contraseña">
+                    </div>
+                    <div class="form-actions full-width">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-key"></i> Cambiar Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-section">
+                <h2><i class="fas fa-chart-line"></i> Estadísticas de Cuenta</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="diasActivo">0</h3>
+                            <p>Días activo</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalEmpleados">0</h3>
+                            <p>Empleados gestionados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="ultimoAcceso">-</h3>
+                            <p>Último acceso</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../../components/sidebar.js"></script>
+    <script type="module" src="../../js/admin-profile.js"></script>
+</body>
+
+</html>

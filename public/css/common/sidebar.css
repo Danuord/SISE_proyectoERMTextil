@@ -106,6 +106,15 @@
 .user-info {
   text-align: center;
   margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.user-info:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .user-avatar {
