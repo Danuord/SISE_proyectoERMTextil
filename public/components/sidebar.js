@@ -45,7 +45,7 @@ class Sidebar {
                     <li><a href="./inventario.html" class="sidebar-link" data-page="admin-inventario"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="./reportes.html" class="sidebar-link" data-page="admin-reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>
                     <li><a href="#" class="sidebar-link" data-page="ventas"><i class="fa-brands fa-sellsy"></i>Control de ventas</a></li>
-                    <li><a href="#" class="sidebar-link" data-page="configuracion"><i class="fas fa-cog"></i>Configuración</a></li>
+                    <li><a href="./configuracion.html" class="sidebar-link" data-page="admin-configuracion"><i class="fas fa-cog"></i> Configuración</a></li>
                 </ul>
 
                 <div class="sidebar-footer">
@@ -142,6 +142,14 @@ class Sidebar {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
+            });
+        }
+
+        // Agregar click en user-info para ir al perfil
+        const userInfo = document.querySelector('.user-info');
+        if (userInfo) {
+            userInfo.addEventListener('click', () => {
+                window.location.href = './profile.html';
             });
         }
 

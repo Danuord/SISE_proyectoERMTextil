@@ -944,7 +944,7 @@ window.generateHRReport = async function () {
                 email: user.email,
                 rol: user.rol || 'N/A',
                 tipo_documento: user.tipo_documento || 'N/A',
-                numero_documento: user.numero_documento || 'N/A',
+                numero_documento: user.documento || 'N/A',
                 telefono: user.telefono || 'N/A',
                 direccion: user.direccion || 'N/A',
                 departamento: user.departamento || 'N/A',
@@ -961,11 +961,9 @@ window.generateHRReport = async function () {
         console.log('📊 Total empleados antes de filtrar:', empleados.length);
 
         // Filtrar por tipo de reporte
-        if (reportType === 'empleados-activos') {
-            // Solo empleados activos
-            empleadosFiltrados = empleadosFiltrados.filter(emp => emp.estado === 'activo');
-            console.log('✅ Filtrado por empleados activos:', empleadosFiltrados.length);
-        }
+        // NOTA: Por defecto muestra TODOS los usuarios (activos e inactivos)
+        // El filtro de estado se aplica solo si el usuario selecciona un estado específico
+        console.log('📋 Mostrando todos los usuarios (activos e inactivos)');
         // Si es 'rotacion', muestra TODOS (activos e inactivos)
 
         // Filtrar por rol (solo si el usuario seleccionó un rol específico)
