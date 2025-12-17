@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
-    <title>Mi Perfil | TextileFlow</title>
+    <title>Mi Perfil | TextileFlow Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/common/sidebar.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
-    <link rel="stylesheet" href="../../css/modules/employee/common.css">
-    <link rel="stylesheet" href="../../css/modules/employee/profile.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/profile.css">
 </head>
 
 <body>
@@ -20,21 +20,19 @@
         <main class="main-content">
             <div class="header">
                 <div>
-                    <h1>Mi Perfil</h1>
-                    <p>Información personal y configuración</p>
+                    <h1><i class="fas fa-user-shield"></i> Mi Perfil de Administrador</h1>
+                    <p>Información personal y configuración de cuenta</p>
                 </div>
-                <button class="toggle-menu-btn" onclick="toggleMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
 
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-user-shield"></i>
                 </div>
                 <div class="profile-info">
                     <h2 id="profileName">Cargando...</h2>
-                    <p id="profileRole">Empleado</p>
+                    <p id="profileRole">Administrador</p>
+                    <span class="profile-badge"><i class="fas fa-crown"></i> Admin</span>
                 </div>
             </div>
 
@@ -66,12 +64,12 @@
                         <input type="text" id="direccion" placeholder="Tu dirección">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-user-tag"></i> Rol (No editable)</label>
-                        <input type="text" id="rol" disabled>
+                        <label><i class="fas fa-id-card"></i> DNI</label>
+                        <input type="text" id="dni" placeholder="Documento de identidad">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-alt"></i> Fecha de Contratación (No editable)</label>
-                        <input type="text" id="fechaContratacion" disabled>
+                        <label><i class="fas fa-user-tag"></i> Rol (No editable)</label>
+                        <input type="text" id="rol" value="Administrador" disabled>
                     </div>
                     <div class="form-actions full-width">
                         <button type="submit" class="btn-primary">
@@ -99,28 +97,56 @@
                             placeholder="Nueva contraseña (mín. 8 caracteres)">
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Confirmar Contraseña</label>
+                        <label><i class="fas fa-lock"></i> Confirmar Nueva Contraseña</label>
                         <input type="password" id="confirmPassword" autocomplete="new-password" required
-                            placeholder="Confirma tu nueva contraseña">
+                            placeholder="Confirma la nueva contraseña">
                     </div>
                     <div class="form-actions full-width">
                         <button type="submit" class="btn-primary">
-                            <i class="fas fa-check"></i> Cambiar Contraseña
+                            <i class="fas fa-key"></i> Cambiar Contraseña
                         </button>
                     </div>
                 </form>
             </div>
 
-            <footer>
-                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
-            </footer>
+            <div class="content-section">
+                <h2><i class="fas fa-chart-line"></i> Estadísticas de Cuenta</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="diasActivo">0</h3>
+                            <p>Días activo</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalEmpleados">0</h3>
+                            <p>Empleados gestionados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="ultimoAcceso">-</h3>
+                            <p>Último acceso</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-    <div id="statusMessage" class="status-message"></div>
-
+    <!-- Scripts -->
     <script type="module" src="../../components/sidebar.js"></script>
-    <script type="module" src="../../js/employee-profile.js"></script>
+    <script type="module" src="../../js/admin-profile.js"></script>
 </body>
 
 </html>

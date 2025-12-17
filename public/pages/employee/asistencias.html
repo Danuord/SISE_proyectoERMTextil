@@ -7,6 +7,7 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Mis Asistencias | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/asistencia.css">
     <link rel="stylesheet" href="../../css/modules/employee/common.css">
@@ -15,7 +16,7 @@
 
 <body>
     <div class="layout">
-        <!-- Sidebar Component -->
+
         <div id="sidebar-container"></div>
 
         <main class="main-content">
@@ -29,11 +30,9 @@
                 </button>
             </div>
 
-            <!-- Mi Asistencia de Hoy -->
             <div class="content-section">
                 <h2><i class="fas fa-clock"></i> Mi Asistencia de Hoy</h2>
 
-                <!-- Botones Principales (Grandes) -->
                 <div class="attendance-buttons">
                     <button id="btnCheckIn" class="btn-check-in btn-large">
                         <i class="fas fa-sign-in-alt"></i>
@@ -45,7 +44,6 @@
                     </button>
                 </div>
 
-                <!-- Estado de Hoy (Oculto inicialmente) -->
                 <div id="todayStatus" class="today-status" style="display: none;">
                     <div class="status-card">
                         <div class="status-item">
@@ -59,7 +57,6 @@
                     </div>
                 </div>
 
-                <!-- Horario Programado -->
                 <div class="schedule-card">
                     <h3><i class="fas fa-calendar-check"></i> Horario de Hoy</h3>
                     <div class="schedule-info">
@@ -75,7 +72,6 @@
                 </div>
             </div>
 
-            <!-- Historial Personal -->
             <div class="content-section">
                 <h2>Mi Historial Personal</h2>
                 <div class="table-controls">
@@ -106,10 +102,7 @@
         </main>
     </div>
 
-    <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
-
-    <!-- Employee Attendance Script -->
     <script type="module" src="../../js/employee-asistencias.js"></script>
 </body>
 

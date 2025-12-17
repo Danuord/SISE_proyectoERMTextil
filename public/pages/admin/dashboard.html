@@ -7,7 +7,11 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Dashboard | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -19,7 +23,7 @@
             <div class="header">
                 <div>
                     <h1>Dashboard</h1>
-                    <p>Bienvenido a TextileFlow ERP</p>
+                    <p>Visión general del sistema</p>
                 </div>
                 <button class="toggle-menu-btn" onclick="toggleMenu()">
                     <i class="fas fa-bars"></i>
@@ -28,37 +32,167 @@
 
             <div id="statusMessage" class="status-message"></div>
 
-            <div class="cards-grid">
-                <div class="card">
-                    <h3>📦 Stock Total</h3>
-                    <div class="value">15.7k</div>
-                    <div class="unit">unidades</div>
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="kpi-trend up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiEmpleados">-</div>
+                        <div class="kpi-label">Empleados Activos</div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>⚠️ Baja Existencia</h3>
-                    <div class="value">82</div>
-                    <div class="unit">reorden</div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="kpi-trend up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+5%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiAsistencia">-%</div>
+                        <div class="kpi-label">Asistencia del Mes</div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>🏭 Órdenes</h3>
-                    <div class="value">12</div>
-                    <div class="unit">en proceso</div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="kpi-trend down">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-8%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiTardanzas">-</div>
+                        <div class="kpi-label">Tardanzas del Mes</div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>💰 Ingresos Hoy</h3>
-                    <div class="value">$45k</div>
-                    <div class="unit">en ventas</div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="kpi-trend neutral">
+                            <i class="fas fa-minus"></i>
+                            <span>0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiStockBajo">-</div>
+                        <div class="kpi-label">Productos Stock Bajo</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="content">
-                <h2>🎯 Bienvenido a TextileFlow</h2>
-                <p>Sistema ERP especializado para la gestión integral de empresas textiles.</p>
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Asistencia Últimos 7 Días</h3>
+                        <button class="chart-action"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
 
-                <p style="line-height: 1.6;">
-                    Desde este dashboard puedes acceder a todas las funcionalidades del sistema:
-                </p>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Distribución de Empleados</h3>
+                        <button class="chart-action"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="employeeChart"></canvas>
+                    </div>
+                </div>
 
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Stock por Categoría</h3>
+                        <button class="chart-action"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-section">
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <h3><i class="fas fa-history"></i> Actividad Reciente</h3>
+                        <a href="#" class="view-all">Ver todo <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="activity-list" id="activityFeed">
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #667eea;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p><strong>Nuevo empleado registrado</strong></p>
+                                <span class="activity-time">Hace 2 horas</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #f093fb;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p><strong>Stock actualizado</strong></p>
+                                <span class="activity-time">Hace 4 horas</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #fa709a;">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p><strong>Reporte generado</strong></p>
+                                <span class="activity-time">Hace 6 horas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions-card">
+                    <div class="activity-header">
+                        <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="rrhh.html" class="quick-action">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Nuevo Empleado</span>
+                        </a>
+                        <a href="inventario.html" class="quick-action">
+                            <i class="fas fa-box"></i>
+                            <span>Agregar Producto</span>
+                        </a>
+                        <a href="asistencia.html" class="quick-action">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Registrar Asistencia</span>
+                        </a>
+                        <a href="reportes.html" class="quick-action">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Generar Reporte</span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <footer>
@@ -70,10 +204,8 @@
     <script type="module">
         import authService from '../../src/auth/services/authService.js';
 
-        // Get current session
         const session = authService.getSession();
 
-        // Sidebar ya está en el HTML, solo definir funciones
         window.logout = function () {
             authService.logout();
             window.location.href = '../login.html';
@@ -84,13 +216,6 @@
             sidebar.classList.toggle('active');
         };
 
-        // Actualizar info del usuario
-        if (session) {
-            document.getElementById('userNameDisplay').textContent = session.displayName || session.email || 'Usuario';
-            document.getElementById('userRoleDisplay').textContent = session.role || session.rol || 'Rol';
-        }
-
-        // Sidebar link auto-close on mobile
         document.querySelectorAll('.sidebar-menu a').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
@@ -99,24 +224,20 @@
             });
         });
 
-        // Status message
         const statusDiv = document.getElementById('statusMessage');
         statusDiv.className = 'status-message show success';
-        statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}! Tu sesión está activa.`;
-        setTimeout(() => { statusDiv.classList.remove('show'); }, 5000);
+        statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}!`;
+        setTimeout(() => { statusDiv.classList.remove('show'); }, 3000);
 
         console.log('Dashboard cargado exitosamente');
-        console.log('Usuario:', session);
     </script>
 
-    <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
-
-    <!-- Access Control -->
     <script type="module">
         import { requireAdmin } from '../../components/auth-guard.js';
         requireAdmin();
     </script>
+    <script type="module" src="../../js/dashboard.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <title>Reportes | TextileFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/reportes.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="layout">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Reportes y Análisis</h1>
+                    <p>Genera reportes detallados y analiza el desempeño de tu empresa</p>
+                </div>
+            </div>
+
+            <div id="adminView">
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="asistencias">
+                            <i class="fas fa-calendar-check"></i> Asistencias
+                        </button>
+                        <button class="tab-btn" data-tab="nomina">
+                            <i class="fas fa-money-bill-wave"></i> Pagos
+                        </button>
+                        <button class="tab-btn" data-tab="rrhh">
+                            <i class="fas fa-users"></i> RRHH
+                        </button>
+                        <button class="tab-btn" data-tab="inventario">
+                            <i class="fas fa-boxes"></i> Inventario
+                        </button>
+                        <button class="tab-btn" data-tab="ventas">
+                            <i class="fas fa-shopping-cart"></i> Ventas
+                        </button>
+                    </div>
+
+                    <div class="tab-content active" data-tab="asistencias">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Reportes de Asistencias</h2>
+                                <p style="color: #6b7280;">Selecciona el tipo de reporte que deseas generar</p>
+                            </div>
+
+                            <div class="report-selector">
+                                <div class="report-card" onclick="selectAttendanceReport('asistencia-mensual')">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <h3>Resumen Mensual</h3>
+                                    <p>Métricas detalladas de asistencia y puntualidad</p>
+                                </div>
+                                <div class="report-card" onclick="selectAttendanceReport('tardanzas')">
+                                    <i class="fas fa-clock"></i>
+                                    <h3>Tardanzas</h3>
+                                    <p>Registro de llegadas tarde</p>
+                                </div>
+                                <div class="report-card" onclick="selectAttendanceReport('ausencias')">
+                                    <i class="fas fa-user-times"></i>
+                                    <h3>Ausencias</h3>
+                                    <p>Días sin registro de asistencia</p>
+                                </div>
+                            </div>
+
+                            <div id="attendanceReportArea" style="display: none;">
+                                <div class="filters-panel" style="margin-top: 30px;">
+                                    <h3 id="attendanceReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte
+                                    </h3>
+
+                                    <!-- Selector de tipo de filtro -->
+                                    <div class="form-group" style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 10px; font-weight: 600;">Tipo de
+                                            Período</label>
+                                        <div style="display: flex; gap: 20px;">
+                                            <label
+                                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                                <input type="radio" name="dateFilterType" value="month" checked
+                                                    onchange="toggleDateFilter()">
+                                                <span>Mes Completo</span>
+                                            </label>
+                                            <label
+                                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                                <input type="radio" name="dateFilterType" value="range"
+                                                    onchange="toggleDateFilter()">
+                                                <span>Rango Personalizado</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="filters-row">
+                                        <!-- Filtro de mes (por defecto visible) -->
+                                        <div id="monthFilterGroup" class="form-group">
+                                            <label>Mes</label>
+                                            <input type="month" id="filterMonth" class="filter-select">
+                                        </div>
+
+                                        <!-- Filtro de rango personalizado (oculto por defecto) -->
+                                        <div id="rangeFilterGroup" class="form-group" style="display: none;">
+                                            <label>Desde</label>
+                                            <input type="date" id="filterStartDate" class="filter-select">
+                                        </div>
+                                        <div id="rangeFilterGroup2" class="form-group" style="display: none;">
+                                            <label>Hasta</label>
+                                            <input type="date" id="filterEndDate" class="filter-select">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Empleado</label>
+                                            <select id="filterEmployee" class="filter-select">
+                                                <option value="">Todos los empleados</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn-primary" onclick="generateAttendanceReport()"
+                                                style="margin-top: 24px;">
+                                                <i class="fas fa-chart-bar"></i> Generar Reporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="reportResults" class="report-results">
+                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                        <i class="fas fa-info-circle"
+                                            style="font-size: 2.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0;">Configura los filtros y haz clic en "Generar Reporte"</p>
+                                    </div>
+                                </div>
+
+                                <div class="export-buttons" id="exportButtons" style="display: none;">
+                                    <button class="btn-export-excel" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> Exportar Excel
+                                    </button>
+                                    <button class="btn-export-print" onclick="printReport()">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="nomina">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Reportes de Pagos</h2>
+                                <p style="color: #6b7280;">Análisis de pagos y nómina de personal</p>
+                            </div>
+
+                            <div class="report-selector">
+                                <div class="report-card" onclick="selectPayrollReport('resumen-mensual')">
+                                    <i class="fas fa-money-check-alt"></i>
+                                    <h3>Resumen Mensual</h3>
+                                    <p>Total de pagos por mes</p>
+                                </div>
+                                <div class="report-card" onclick="selectPayrollReport('por-empleado')">
+                                    <i class="fas fa-user-tag"></i>
+                                    <h3>Por Empleado</h3>
+                                    <p>Historial de pagos individual</p>
+                                </div>
+                                <div class="report-card" onclick="selectPayrollReport('comparativo')">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <h3>Comparativo</h3>
+                                    <p>Análisis mes a mes</p>
+                                </div>
+                            </div>
+
+                            <div id="payrollReportArea" style="display: none;">
+                                <div class="filters-panel" style="margin-top: 30px;">
+                                    <h3 id="payrollReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte</h3>
+                                    <div class="filters-row">
+                                        <div class="form-group">
+                                            <label>Período</label>
+                                            <input type="month" id="payrollFilterMonth" class="filter-select">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Empleado</label>
+                                            <select id="payrollFilterEmployee" class="filter-select">
+                                                <option value="">Todos los empleados</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn-primary" onclick="generatePayrollReport()"
+                                                style="margin-top: 24px;">
+                                                <i class="fas fa-chart-bar"></i> Generar Reporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="payrollResults" class="report-results">
+                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                        <i class="fas fa-info-circle"
+                                            style="font-size: 2.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0;">Configura los filtros y haz clic en "Generar Reporte"</p>
+                                    </div>
+                                </div>
+                                <div class="export-buttons" id="payrollExportButtons" style="display: none;">
+                                    <button class="btn-export-excel" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> Exportar Excel
+                                    </button>
+                                    <button class="btn-export-print" onclick="printReport()">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="rrhh">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Reportes de Recursos Humanos</h2>
+                                <p style="color: #6b7280;">Gestión de personal</p>
+                            </div>
+
+                            <div class="report-selector">
+                                <div class="report-card" onclick="selectHRReport('empleados-activos')">
+                                    <i class="fas fa-id-card"></i>
+                                    <h3>Empleados Activos</h3>
+                                    <p>Listado completo con información</p>
+                                </div>
+                                <div class="report-card" onclick="selectHRReport('rotacion')">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    <h3>Rotación</h3>
+                                    <p>Ingresos y salidas del período</p>
+                                </div>
+                            </div>
+
+                            <div id="hrReportArea" style="display: none;">
+                                <div class="filters-panel" style="margin-top: 30px;">
+                                    <h3 id="hrReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte</h3>
+                                    <div class="filters-row">
+                                        <div class="form-group">
+                                            <label>Rol</label>
+                                            <select id="hrFilterRole" class="filter-select">
+                                                <option value="">Todos los roles</option>
+                                                <option value="administrador">Administrador</option>
+                                                <option value="empleado">Empleado</option>
+                                                <option value="cliente">Cliente</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Estado</label>
+                                            <select id="hrFilterStatus" class="filter-select">
+                                                <option value="">Todos los estados</option>
+                                                <option value="activo">Activo</option>
+                                                <option value="inactivo">Inactivo</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn-primary" onclick="generateHRReport()"
+                                                style="margin-top: 24px;">
+                                                <i class="fas fa-chart-bar"></i> Generar Reporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="hrResults" class="report-results">
+                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                        <i class="fas fa-info-circle"
+                                            style="font-size: 2.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0;">Configura los filtros y haz clic en "Generar Reporte"</p>
+                                    </div>
+                                </div>
+                                <div class="export-buttons" id="hrExportButtons" style="display: none;">
+                                    <button class="btn-export-excel" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> Exportar Excel
+                                    </button>
+                                    <button class="btn-export-print" onclick="printReport()">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="inventario">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Reportes de Inventario</h2>
+                                <p style="color: #6b7280;">Control de stock y productos</p>
+                            </div>
+
+                            <div class="report-selector">
+                                <div class="report-card" onclick="selectInventoryReport('stock-actual')">
+                                    <i class="fas fa-warehouse"></i>
+                                    <h3>Stock Actual</h3>
+                                    <p>Inventario completo por producto</p>
+                                </div>
+                                <div class="report-card" onclick="selectInventoryReport('stock-bajo')">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <h3>Stock Bajo</h3>
+                                    <p>Productos con stock mínimo</p>
+                                </div>
+                                <div class="report-card" onclick="selectInventoryReport('valorizacion')">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <h3>Valorización</h3>
+                                    <p>Valor total del inventario</p>
+                                </div>
+                            </div>
+
+                            <div id="inventoryReportArea" style="display: none;">
+                                <div class="filters-panel" style="margin-top: 30px;">
+                                    <h3 id="inventoryReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte
+                                    </h3>
+                                    <div class="filters-row">
+                                        <div class="form-group">
+                                            <label>Categoría</label>
+                                            <select id="inventoryFilterCategory" class="filter-select">
+                                                <option value="">Todas las categorías</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Ordenar por</label>
+                                            <select id="inventoryFilterSort" class="filter-select">
+                                                <option value="nombre">Nombre</option>
+                                                <option value="stock">Stock</option>
+                                                <option value="precio">Precio</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn-primary" onclick="generateInventoryReport()"
+                                                style="margin-top: 24px;">
+                                                <i class="fas fa-chart-bar"></i> Generar Reporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="inventoryResults" class="report-results">
+                                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                                        <i class="fas fa-info-circle"
+                                            style="font-size: 2.5rem; color: #667eea; margin-bottom: 15px;"></i>
+                                        <p style="margin: 0;">Configura los filtros y haz clic en "Generar Reporte"</p>
+                                    </div>
+                                </div>
+                                <div class="export-buttons" id="inventoryExportButtons" style="display: none;">
+                                    <button class="btn-export-excel" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> Exportar Excel
+                                    </button>
+                                    <button class="btn-export-print" onclick="printReport()">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-tab="ventas">
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h2>Reportes de Ventas</h2>
+                                <p style="color: #6b7280;">Módulo en desarrollo - Próximamente</p>
+                            </div>
+
+                            <div class="report-selector">
+                                <div class="report-card disabled">
+                                    <i class="fas fa-chart-line"></i>
+                                    <h3>Ventas por Período</h3>
+                                    <p>Próximamente</p>
+                                </div>
+                                <div class="report-card disabled">
+                                    <i class="fas fa-star"></i>
+                                    <h3>Productos Más Vendidos</h3>
+                                    <p>Próximamente</p>
+                                </div>
+                                <div class="report-card disabled">
+                                    <i class="fas fa-users"></i>
+                                    <h3>Ventas por Cliente</h3>
+                                    <p>Próximamente</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="../../components/sidebar.js" type="module"></script>
+    <script src="../../components/auth-guard.js" type="module"></script>
+    <script src="../../js/reportes.js" type="module"></script>
+    <script src="../../js/reportes-attendance.js" type="module"></script>
+</body>
+
+</html>

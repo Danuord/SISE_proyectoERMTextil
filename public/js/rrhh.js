@@ -48,18 +48,7 @@ function toggleMenu() {
     sidebar.classList.toggle('active');
 }
 
-function loadUserInfo() {
-    const session = localStorage.getItem('textileflow_session');
-    if (session) {
-        try {
-            const user = JSON.parse(session);
-            document.getElementById('userNameDisplay').textContent = user.displayName || user.email || 'Usuario';
-            document.getElementById('userRoleDisplay').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Rol';
-        } catch (e) {
-            console.error('Error parseando sesión:', e);
-        }
-    }
-}
+// User info is now handled by sidebar component
 
 // ===================== VALIDACIONES ÚNICAS =====================
 async function checkDocumentExists(documento, excludeUid = null) {
@@ -550,7 +539,7 @@ window.exportToExcel = exportToExcel;
 window.printTable = printTable;
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserInfo();
+    // loadUserInfo removed - sidebar component handles user info
     renderClientsTable();
     setupSearch();
 });

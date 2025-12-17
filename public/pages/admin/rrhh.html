@@ -7,8 +7,22 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>RRHH - Gestión de Usuarios | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/common/sidebar.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/rrhh.css">
+    <link rel="stylesheet" href="../../css/modules/admin/common.css">
+    <link rel="stylesheet" href="../../css/modules/admin/rrhh.css">
+
+    <!-- DEBUG SCRIPT - TEMPORARY -->
+    <script>
+        setTimeout(() => {
+            const roleElement = document.getElementById('userRoleDisplay');
+            console.log('🔍 DEBUG RRHH - userRoleDisplay element:', roleElement);
+            console.log('🔍 DEBUG RRHH - textContent:', roleElement?.textContent);
+            console.log('🔍 DEBUG RRHH - innerHTML:', roleElement?.innerHTML);
+            console.log('🔍 DEBUG RRHH - computed style:', window.getComputedStyle(roleElement));
+        }, 2000);
+    </script>
 </head>
 
 <body>

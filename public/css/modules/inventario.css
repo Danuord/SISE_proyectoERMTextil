@@ -21,164 +21,6 @@ a {
     min-height: 100vh;
 }
 
-/* ===================== SIDEBAR ===================== */
-.sidebar {
-    width: 280px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px 0;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.sidebar-header {
-    padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    margin-bottom: 20px;
-}
-
-.sidebar-header h1 {
-    font-size: 24px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.sidebar-header p {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-.sidebar-menu {
-    list-style: none;
-}
-
-.sidebar-menu li {
-    margin: 0;
-}
-
-.sidebar-menu a {
-    color: white;
-    text-decoration: none;
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-    font-size: 14px;
-}
-
-.sidebar-menu a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-left-color: white;
-    padding-left: 25px;
-}
-
-.sidebar-menu a i {
-    width: 20px;
-    text-align: center;
-}
-
-.sidebar-footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.user-info {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-.user-avatar {
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-    font-size: 24px;
-}
-
-.user-name {
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: 3px;
-}
-
-.user-role {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-.logout-btn {
-    width: 100%;
-    background: rgba(255,255,255,0.2);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 13px;
-    transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-    background: rgba(255,0,0,0.3);
-    border-color: rgba(255,0,0,0.5);
-}
-
-/* ===================== MAIN CONTENT ===================== */
-.main-content {
-    flex: 1;
-    margin-left: 280px;
-    padding: 20px;
-    overflow-y: auto;
-    background: #f4f6f9;
-    min-height: 100vh;
-}
-
-.header {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header h1 {
-    font-size: 28px;
-    color: #4a7cf7;
-    margin: 0;
-}
-
-.header p {
-    color: #666;
-    font-size: 14px;
-    margin: 0;
-}
-
 /* --- CONTENEDOR PRINCIPAL --- */
 .categoria-section {
     margin-bottom: 20px;
@@ -190,7 +32,7 @@ a {
 }
 
 .categoria-section:hover {
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* --- HEADER DESPLEGABLE --- */
@@ -231,7 +73,8 @@ a {
 
 /* Cuando está abierto */
 .categoria-content.show {
-    max-height: 900px; /* suficiente para la tabla */
+    max-height: 900px;
+    /* suficiente para la tabla */
     margin-top: 12px;
 }
 
@@ -370,7 +213,7 @@ table tr:hover {
 .modal {
     display: none;
     position: fixed;
-    top: 0; 
+    top: 0;
     left: 0;
     width: 100%;
     height: 100%;
@@ -414,20 +257,34 @@ table tr:hover {
     outline: none;
 }
 
-.input-with-edit { display:flex; gap:8px; align-items:center; }
-.input-with-edit input { flex:1; }
-.input-with-edit select { flex:2; }
-.input-with-edit button {
-    padding:6px 10px;
-    font-size:12px;
-    border-radius:5px;
-    border:none;
-    background:#5568d3;
-    color:white;
-    cursor:pointer;
+.input-with-edit {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
-.input-with-edit button:hover { background:#354ac2; }
+.input-with-edit input {
+    flex: 1;
+}
+
+.input-with-edit select {
+    flex: 2;
+}
+
+.input-with-edit button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    border: none;
+    background: #5568d3;
+    color: white;
+    cursor: pointer;
+}
+
+.input-with-edit button:hover {
+    background: #354ac2;
+}
+
 /* Separación entre inputs/selects/textarea y botones dentro de modales */
 .modal-content label {
     display: block;
@@ -441,23 +298,25 @@ table tr:hover {
 .edit-group input,
 .edit-group textarea,
 .edit-group select {
-    margin-right: 10px; /* espacio entre campo y botón de editar */
+    margin-right: 10px;
+    /* espacio entre campo y botón de editar */
 }
 
 /* Botones dentro de modales (guardar, cancelar, editar) */
 .modal-content .btn {
-    margin-top: 12px; /* separa del campo anterior */
+    margin-top: 12px;
+    /* separa del campo anterior */
 }
 
 /* Ajuste de grupos flexibles de select + botón (atributo/valor) */
-.modal-content > div > select,
-.modal-content > div > input[type="text"],
-.modal-content > div > input[type="number"],
-.modal-content > div > textarea {
+.modal-content>div>select,
+.modal-content>div>input[type="text"],
+.modal-content>div>input[type="number"],
+.modal-content>div>textarea {
     margin-bottom: 10px;
 }
 
 /* Espacio extra entre filas de botones de acción */
-.modal-content button + button {
+.modal-content button+button {
     margin-left: 10px;
 }
