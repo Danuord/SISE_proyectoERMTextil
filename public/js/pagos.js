@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/fireba
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot, getDocs, getDoc, addDoc } 
     from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-
+import { query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 console.log("ARCHIVO JS CARGADO ✔️");
 
 // ===================== CONFIG FIREBASE =====================
@@ -17,6 +17,7 @@ const firebaseConfig = {
     measurementId: "G-XE4Z2S0LRB"
 };
 
+const { jsPDF } = window.jspdf;
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -31,6 +32,11 @@ const anioActual = new Date().getFullYear();
 const hoy = new Date();
 const mesActual = meses[hoy.getMonth()];
 const mesPasado = meses[(hoy.getMonth() - 1 + 12) % 12];
+
+const q = query(
+    collection(db, "usuario"),
+    where("estado", "==", "activo")
+)
 
 // ===================== MODALES GENERALES =====================
 const closeButtons = document.querySelectorAll('.close-btn');
@@ -80,8 +86,9 @@ addSalaryBtn.addEventListener("click", () => {
 });
 
 // Cargar empleados en tiempo real
-onSnapshot(collection(db, "usuario"), (snapshot) => {
+onSnapshot(q, (snapshot) => {
     employeeSelect.innerHTML = `<option value="">Seleccione empleado</option>`;
+
     snapshot.forEach(doc => {
         const data = doc.data();
         const option = document.createElement("option");
@@ -220,6 +227,8 @@ const editUserPlanillaModal = document.getElementById("editUserPlanillaModal");
 const editPlanillaForm = document.getElementById("editPlanillaForm");
 const salaryInputPlanilla = document.getElementById("salaryInputPlanilla");
 const employeeSelectPlanilla = document.getElementById("employeeSelectPlanilla");
+const employeeSelectDate = document.getElementById("employeeSelectDate");
+const editSalaryBtn = document.getElementById("editSalary");
 
 editUserPlanillaBtn.addEventListener("click", () => editUserPlanillaModal.style.display = "block");
 
@@ -234,14 +243,30 @@ onSnapshot(collection(db, "usuario"), snapshot => {
     });
 });
 
+// Mostrar salario del empleado seleccionado
+employeeSelectPlanilla.addEventListener("change", async () => {
+    const uid = employeeSelectPlanilla.value;
+    if (!uid) { salaryInputPlanilla.value = ""; return; }
+
+    const docRef = doc(db, "usuario_admin", uid);
+    const docSnap = await getDoc(docRef);
+    salaryInputPlanilla.value = docSnap.exists() ? docSnap.data().salario ?? "" : "";
+});
+
+editSalaryBtn.addEventListener("click", () => {
+    salaryInputPlanilla.disabled = false;
+    salaryInputPlanilla.focus();
+});
+
 editPlanillaForm.addEventListener("submit", async e => {
     e.preventDefault();
     const uid = employeeSelectPlanilla.value;
     const salario = Number(salaryInputPlanilla.value);
-    if (!uid || salario <= 0) return showStatus("Seleccione un empleado y coloque salario válido", "error");
+    const fechaIngreso = employeeSelectDate.value;
+    if (!uid || salario <= 0 || !fechaIngreso) return showStatus("Seleccione un empleado y coloque salario válido", "error");
 
     try {
-        await setDoc(doc(db,"usuario_admin",uid), { uid, salario, horas_trabajadas:0, bonificaciones:0, descuentos:0 });
+        await setDoc(doc(db,"usuario_admin",uid), { uid, salario, fechaIngreso: fechaIngreso, horas_trabajadas:0, bonificaciones:0, descuentos:0 });
         showStatus("Datos de planilla actualizados correctamente", "success");
         editPlanillaForm.reset();
         editUserPlanillaModal.style.display = "none";
@@ -258,7 +283,16 @@ onSnapshot(collection(db,"pagos_empleados"), async snapshot => {
         const nombre = usuarioSnap.exists() ? `${usuarioSnap.data().nombre} ${usuarioSnap.data().apellido}` : "Desconocido";
         const cargo = usuarioSnap.exists() ? usuarioSnap.data().rol : "—";
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${nombre}</td><td>${cargo}</td><td>${pago.salario}</td><td>${pago.bono}</td><td>${pago.deduccion}</td><td>${pago.pago_total}</td><td>${pago.periodo_pago}</td><td class="detalle-col hidden-col">${pago.detalle}</td>`;
+        tr.innerHTML = 
+        `<td>${nombre}</td>
+        <td>${cargo}</td>
+        <td>${pago.salario}</td>
+        <td>${pago.bono}</td>
+        <td>${pago.deduccion}</td>
+        <td>${pago.pago_total}</td>
+        <td>${pago.periodo_pago}</td>
+        </td><td class="detalle-col hidden-col">${pago.detalle}</td>
+        <td><button class="btnReporte" data-id="${pago.id}">Ver</button></td>`;
         salaryTableBody.appendChild(tr);
     }
     updateColumnVisibility();
@@ -277,11 +311,44 @@ function animateValue(el,start,end,duration=550){
     requestAnimationFrame(step);
 }
 
-async function sumarSalariosBasicos(){
-    let total=0;
-    (await getDocs(collection(db,"usuario_admin"))).forEach(doc=>{if(doc.data().salario) total+=Number(doc.data().salario);});
-    animateValue(document.querySelector(".card:nth-child(1) .value"),0,total);
+//primera tarjeta
+async function sumarSalariosBasicos() {
+    let total = 0;
+
+    // 1️⃣ Obtener usuarios activos
+    const usuariosActivosSnap = await getDocs(
+        query(
+            collection(db, "usuario"),
+            where("estado", "==", "activo")
+        )
+    );
+
+    // 2️⃣ Guardar IDs activos
+    const usuariosActivosIds = new Set();
+    usuariosActivosSnap.forEach(doc => {
+        usuariosActivosIds.add(doc.id);
+    });
+
+    // 3️⃣ Leer salarios solo de usuarios activos
+    const adminSnap = await getDocs(collection(db, "usuario_admin"));
+
+    adminSnap.forEach(doc => {
+        if (usuariosActivosIds.has(doc.id)) {
+            const data = doc.data();
+            if (data.salario) {
+                total += Number(data.salario);
+            }
+        }
+    });
+
+    // 4️⃣ Mostrar en la tarjeta
+    const el = document.querySelector(".card:nth-child(1) .value");
+    if (el) {
+        animateValue(el, 0, total);
+    }
 }
+    // (await getDocs(collection(db,"usuario_admin"))).forEach(doc=>{if(doc.data().salario) total+=Number(doc.data().salario);});
+    // animateValue(document.querySelector(".card:nth-child(1) .value"),0,total);
 
 async function sumarSalariosNetos(){
     const mesTarjeta=document.querySelector(".card:nth-child(2) .unit").textContent.trim();
@@ -378,4 +445,111 @@ document.getElementById("applyFilterBtn").addEventListener("click",()=>{
 document.getElementById("clearFilterBtn").addEventListener("click",()=>{
     document.getElementById("filterText").value="";
     document.querySelectorAll("#salaryTable tbody tr").forEach(row=>row.style.display="");
+});
+
+
+
+// ===================== PDF COMPROBANTE =====================
+
+async function generarComprobantePago(pagoId) {
+    try {
+        // ====== Obtener pago ======
+        const pagoRef = doc(db, "pagos_empleados", pagoId);
+        const pagoSnap = await getDoc(pagoRef);
+
+        if (!pagoSnap.exists()) {
+            alert("Pago no encontrado");
+            return;
+        }
+
+        const pago = pagoSnap.data();
+
+        // ====== Obtener empleado ======
+        const usuarioRef = doc(db, "usuario", pago.uid);
+        const usuarioSnap = await getDoc(usuarioRef);
+
+        if (!usuarioSnap.exists()) {
+            alert("Empleado no encontrado");
+            return;
+        }
+
+        const usuario = usuarioSnap.data();
+
+        // ====== Crear PDF ======
+        const pdf = new jsPDF();
+        let y = 20;
+
+        // ====== ENCABEZADO ======
+        pdf.setFontSize(16);
+        pdf.text("Empresa", 105, y, { align: "center" });
+        y += 8;
+
+        pdf.setFontSize(12);
+        pdf.text("Comprobante de Pago", 105, y, { align: "center" });
+        y += 12;
+
+        // ====== DATOS DEL EMPLEADO ======
+        pdf.setFontSize(11);
+        pdf.text(`Empleado: ${usuario.nombre} ${usuario.apellido}`, 20, y); y += 7;
+        pdf.text(`Documento: ${usuario.tipo_documento} ${usuario.documento}`, 20, y); y += 7;
+        pdf.text(`Cargo: ${usuario.rol}`, 20, y); y += 10;
+
+        // ====== DETALLE DEL PAGO ======
+        pdf.setFontSize(12);
+        pdf.text("Detalle del Pago", 20, y); y += 8;
+
+        pdf.setFontSize(11);
+        pdf.text(`Salario básico: S/ ${pago.salario}`, 25, y); y += 6;
+        pdf.text(`Bonificaciones: S/ ${pago.bono}`, 25, y); y += 6;
+        pdf.text(`Deducciones: S/ ${pago.deduccion}`, 25, y); y += 6;
+
+        pdf.setFontSize(12);
+        pdf.text(`Salario Neto: S/ ${pago.pago_total}`, 25, y); y += 10;
+
+        // ====== DETALLE ======
+        if (pago.detalle) {
+            pdf.setFontSize(11);
+            pdf.text("Observaciones:", 20, y); y += 6;
+            pdf.setFontSize(10);
+            pdf.text(pago.detalle, 25, y, { maxWidth: 160 });
+            y += 15;
+        }
+
+        // ====== PIE ======
+        pdf.setFontSize(9);
+        pdf.text("Documento no legal, solo informativo", 105, 285, { align: "center" });
+        
+        mostrarPDFEnModal(pdf);
+
+    } catch (error) {
+        console.error(error);
+        alert("Error al generar el comprobante");
+    }
+
+}
+
+function mostrarPDFEnModal(pdfDoc) {
+    const blob = pdfDoc.output("blob");
+    const url = URL.createObjectURL(blob);
+
+    const modal = document.getElementById("pdfViewerModal");
+    const iframe = document.getElementById("pdfViewerFrame");
+
+    iframe.src = url;
+    modal.classList.remove("hidden");
+}
+
+document.addEventListener("click", e => {
+    if (e.target.classList.contains("btnReporte")) {
+        const pagoId = e.target.dataset.id;
+        generarComprobantePago(pagoId);
+    }
+});
+
+document.getElementById("closePdfModal").addEventListener("click", () => {
+    const modal = document.getElementById("pdfViewerModal");
+    const iframe = document.getElementById("pdfViewerFrame");
+
+    iframe.src = "";
+    modal.classList.add("hidden");
 });

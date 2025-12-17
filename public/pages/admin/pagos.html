@@ -33,7 +33,7 @@
 
 
             <!-- ========================================================= -->
-            <!-- 📊 TARJETAS DE RESUMEN -->
+            <!--  TARJETAS DE RESUMEN -->
             <!-- ========================================================= -->
             <div class="cards-grid">
                 <div class="card">
@@ -48,7 +48,7 @@
                     <div class="unit">Diciembre</div>
                 </div>
 
-                <div class="card">
+                <div class=" card graph-card">
                     <h3>📊 Pagos Netos Últimos 3 Meses</h3>
                     <canvas id="graficoSalarios" height="100"></canvas>
                 </div>
@@ -56,7 +56,7 @@
 
 
             <!-- ========================================================= -->
-            <!-- 🟨 ACCIONES: FILTRO + BOTONES -->
+            <!--  ACCIONES: FILTRO + BOTONES -->
             <!-- ========================================================= -->
             <div class="button-actions">
 
@@ -67,29 +67,6 @@
                     <button id="filterBtn" class="btn btn-secondary">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
-
-                    <!-- Panel de filtrado -->
-                    <div id="filterPanel" class="filter-panel">
-                        <div class="filter-content">
-
-                            <label>Columna:</label>
-                            <select id="filterColumn">
-                                <option value="">Seleccione</option>
-                            </select>
-
-                            <label>Texto:</label>
-                            <input type="text" id="filterText" placeholder="Buscar...">
-
-                            <button class="btn" id="applyFilterBtn">Filtrar</button>
-                            <button class="btn" id="clearFilterBtn">Limpiar</button>
-
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- Fila 2: Resto de botones -->
-                <div class="other-buttons">
 
                     <!-- Exportar / Reportes -->
                     <button id="reportBtn" class="btn btn-secondary">
@@ -111,24 +88,50 @@
                             <label><input type="checkbox" data-col="5" checked> Salario Neto</label>
                             <label><input type="checkbox" data-col="6" checked> Mes</label>
                             <label><input type="checkbox" data-col="7"> Detalle</label>
+                            <label><input type="checkbox" data-col="8" checked> Accion</label>
                         </div>
                     </div>
 
                     <!-- Botón editar planilla -->
                     <button id="editUserPlanilla" class="btn btn-primary">
-                        <i class="fas fa-pen"></i> Editar salarios
+                        <i class="fas fa-pen"></i> Editar información salarial
                     </button>
 
                     <!-- Botón agregar salario -->
                     <button id="addSalaryBtn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nuevo salario
-                    </button>
+                        <i class="fas fa-plus"></i> Registrar pago
+                    </button>   
+
+                    
+                </div>
+
+
+                <!-- Fila 2: Resto de botones -->
+                <div class="other-buttons">
+
+                    <!-- Panel de filtrado -->
+                    <div id="filterPanel" class="filter-panel">
+                        <div class="filter-content">
+
+                            <label>Columna:</label>
+                            <select id="filterColumn">
+                                <option value="">Seleccione</option>
+                            </select>
+
+                            <label>Texto:</label>
+                            <input type="text" id="filterText" placeholder="Buscar...">
+
+                            <button class="btnFilter" id="applyFilterBtn">Filtrar</button>
+                            <button class="btnFilter" id="clearFilterBtn">Limpiar</button>
+
+                        </div>
+                    </div>
                 </div>
             </div>
 
 
             <!-- ========================================================= -->
-            <!-- 📄 TABLA DE PAGOS -->
+            <!--  TABLA DE PAGOS -->
             <!-- ========================================================= -->
             <div class="table-container">
                 <table id="salaryTable">
@@ -142,6 +145,7 @@
                             <th class="sortable">Salario Neto</th>
                             <th class="sortable">Mes</th>
                             <th class="detalle-col hidden-col">Detalle</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -188,32 +192,6 @@
                 </div>
             </div>
 
-
-            <!-- ========================================================= -->
-            <!-- 🟦 MODAL: EDITAR SALARIO INDIVIDUAL -->
-            <!-- ========================================================= -->
-            <div id="editSalaryModal" class="modal">
-                <div class="modal-content">
-                    <span class="close-btn regresar-btn">Regresar</span>
-
-                    <h2 class="h2" id="editModalTitle">Editar salario</h2>
-
-                    <form id="editSalaryForm">
-                        <label for="editSalaryInput">Salario</label>
-                        <input type="number" id="editSalaryInput">
-
-                        <label for="editBonusInput">Bonificaciones</label>
-                        <input type="number" id="editBonusInput">
-
-                        <label for="editDeductionsInput">Deducciones</label>
-                        <input type="number" id="editDeductionsInput">
-
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    </form>
-                </div>
-            </div>
-
-
             <!-- ========================================================= -->
             <!-- 🟦 MODAL: EDITAR PLANILLA COMPLETA -->
             <!-- ========================================================= -->
@@ -231,7 +209,13 @@
 
                         <label for="salaryInputPlanilla">Salario</label>
                         <div class="input-with-edit">
-                            <input type="number" id="salaryInputPlanilla">
+                            <input type="number" id="salaryInputPlanilla" disabled>
+                            <button type="button" class="btnEdit" id="editSalary">Editar</button>
+                        </div>
+
+                        <label for="employeeSelectDate">Fecha de Ingreso</label>
+                        <div class="inputDate">
+                            <input type="date" id="employeeSelectDate">
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar cambios</button>
@@ -271,8 +255,22 @@
         requireAdmin();
     </script>
 
+    <!-- Reporte de pago -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <!-- Script del módulo -->
     <script type="module" src="../../js/pagos.js"></script>
+    
+
+    <div id="pdfViewerModal" class="pdf-modal hidden">
+        <div class="pdf-container">
+            <iframe id="pdfViewerFrame"></iframe>
+
+            <div class="pdf-footer">
+                <button id="closePdfModal" class="btn-cancelar">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 
