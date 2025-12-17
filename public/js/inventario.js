@@ -4,7 +4,6 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-aut
 import { 
     getFirestore, doc, setDoc, addDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs, updateDoc, 
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js";
 
 // ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
@@ -249,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
-
 });
 
 
