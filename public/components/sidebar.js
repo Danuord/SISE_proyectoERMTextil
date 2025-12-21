@@ -41,10 +41,10 @@ class Sidebar {
                     <li><a href="./dashboard.html" class="sidebar-link" data-page="admin-dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                     <li><a href="./rrhh.html" class="sidebar-link" data-page="admin-rrhh"><i class="fas fa-users"></i> RRHH</a></li>
                     <li><a href="./asistencia.html" class="sidebar-link" data-page="admin-asistencia"><i class="fas fa-calendar-check"></i> Asistencias</a></li>
-                    <li><a href="./pagos.html" class="sidebar-link" data-page="admin-pagos"><i class="fas fa-money-bill-wave"></i> Pagos</a></li>
+                    <li><a href="./pagos.html" class="sidebar-link" data-page="admin-pagos"><i class="fas fa-money-bill-wave"></i> Registro de pagos</a></li>
                     <li><a href="./inventario.html" class="sidebar-link" data-page="admin-inventario"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="./reportes.html" class="sidebar-link" data-page="admin-reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-                    <li><a href="#" class="sidebar-link" data-page="ventas"><i class="fa-brands fa-sellsy"></i>Control de ventas</a></li>
+                    <li><a href="./ventas.html" class="sidebar-link" data-page="ventas"><i class="fa-brands fa-sellsy"></i>Control de ventas</a></li>
                     <li><a href="./configuracion.html" class="sidebar-link" data-page="admin-configuracion"><i class="fas fa-cog"></i> Configuración</a></li>
                 </ul>
 

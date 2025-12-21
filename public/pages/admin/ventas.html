@@ -1,56 +1,76 @@
 <!doctype html>
 <html lang="es">
+    
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/modules/ventas.css">
+  <meta charset="UTF-8">
+
+  <title>Registro de pagos | TextileFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/modules/ventas.css">
 </head>
+
 <body>
-<div class="app">
-  <div id="sidebar-container"></div>
- 
-  <main class="main">
-    <div class="topbar">
-      <div class="titulo" style="color: #7d5af0;">
-        <h1>Ventas</h1>
-        <div class="muted" style="color: #a19c9c;">Gestión de ventas</div>
-      </div>
- 
-      <div class="controls">
-        <button id="btnOpen" class="btn-primary">+ Vender</button>
-        <button id="btnBack" class="back" title="Volver al dashboard">← Volver</button>
-      </div>
-    </div>
- 
-    <section class="card">
-      <h3>Listado de ventas</h3>
- 
-      <div style="margin-top:20px;overflow:auto">
-        <table id="salesTable">
-          <thead>
-            <tr>
-              <th># Fact.</th>
-              <th>Fecha</th>
-              <th>Cliente</th>
-              <th>Celular</th>
-              <th>Cantidad</th>
-              <th>Monto</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-body"></tbody>
-        </table>
-      </div>
- 
-      <div style="margin-top:10px;" class="palette" aria-hidden>
-        <div class="export-buttons">
-            <button class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+  <div class="layout">
+    <div id="sidebar-container"></div>
+  
+    <main class="main-content">
+
+      <div class="header">
+        <div>
+          <h1>Control de ventas</h1>
+          <p>Gestión y registro de ventas</p>
         </div>
       </div>
-    </section>
-  </main>
-</div>
+  
+      <section class="card">
+          
+          <div class="control-head">
+            <h3>Registro de ventas</h3>
+          </div>
+
+        <div class="panel-buttons">
+
+          <div class="column-selector-container">
+            <button id="columnSelectorBtn" class="btn-filtcolumn">
+              <i class="fas fa-columns"></i> Columnas
+            </button>
+
+            <div id="columnSelectorMenu" class="column-selector-menu hidden">
+                <label><input type="checkbox" data-col="0" checked> Código</label>
+                <label><input type="checkbox" data-col="1" checked> Producto</label>
+                <label><input type="checkbox" data-col="2" checked> Fecha</label>
+                <label><input type="checkbox" data-col="3" checked> Cantidad</label>
+                <label><input type="checkbox" data-col="4" checked> Precio total</label>
+            </div>
+          </div>
+
+          <div class="export-buttons">
+            <button id="exportVentasBtn" class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar registros</button>
+            <button id="btnOpen" class="btn-regventas">Registrar venta</button>
+          </div>
+          
+        </div>
+  
+        <div style="margin-top:20px;overflow:auto">
+
+          <table id="salesTable">
+            <thead>
+              <tr>
+                <th class="sortable">Nro Comprobante</th>
+                <th class="sortable">Cliente</th>
+                <th class="sortable">Fecha</th>
+                <th class="sortable">Cantidad de articulos</th>
+                <th class="sortable">Monto total</th>
+                <th class="no-export">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
  
 <!-- MODAL REGISTRO -->
 <div id="modalBack" class="modal-back">
@@ -59,13 +79,20 @@
  
       <div>
         <div>
-          <div class="form-row">
-            <label>Categoria:</label>
-            <select id="selectCategorias"></select>
-
-            <label>Producto:</label>
-            <select id="categorySel"></select>
-          </div>
+          <div class="first-row">
+            <div>
+                <label>Categoria:</label>
+                <select id="selectCategorias"></select>
+            </div>
+            <div>
+                <label>Producto:</label>
+                <select id="categorySel"></select>
+            </div>
+            <div>
+                <label>Cliente:</label>
+                <select id="clienteSel"></select>
+            </div>
+        </div>
 
           <div class="form-row">
             <label>Cantidad:</label>
@@ -82,7 +109,7 @@
  
         <div class="actions-row">
           <button id="btnAddItem" class="btn-primary">Agregar</button>
-          <button id="btnClear" class="btn-secondary">Nuevo</button>
+          <button id="btnClear" class="btn-secondary">Limpiar</button>
           <button id="btnSaveSale" class="btn-primary">Guardar</button>
           <button id="btnCloseModal" class="btn-secondary">Cerrar</button>
         </div>
@@ -95,8 +122,8 @@
                 <th>Producto</th>
                 <th>Fecha</th>
                 <th>Cantidad</th>
-                <th>Precio x Uni</th>
-                <th>Precio Total</th>
+                <th>Precio unitario</th>
+                <th>Precio total</th>
                 <th></th>
               </tr>
             </thead>
@@ -126,11 +153,23 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
  
 <!-- AQUI CARGA EL JS SEPARADO -->
 <script type="module" src="../../js/ventas.js"></script>
+
+<div id="pdfViewerModal" class="pdf-modal hidden">
+        <div class="pdf-container">
+            <iframe id="pdfViewerFrame"></iframe>
+
+            <div class="pdf-footer">
+                <button id="closePdfModal" class="btn-cancelar">Cerrar</button>
+            </div>
+        </div>
+    </div>
  
 </body>
 </html>
