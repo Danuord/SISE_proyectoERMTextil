@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { 
-    getFirestore, doc, setDoc, addDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs, updateDoc, 
+    getFirestore, doc, setDoc, addDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 // ===================== CONFIG FIREBASE =====================
@@ -15,7 +15,6 @@ const firebaseConfig = {
     appId: "1:227349652064:web:d32994273a529a07e25905",
     measurementId: "G-XE4Z2S0LRB"
 };
-
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -78,24 +77,19 @@ async function cargarAtributosArtEnSelect() {
 
 //funcion para cargar categorias
 async function cargarCategoriasEnSelect() {
-    selectCategorias.innerHTML = `<option value="">Seleccione una categoría</option>`;
+    selectCategorias.innerHTML = '<option value="">Seleccione una categoría</option>';
 
-    try {
-        const querySnapshot = await getDocs(collection(db, "categoria"));
+    const snapshot = await getDocs(collection(db, "categoria"));
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+    snapshot.forEach(docSnap => {
+        const categoria = docSnap.data();
 
-            const option = document.createElement("option");
-            option.value = data.id_categoria;
-            option.textContent = data.nombre;
+        const option = document.createElement("option");
+        option.value = docSnap.id;            // 🔥 CLAVE
+        option.textContent = categoria.nombre;
 
-            selectCategorias.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error("Error cargando categorías:", error);
-    }
+        selectCategorias.appendChild(option);
+    });
 }
 
 //funcion para cargar valores
@@ -128,14 +122,16 @@ document.getElementById("selectAtributosArt").addEventListener("change", (e) => 
     }
 });
 
-// ===================== GUARDAR CATEGORIA =====================
-document.addEventListener('DOMContentLoaded', () => {
-  // Referencias DOM (coinciden con tu HTML)
+
+
   const btnGuardar = document.getElementById('guardarCategoria');
   const inputNombre = document.getElementById('catNombre');
   const inputDesc = document.getElementById('catDesc');
   const tbodyCategorias = document.getElementById('tablaCategorias');
   const modalId = 'modalCategoria'; // id del modal que ya tienes
+
+// ===================== GUARDAR CATEGORIA =====================
+document.addEventListener('DOMContentLoaded', () => {
 
   if (!btnGuardar || !inputNombre || !inputDesc || !tbodyCategorias) {
     console.error('Elementos del DOM para categorías no encontrados. Revisa IDs en el HTML.');
@@ -154,20 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Obtener correlativo
-        const categoriasSnapshot = await getDocs(collection(db, 'categoria'));
-        const correlativo = categoriasSnapshot.size + 1;
-
-        // Crear referencia con ID largo (solo para Firestore)
-        const nuevaRef = doc(collection(db, 'categoria'));
+        const categoriaRef = doc(collection(db, 'categoria'));
 
         const payload = {
-            id_categoria: correlativo, // ahora sí: 1, 2, 3, 4...
-            nombre,
-            descripcion: descripcion || null,
-            fecha_registro: serverTimestamp()
+        nombre,
+        descripcion: descripcion || null,
+        fecha_registro: serverTimestamp()
         };
 
-      await setDoc(nuevaRef, payload);
+        await setDoc(categoriaRef, payload);
 
       // Limpieza del modal
       inputNombre.value = '';
@@ -202,29 +193,48 @@ toggleCategoria.addEventListener("click", () => {
 });
 
   try {
-    const colRef = collection(db, 'categoria'); // asegúrate que el nombre coincida con Firestore
-    onSnapshot(colRef, (snapshot) => {
-      tbodyCategorias.innerHTML = ''; // limpiar
-      snapshot.forEach(docSnap => {
-        const c = docSnap.data();
-        const tr = document.createElement('tr');
+        const colRef = collection(db, 'categoria');
 
-        // estructura de fila
-        tr.innerHTML = `
-          <td>${c.id_categoria}</td>
-          <td>${c.nombre || ''}</td>
-          <td>${c.descripcion || '-'}</td>
-        `;
+        // Usamos onSnapshot para actualizaciones en tiempo real
+        onSnapshot(colRef, async (snapshot) => {
+            // 1. Evitamos el doble disparo (Local vs Servidor)
+            if (snapshot.metadata.hasPendingWrites) return;
 
-        tbodyCategorias.appendChild(tr);
-      });
-      console.log('🔄 Tabla de categorías actualizada');
-    }, (err) => {
-      console.error('onSnapshot categorías error:', err);
-    });
-  } catch (err) {
-    console.error('Error inicializando onSnapshot de categorías:', err);
-  }
+            tbodyCategorias.innerHTML = ''; // Limpiamos
+            const fragment = document.createDocumentFragment();
+
+            // 2. Procesamos los documentos. 
+            // Usamos .map para tener el índice (index) para el contador.
+            const promesasCategorias = snapshot.docs.map(async (docSnap, index) => {
+                const c = docSnap.data();
+                const id = docSnap.id;
+
+                // Si en el futuro necesitas traer datos de otra colección aquí, 
+                // usarías Promise.all. Por ahora, preparamos la estructura.
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td> 
+                    <td>${c.nombre || ''}</td>
+                    <td>${c.descripcion || '-'}</td>
+                `;
+                return tr;
+            });
+
+            // 3. Esperamos a que todas las filas se procesen
+            const filas = await Promise.all(promesasCategorias);
+
+            // 4. Agregamos todo al fragmento y luego al DOM
+            filas.forEach(fila => fragment.appendChild(fila));
+            tbodyCategorias.appendChild(fragment);
+
+            console.log('🔄 Tabla de categorías actualizada');
+        }, (err) => {
+            console.error('onSnapshot categorías error:', err);
+        });
+    } catch (err) {
+        console.error('Error inicializando onSnapshot de categorías:', err);
+    }
 });
 
 
@@ -254,9 +264,16 @@ document.addEventListener("DOMContentLoaded", () => {
 function abrirModal(id) {
     const modal = document.getElementById(id);
     modal.style.display = "flex";
-    deshabilitarCampos();
+    deshabilitarCampos(true);
     btnEditarGuardar.innerText = "Editar";
     btnEditarGuardar.dataset.modo = "editar";
+}
+
+function cerrarModalEditar() {
+    const modal = document.getElementById("modalEditarArticulo");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 // ===================== GUARDAR ATRIBUTO =====================
@@ -363,6 +380,103 @@ document.getElementById("btnGuardarValor")?.addEventListener("click", async () =
     }
 });
 
+// ===================== MOSTRAR DATOS EN LA TABLA (OPTIMIZADO) =====================
+const tablaArticulosBody = document.getElementById("tablaArticulos");
+
+onSnapshot(collection(db, "articulos"), async (snapshot) => {
+    // 💡 SOLUCIÓN: Solo procesar si no hay cambios pendientes de escritura local
+    // Esto evita que se dispare dos veces seguidas al guardar
+    if (snapshot.metadata.hasPendingWrites) return;
+
+    const articulosProcesados = snapshot.docs.map(async (artDoc) => {
+        const art = { id: artDoc.id, ...artDoc.data() };
+
+        // 2. Ejecutar consultas de Categoría y Stock en paralelo (para este artículo)
+        const [categoriaSnap, stockSnap] = await Promise.all([
+            getDoc(doc(db, "categoria", art.id_categoria)),
+            getDocs(query(collection(db, "stock_inventario"), where("id_articulo", "==", art.id)))
+        ]);
+
+        const categoriaNombre = categoriaSnap.exists()
+            ? categoriaSnap.data().nombre
+            : "-";
+        
+        let stockTotal = 0;
+        let stockPromises = [];
+
+        // 3. Procesar Stocks y crear Promesas para Atributo/Valor
+        for (const sDoc of stockSnap.docs) {
+            const sData = sDoc.data();
+            stockTotal += sData.stock || 0;
+
+            const attrValPromise = Promise.all([
+                getDocs(query(collection(db, "atributo"), where("id_atributo", "==", sData.id_atributo))),
+                getDocs(query(collection(db, "valor"), where("id_valor", "==", sData.id_valor)))
+            ]);
+            stockPromises.push(attrValPromise);
+        }
+
+        // 4. Esperar que todos los atributos y valores se carguen en paralelo
+        const resultadosStocks = await Promise.all(stockPromises);
+        
+        let atributosNombres = [];
+        let valoresNombres = [];
+
+        resultadosStocks.forEach(([attrSnap, valSnap]) => {
+            atributosNombres.push(
+                !attrSnap.empty ? attrSnap.docs[0].data().nombre_atributo : "-"
+            );
+            valoresNombres.push(
+                !valSnap.empty ? valSnap.docs[0].data().valor : "-"
+            );
+        });
+
+
+        // 5. Retornar los datos finales del artículo
+        return {
+            art,
+            categoriaNombre,
+            stockTotal,
+            atributosNombres,
+            valoresNombres
+        };
+    });
+
+    // 6. Esperar que TODOS los artículos terminen de procesarse
+    const resultadosFinales = await Promise.all(articulosProcesados);
+    
+    // Limpiamos la tabla
+    tablaArticulosBody.innerHTML = "";
+
+    // Fragmento
+    const fragment = document.createDocumentFragment();
+
+    // Renderizar filas
+    resultadosFinales.forEach(({ art, categoriaNombre, stockTotal, atributosNombres, valoresNombres }) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>sin imagen</td>
+            <td>${art.nombre}</td>
+            <td>${categoriaNombre}</td>
+            <td>${atributosNombres.join(", ")}</td>
+            <td>${valoresNombres.join(", ")}</td>
+            <td>S/ ${art.precio_base.toFixed(2)}</td>
+            <td>${stockTotal}</td>
+            <td>${art.descripcion || "-"}</td>
+            <td>
+                <button class="btn btn-warning btnEditarArticulo"
+                        data-id="${art.id}"
+                        title="Editar artículo">
+                    <i class="fa fa-edit"></i>
+                </button>
+            </td>
+        `;
+        fragment.appendChild(tr);
+    });
+
+    // Insertar todo de una sola vez
+    tablaArticulosBody.appendChild(fragment);
+});
 
 // ====================== GUARDAR ARTICULO ========================
 
@@ -383,29 +497,27 @@ document.getElementById("guardarArticulo").addEventListener("click", async () =>
     const precio = parseFloat(document.getElementById("artPrecio").value);
     const stock = parseInt(document.getElementById("artCantidad").value);
     // const imagenFile = document.getElementById("artImagen").files[0]; // 🔵 DESACTIVADO
-    const categoriaId = parseInt(document.getElementById("selectCategorias").value);
+    const categoriaId = document.getElementById("selectCategorias").value;
     const atributoId = document.getElementById("selectAtributosArt").value;
     const valorId = document.getElementById("selectValor").value;
 
+    console.log("categoriaId:", categoriaId);
+    console.log("selectCategorias:", document.getElementById("selectCategorias").innerHTML);
+    
     if (!nombre || !precio || isNaN(precio) || !stock || isNaN(stock) || !categoriaId || !atributoId || !valorId) {
         return alert("Complete todos los campos obligatorios.");
     }
 
     try {
-        const snapArt = await getDocs(collection(db, "articulos"));
-        const correlativo = snapArt.size + 1;
-
         const articuloRef = doc(collection(db, "articulos"));
+
         const articuloPayload = {
-            id_articulo: correlativo,
             nombre,
             descripcion: descripcion || null,
             precio_base: precio,
             id_categoria: categoriaId,
             fecha_registro: serverTimestamp(),
-            
-            // imagen_url: null // 🔵 Puedes agregar esto si deseas dejarlo placeholder
-        };
+        }
 
         // 🔵 BLOQUE STORAGE DESACTIVADO
         /*
@@ -419,9 +531,11 @@ document.getElementById("guardarArticulo").addEventListener("click", async () =>
         await setDoc(articuloRef, articuloPayload);
 
         const stockRef = doc(collection(db, "stock_inventario"));
+
         const stockPayload = {
+            id_categoria: categoriaId,
             id_stock: stockRef.id,
-            id_articulo: correlativo,
+            id_articulo: articuloRef.id,
             id_atributo: parseInt(atributoId),
             id_valor: parseInt(valorId),
             stock,
@@ -434,61 +548,6 @@ document.getElementById("guardarArticulo").addEventListener("click", async () =>
     } catch (error) {
         console.error("❌ Error:", error);
         alert("Ocurrió un error al guardar");
-    }
-});
-
-// ===================== MOSTRAR DATOS EN LA TABLA =====================
-const tablaArticulosBody = document.getElementById("tablaArticulos");
-
-onSnapshot(collection(db, "articulos"), async (snapshot) => {
-    tablaArticulosBody.innerHTML = ""; // Limpiar tabla
-    for (const artDoc of snapshot.docs) {
-        const art = { id: artDoc.id, ...artDoc.data() };
-
-        // Obtener nombre de categoría
-        const catSnap = await getDocs(query(collection(db, "categoria"), where("id_categoria", "==", art.id_categoria)));
-        const categoriaNombre = !catSnap.empty ? catSnap.docs[0].data().nombre : "-";
-
-        // Obtener stock y atributos relacionados
-        const stockSnap = await getDocs(query(collection(db, "stock_inventario"), where("id_articulo", "==", art.id_articulo)));
-
-        let atributosNombres = [];
-        let valoresNombres = [];
-        let stockTotal = 0;
-
-        for (const sDoc of stockSnap.docs) {
-                const sData = sDoc.data();
-                stockTotal += sData.stock || 0;
-
-                // Obtener nombre del atributo
-                const attrSnap = await getDocs(query(collection(db, "atributo"), where("id_atributo", "==", sData.id_atributo)));
-                const attrNombre = !attrSnap.empty ? attrSnap.docs[0].data().nombre_atributo : "-";
-                atributosNombres.push(attrNombre);
-
-                // Obtener nombre del valor
-                const valSnap = await getDocs(query(collection(db, "valor"), where("id_valor", "==", sData.id_valor)));
-                const valNombre = !valSnap.empty ? valSnap.docs[0].data().valor : "-";
-                valoresNombres.push(valNombre);
-            }
-
-        const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${art.id_articulo}</td>
-                <td>null</td>
-                <td>${art.nombre}</td>
-                <td>${categoriaNombre}</td>
-                <td>${atributosNombres.join(", ")}</td>
-                <td>${valoresNombres.join(", ")}</td>
-                <td>${art.precio_base}</td>
-                <td>${stockTotal}</td>
-                <td>${art.descripcion || "-"}</td>
-                <td>
-                    <button class="btn btn-warning btnEditarArticulo" data-id="${art.id_articulo}" title="Editar artículo">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                </td>
-            `;
-            tablaArticulosBody.appendChild(tr);
     }
 });
 
@@ -517,73 +576,75 @@ document.getElementById("tablaArticulos").addEventListener("click", (e) => {
 });
 
 // populateEditarModal: carga datos al modal y lo prepara para edición
-async function populateEditarModal(idArticulo) {
+async function populateEditarModal(articuloDocId) {
     try {
-        const idNum = parseInt(idArticulo);
+        // 1️⃣ Obtener artículo por DOC ID
+        const artRef = doc(db, "articulos", articuloDocId);
+        const artSnap = await getDoc(artRef);
 
-        // 1) obtener documento de articulos por id_articulo
-        const qArt = query(collection(db, "articulos"), where("id_articulo", "==", idNum));
-        const snapArt = await getDocs(qArt);
-        if (snapArt.empty) {
-            alert("Artículo no encontrado en Firestore.");
+        if (!artSnap.exists()) {
+            alert("Artículo no encontrado.");
             return;
         }
-        const artDoc = snapArt.docs[0];                // DocumentSnapshot
-        const artData = artDoc.data();
 
-        // Guardar el id del documento de Firestore (no el correlativo) para update
-        const articuloDocId = artDoc.id;
+        const artData = artSnap.data();
+
+        // Guardar docId para el update
         const btnEditarGuardar = document.getElementById("btnEditarGuardar");
         btnEditarGuardar.dataset.artdocid = articuloDocId;
-        btnEditarGuardar.dataset.idarticulo = idNum;
 
-        // 2) llenar campos del modal (usa tus ids)
+        // 2️⃣ Llenar campos del modal
         document.getElementById("editNombre").value = artData.nombre || "";
-        // puede que tu campo se llame 'descripcion' o 'descripcion' en artData (usamos descripcion)
         document.getElementById("editDescripcion").value = artData.descripcion || "";
-        document.getElementById("editPrecio").value = artData.precio_base != null ? artData.precio_base : "";
+        document.getElementById("editPrecio").value =
+            artData.precio_base != null ? artData.precio_base : "";
 
-        // 3) cargar select de categorias y seleccionar la actual
+        // 3️⃣ Categorías (🔥 FIX UID)
         const selectCat = document.getElementById("editCategoria");
-        selectCat.innerHTML = `<option value="">Cargando categorías...</option>`;
+        selectCat.innerHTML = `<option value="">Cargando...</option>`;
+
         const catsSnap = await getDocs(collection(db, "categoria"));
         selectCat.innerHTML = `<option value="">-- Seleccione categoría --</option>`;
+
         catsSnap.forEach(cDoc => {
             const c = cDoc.data();
             const opt = document.createElement("option");
-            opt.value = c.id_categoria; // tu id_categoria correlativo
+            opt.value = cDoc.id; // ✅ UID real
             opt.textContent = c.nombre;
-            if (c.id_categoria === artData.id_categoria) opt.selected = true;
+
+            if (cDoc.id === artData.id_categoria) {
+                opt.selected = true;
+            }
             selectCat.appendChild(opt);
         });
 
-        // 4) obtener stock(s) relacionados (puede haber 1 o varios)
-        const qStock = query(collection(db, "stock_inventario"), where("id_articulo", "==", idNum));
+        // 4️⃣ Stock relacionado (🔥 FIX campo correcto)
+        const qStock = query(
+            collection(db, "stock_inventario"),
+            where("id_articulo", "==", articuloDocId)
+        );
+
         const snapStock = await getDocs(qStock);
+
         let stockTotal = 0;
         const stockDocIds = [];
+
         snapStock.forEach(sDoc => {
-            const s = sDoc.data();
-            stockTotal += Number(s.stock || 0);
+            stockTotal += Number(sDoc.data().stock || 0);
             stockDocIds.push(sDoc.id);
         });
 
-        // Guardamos los ids de documentos de stock en dataset para usarlos al guardar
         btnEditarGuardar.dataset.stockdocs = JSON.stringify(stockDocIds);
-
-        // Si no hay stock_documentos, dejamos vacío o 0
         document.getElementById("editStock").value = stockTotal;
 
-        // 5) asegurar que los campos estén DESHABILITADOS a la apertura
+        // 5️⃣ Estado inicial
         deshabilitarCampos(true);
-
-        // 6) preparar el botón en modo "editar"
         btnEditarGuardar.innerText = "Editar";
         btnEditarGuardar.dataset.modo = "editar";
 
     } catch (error) {
         console.error("Error en populateEditarModal:", error);
-        alert("Error cargando datos del artículo. Revisa consola.");
+        alert("Error cargando artículo.");
     }
 }
 
@@ -606,79 +667,52 @@ function deshabilitarCampos(state) {
 async function guardarCambiosArticulo() {
     try {
         const btn = document.getElementById("btnEditarGuardar");
-        const articuloDocId = btn.dataset.artdocid;        // Firestore doc id de articulos
-        const idArticulo = parseInt(btn.dataset.idarticulo); // correlativo
+        const articuloDocId = btn.dataset.artdocid; // 🔥 ÚNICA identificación
 
-        if (!articuloDocId || !idArticulo) {
+        if (!articuloDocId) {
             alert("Falta identificación del artículo para actualizar.");
             return;
         }
 
-        // Leer valores nuevos del modal
-        const nuevoNombre = document.getElementById("editNombre").value.trim();
-        const nuevaDesc = document.getElementById("editDescripcion").value.trim();
-        const nuevoPrecio = parseFloat(document.getElementById("editPrecio").value);
-        const nuevoStock = parseInt(document.getElementById("editStock").value);
-        const nuevaCategoria = parseInt(document.getElementById("editCategoria").value);
+        const nombre = document.getElementById("editNombre").value.trim();
+        const descripcion = document.getElementById("editDescripcion").value.trim();
+        const precio = parseFloat(document.getElementById("editPrecio").value);
+        const stock = parseInt(document.getElementById("editStock").value);
+        const categoriaId = document.getElementById("editCategoria").value;
 
-        // Validaciones básicas
-        if (!nuevoNombre) return alert("El nombre no puede quedar vacío.");
-        if (isNaN(nuevoPrecio)) return alert("Precio inválido.");
-        if (isNaN(nuevoStock)) return alert("Stock inválido.");
-        if (isNaN(nuevaCategoria)) return alert("Seleccione una categoría válida.");
-
-        // 1) actualizar documento en 'articulos'
-        const articuloRef = doc(db, "articulos", articuloDocId);
-        await updateDoc(articuloRef, {
-            nombre: nuevoNombre,
-            descripcion: nuevaDesc || null,
-            precio_base: nuevoPrecio,
-            id_categoria: nuevaCategoria,
-            fecha_registro: serverTimestamp() // opcional mantener fecha de modificación
-        });
-
-        // 2) actualizar stock_inventario: actualizar TODOS los documentos de stock relacionados
-        // (nota: si prefieres actualizar solo uno específico, cambiamos la lógica)
-        const stockDocsJSON = btn.dataset.stockdocs || "[]";
-        const stockDocIds = JSON.parse(stockDocsJSON);
-
-        if (stockDocIds.length === 0) {
-            // Si no existen documentos de stock, creamos uno nuevo
-            const newStockRef = doc(collection(db, "stock_inventario"));
-            await setDoc(newStockRef, {
-                id_stock: newStockRef.id,
-                id_articulo: idArticulo,
-                id_atributo: null,
-                id_valor: null,
-                stock: nuevoStock,
-                fecha_registro: serverTimestamp()
-            });
-        } else {
-            // Actualizamos cada doc de stock con el nuevo valor numérico
-            await Promise.all(stockDocIds.map(async sid => {
-                const stockRef = doc(db, "stock_inventario", sid);
-                try {
-                    await updateDoc(stockRef, { stock: nuevoStock, fecha_registro: serverTimestamp() });
-                } catch (err) {
-                    // si falla update (por ejemplo si el doc fue borrado), intentamos set
-                    console.warn("updateDoc stock falló, intentando setDoc:", sid, err);
-                    await setDoc(stockRef, { stock: nuevoStock }, { merge: true });
-                }
-            }));
+        if (!nombre || isNaN(precio) || isNaN(stock) || !categoriaId) {
+            alert("Complete todos los campos obligatorios.");
+            return;
         }
 
-        // 3) cerrar modal y limpiar/actualizar UI
-        deshabilitarCampos(true);
-        btn.innerText = "Editar";
-        btn.dataset.modo = "editar";
+        // 1️⃣ Actualizar ARTÍCULO
+        const artRef = doc(db, "articulos", articuloDocId);
 
-        cerrarModal("modalEditarArticulo");
+        await updateDoc(artRef, {
+            nombre,
+            descripcion: descripcion || null,
+            precio_base: precio,
+            id_categoria: categoriaId,
+            fecha_actualizacion: serverTimestamp()
+        });
 
-        alert("Artículo y stock actualizados correctamente.");
+        // 2️⃣ Actualizar STOCK (todos los relacionados)
+        const stockDocIds = JSON.parse(btn.dataset.stockdocs || "[]");
+
+        for (const stockDocId of stockDocIds) {
+            const stockRef = doc(db, "stock_inventario", stockDocId);
+            await updateDoc(stockRef, {
+                stock,
+                fecha_actualizacion: serverTimestamp()
+            });
+        }
+
+        alert("Artículo actualizado correctamente.");
+        cerrarModalEditar();
 
     } catch (error) {
-        console.error("Error guardando cambios del artículo:", error);
-        alert("Ocurrió un error al guardar los cambios. Revisa la consola.");
+        console.error("Error al guardar cambios:", error);
+        alert("Error al actualizar el artículo.");
     }
 }
 

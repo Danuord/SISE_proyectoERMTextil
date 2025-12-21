@@ -243,7 +243,6 @@ onSnapshot(collection(db, "usuario"), snapshot => {
     });
 });
 
-// Mostrar salario del empleado seleccionado
 employeeSelectPlanilla.addEventListener("change", async () => {
     const uid = employeeSelectPlanilla.value;
     if (!uid) { salaryInputPlanilla.value = ""; return; }
