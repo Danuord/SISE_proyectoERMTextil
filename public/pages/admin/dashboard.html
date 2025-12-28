@@ -12,11 +12,11 @@
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="../../js/sessionProtection.js"></script>
 </head>
 
 <body>
     <div class="layout">
-        <!-- Sidebar Component -->
         <div id="sidebar-container"></div>
 
         <main class="main-content">
@@ -32,7 +32,6 @@
 
             <div id="statusMessage" class="status-message"></div>
 
-            <!-- KPI Cards -->
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-header">
@@ -99,7 +98,6 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-header">
@@ -132,7 +130,6 @@
                 </div>
             </div>
 
-            <!-- Activity Feed -->
             <div class="activity-section">
                 <div class="activity-card">
                     <div class="activity-header">
@@ -206,9 +203,22 @@
 
         const session = authService.getSession();
 
-        window.logout = function () {
-            authService.logout();
-            window.location.href = '../login.html';
+        if (!session || !session.email) {
+            console.warn('⚠️ No hay sesión válida en dashboard admin');
+            window.location.replace('../login.html');
+        }
+
+        window.logout = async function () {
+            console.log('🔐 Iniciando logout seguro...');
+            try {
+                await authService.logout();
+                console.log('✅ Sesión de Firebase cerrada');
+                
+                secureLogout();
+            } catch (e) {
+                console.error('Error en logout:', e);
+                secureLogout();
+            }
         };
 
         window.toggleMenu = function () {
@@ -229,7 +239,7 @@
         statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}!`;
         setTimeout(() => { statusDiv.classList.remove('show'); }, 3000);
 
-        console.log('Dashboard cargado exitosamente');
+        console.log('Dashboard admin cargado exitosamente');
     </script>
 
     <script type="module" src="../../components/sidebar.js"></script>
