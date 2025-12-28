@@ -11,25 +11,11 @@
 </head>
 
 <body>
+    <h1>Cargando...</h1>
     <script>
-        const session = localStorage.getItem('textileflow_session');
-
-        if (session) {
-            try {
-                const sessionData = JSON.parse(session);
-
-                if (sessionData && sessionData.email) {
-                    window.location.href = './pages/dashboard.html';
-                } else {
-                    localStorage.removeItem('textileflow_session');
-                    window.location.href = './pages/login.html';
-                }
-            } catch (e) {
-                localStorage.removeItem('textileflow_session');
-                window.location.href = './pages/login.html';
-            }
-        } else {
-            window.location.href = './pages/login.html';
+        // Redirigir solo si NO estamos ya en /pages/
+        if (!window.location.pathname.includes('/pages/')) {
+            window.location.replace('./pages/login.html');
         }
     </script>
 </body>

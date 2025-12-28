@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="../css/auth/login.css">
 </head>
 <body>
+    <script>
+        // Si ya hay sesión, redirigir al dashboard
+        const session = localStorage.getItem('textileflow_session');
+        if (session) {
+            try {
+                const sessionData = JSON.parse(session);
+                if (sessionData.rol === 'admin' || sessionData.rol === 'Administrador') {
+                    window.location.replace('./admin/dashboard.html');
+                } else {
+                    window.location.replace('./employee/dashboard.html');
+                }
+            } catch (e) {
+                localStorage.removeItem('textileflow_session');
+            }
+        }
+    </script>
     <div class="login-container">
         <div class="login-wrapper">
             <div class="login-brand">
@@ -68,9 +84,6 @@
                                     placeholder="Ingresa tu contraseña"
                                     required
                                 >
-                                <button type="button" class="toggle-password" id="togglePassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
                             </div>
                             <span class="error-message" id="passwordError"></span>
                         </div>
