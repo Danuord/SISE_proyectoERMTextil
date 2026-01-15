@@ -9,7 +9,6 @@ export async function initSidebar({ session, hostId = 'sidebar-host', onLogout }
 
     host.innerHTML = html;
 
-    // Populate user info
     if (session) {
         const nameEl = document.getElementById('userNameDisplay');
         const roleEl = document.getElementById('userRoleDisplay');

@@ -1,8 +1,6 @@
-// ===================== REPORTES - LÓGICA PRINCIPAL =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-console.log("✅ REPORTES.JS CARGADO");
 
 // ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
@@ -29,11 +27,9 @@ let currentReportData = null;
 
 // ===================== INICIALIZACIÓN =====================
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🚀 Inicializando panel de reportes...");
-
+    
     setupTabs();
     await loadEmployeeFilter();
-    console.log("📊 Módulo de Reportes cargado");
 
     // Inicializar tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -54,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 targetContent.classList.add('active');
             }
 
-            console.log(`📑 Tab activado: ${tabName}`);
         });
     });
 
@@ -102,12 +97,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Activar el primer tab por defecto
     if (tabButtons.length > 0) {
         tabButtons[0].click();
     }
 
-    console.log("✅ Reportes inicializados");
 });
 
 // ===================== SETUP TABS =====================
@@ -125,7 +118,6 @@ function setupTabs() {
             btn.classList.add('active');
             document.querySelector(`.tab-content[data-tab="${tabName}"]`).classList.add('active');
 
-            console.log(`📊 Tab cambiado a: ${tabName}`);
         });
     });
 }
@@ -269,25 +261,34 @@ async function loadDashboardCharts() {
 // ===================== CARGAR FILTRO DE EMPLEADOS =====================
 async function loadEmployeeFilter() {
     const select = document.getElementById('filterEmployee');
-    if (!select) return;
+    const payrollSelect = document.getElementById('payrollFilterEmployee');
+    
+    if (!select && !payrollSelect) return;
 
     try {
         const snapshot = await getDocs(collection(db, "usuario"));
-        select.innerHTML = '<option value="">Todos los empleados</option>';
+        const options = '<option value="">Todos los empleados</option>';
+        let optionsHtml = '';
 
         snapshot.forEach(doc => {
             const user = doc.data();
-            const option = document.createElement('option');
-            option.value = doc.id;
-            option.textContent = user.displayName || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email;
-            select.appendChild(option);
+            const optionHtml = `<option value="${doc.id}">${user.displayName || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email}</option>`;
+            optionsHtml += optionHtml;
         });
+
+        if (select) {
+            select.innerHTML = options + optionsHtml;
+        }
+        
+        if (payrollSelect) {
+            payrollSelect.innerHTML = options + optionsHtml;
+        }
+        
     } catch (error) {
-        console.error("❌ Error al cargar empleados:", error);
+        console.error("Error al cargar empleados:", error);
     }
 }
 
-// ===================== SELECCIONAR REPORTE =====================
 window.selectReport = function (reportType) {
     currentReportType = reportType;
 
@@ -309,7 +310,7 @@ window.selectReport = function (reportType) {
         // Establecer mes actual por defecto
         if (filterMonth && !filterMonth.value) {
             const hoy = new Date();
-            const mesActual = hoy.toISOString().substring(0, 7); // YYYY-MM
+            const mesActual = hoy.toISOString().substring(0, 7);
             filterMonth.value = mesActual;
         }
 
@@ -323,10 +324,8 @@ window.selectReport = function (reportType) {
         `;
         document.getElementById('exportButtons').style.display = 'none';
 
-        // Scroll to report area
         reportArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        console.log(`📊 Reporte seleccionado: ${reportType}`);
     }
 };
 
@@ -336,13 +335,13 @@ window.generateReport = async function () {
     const employeeId = document.getElementById('filterEmployee').value;
 
     if (!month) {
-        alert('⚠️ Por favor selecciona un mes');
+        alert('Por favor selecciona un mes');
         document.getElementById('filterMonth').focus();
         return;
     }
 
     if (!currentReportType) {
-        alert('⚠️ Por favor selecciona un tipo de reporte primero');
+        alert('Por favor selecciona un tipo de reporte primero');
         return;
     }
 
@@ -358,7 +357,7 @@ window.generateReport = async function () {
     `;
 
     try {
-        console.log(`🔄 Generando reporte: ${currentReportType}, Mes: ${month}, Empleado: ${employeeId || 'Todos'}`);
+        console.log(`Generando reporte: ${currentReportType}, Mes: ${month}, Empleado: ${employeeId || 'Todos'}`);
 
         switch (currentReportType) {
             case 'asistencia-mensual':
@@ -376,9 +375,9 @@ window.generateReport = async function () {
         }
 
         exportButtons.style.display = 'flex';
-        console.log('✅ Reporte generado exitosamente');
+        console.log('Reporte generado exitosamente');
     } catch (error) {
-        console.error("❌ Error al generar reporte:", error);
+        console.error("Error al generar reporte:", error);
         resultsDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
@@ -405,7 +404,7 @@ async function generateMonthlyAttendanceReport(month, employeeId) {
     const snapshot = await getDocs(q);
     const usuariosSnapshot = await getDocs(collection(db, "usuario"));
 
-    // Crear mapa de usuarios
+    // Creando mapa de usuarios
     const usuariosMap = {};
     usuariosSnapshot.forEach(doc => {
         const user = doc.data();
@@ -424,7 +423,6 @@ async function generateMonthlyAttendanceReport(month, employeeId) {
     snapshot.forEach(doc => {
         const data = doc.data();
 
-        // Filtrar por empleado si se especificó
         if (employeeId && data.userId !== employeeId) return;
 
         if (!porEmpleadoFecha[data.userId]) {
@@ -521,7 +519,7 @@ async function generateMonthlyAttendanceReport(month, employeeId) {
         data: usuariosMap
     };
 
-    console.log(`✅ Reporte mensual generado: ${hasData ? Object.keys(usuariosMap).length + ' empleados' : 'Sin datos'}`);
+    console.log(`Reporte mensual generado: ${hasData ? Object.keys(usuariosMap).length + ' empleados' : 'Sin datos'}`);
 }
 
 // ===================== REPORTE DE TARDANZAS =====================
@@ -621,11 +619,8 @@ window.exportToPDF = function () {
     doc.setFontSize(12);
     doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 14, 30);
 
-    // Aquí se agregaría la lógica específica según el tipo de reporte
-    // Por ahora, guardamos el PDF básico
     doc.save(`reporte_${currentReportData.type}_${currentReportData.month}.pdf`);
 
-    console.log('✅ PDF exportado');
 };
 
 // ===================== EXPORTAR A EXCEL =====================
@@ -675,8 +670,95 @@ window.exportToExcel = function () {
                     t.minutosTarde
                 ]);
             });
+        } else if (currentReportData.type === 'nomina-mensual') {
+            sheetName = 'Nómina Mensual';
+            data.push(['Empleado', 'Rol', 'Email', 'Salario Base', 'Bonos', 'Deducciones', 'Salario Neto']);
+
+            Object.values(currentReportData.data)
+                .sort((a, b) => b.montoPagado - a.montoPagado)
+                .forEach(emp => {
+                    data.push([
+                        emp.displayName,
+                        emp.rol,
+                        emp.email,
+                        emp.salarioTotal.toFixed(2),
+                        emp.bonoTotal.toFixed(2),
+                        emp.deduccionTotal.toFixed(2),
+                        emp.montoPagado.toFixed(2)
+                    ]);
+                });
+
+            // Agregar totales
+            if (currentReportData.totales) {
+                data.push([]);
+                data.push(['TOTALES', '', '', 
+                    currentReportData.totales.salarios.toFixed(2),
+                    currentReportData.totales.bonos.toFixed(2),
+                    currentReportData.totales.deducciones.toFixed(2),
+                    currentReportData.totales.neto.toFixed(2)
+                ]);
+            }
+        } else if (currentReportData.type === 'por-empleado') {
+            sheetName = 'Historial Empleado';
+            data.push(['Período', 'Salario', 'Bonos', 'Deducciones', 'Total Neto', 'Detalle']);
+
+            currentReportData.data.forEach(pago => {
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const [año, mes] = pago.periodo_pago.split('-');
+                const periodoFormato = `${meses[parseInt(mes) - 1]} ${año}`;
+
+                data.push([
+                    periodoFormato,
+                    parseFloat(pago.salario || 0).toFixed(2),
+                    parseFloat(pago.bono || 0).toFixed(2),
+                    parseFloat(pago.deduccion || 0).toFixed(2),
+                    parseFloat(pago.pago_total || 0).toFixed(2),
+                    pago.detalle || ''
+                ]);
+            });
+
+            if (currentReportData.totales) {
+                data.push([]);
+                data.push(['TOTALES', 
+                    currentReportData.totales.salarios.toFixed(2),
+                    currentReportData.totales.bonos.toFixed(2),
+                    currentReportData.totales.deducciones.toFixed(2),
+                    currentReportData.totales.neto.toFixed(2),
+                    ''
+                ]);
+            }
+        } else if (currentReportData.type === 'comparativo') {
+            sheetName = 'Comparativo';
+            data.push(['Período', 'Cantidad Pagos', 'Total Salarios', 'Total Bonos', 'Total Deduc.', 'Total Neto']);
+
+            currentReportData.meses.forEach(mes => {
+                const datos = currentReportData.data[mes];
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const [año, mesNum] = mes.split('-');
+                const mesFormato = `${meses[parseInt(mesNum) - 1]} ${año}`;
+
+                data.push([
+                    mesFormato,
+                    datos.cantidad,
+                    datos.salario.toFixed(2),
+                    datos.bono.toFixed(2),
+                    datos.deduccion.toFixed(2),
+                    datos.total.toFixed(2)
+                ]);
+            });
+
+            if (currentReportData.totales) {
+                data.push([]);
+                data.push(['TOTALES',
+                    currentReportData.totales.cantidad,
+                    currentReportData.totales.salarios.toFixed(2),
+                    currentReportData.totales.bonos.toFixed(2),
+                    currentReportData.totales.deducciones.toFixed(2),
+                    currentReportData.totales.neto.toFixed(2)
+                ]);
+            }
         } else {
-            alert('📊 Tipo de reporte no soportado para exportación a Excel aún.');
+            alert('Tipo de reporte no soportado para exportación a Excel aún.');
             return;
         }
 
@@ -690,9 +772,9 @@ window.exportToExcel = function () {
         const fileName = `reporte_${currentReportData.type}_${currentReportData.month || new Date().toISOString().slice(0, 7)}.xlsx`;
         XLSX.writeFile(wb, fileName);
 
-        console.log('✅ Excel exportado:', fileName);
+        console.log('Excel exportado:', fileName);
     } catch (error) {
-        console.error('❌ Error al exportar Excel:', error);
+        console.error('Error al exportar Excel:', error);
         alert('Error al exportar a Excel. Verifica que la librería XLSX esté cargada.');
     }
 };
@@ -717,7 +799,15 @@ window.selectPayrollReport = function (reportType) {
     currentPayrollReportType = reportType;
     const reportArea = document.getElementById('payrollReportArea');
     const reportTitle = document.getElementById('payrollReportTitle');
-    const filterMonth = document.getElementById('payrollFilterMonth');
+
+    // Ocultar todos los filtros
+    const filterResumen = document.getElementById('filterResumenMensual');
+    const filterPorEmpleado = document.getElementById('filterPorEmpleado');
+    const filterComparativo = document.getElementById('filterComparativo');
+
+    if (filterResumen) filterResumen.style.display = 'none';
+    if (filterPorEmpleado) filterPorEmpleado.style.display = 'none';
+    if (filterComparativo) filterComparativo.style.display = 'none';
 
     if (reportArea && reportTitle) {
         reportArea.style.display = 'block';
@@ -730,9 +820,43 @@ window.selectPayrollReport = function (reportType) {
 
         reportTitle.textContent = titles[reportType] || 'Reporte';
 
-        if (filterMonth && !filterMonth.value) {
+        // Mostrar filtros según tipo de reporte
+        if (reportType === 'resumen-mensual' && filterResumen) {
+            filterResumen.style.display = 'block';
+            const filterMonth = document.getElementById('payrollFilterMonth');
+            if (filterMonth && !filterMonth.value) {
+                const hoy = new Date();
+                filterMonth.value = hoy.toISOString().substring(0, 7);
+            }
+        } else if (reportType === 'por-empleado' && filterPorEmpleado) {
+            filterPorEmpleado.style.display = 'block';
+            const filterMonth = document.getElementById('employeeFilterMonth');
+            if (filterMonth && !filterMonth.value) {
+                const hoy = new Date();
+                filterMonth.value = hoy.toISOString().substring(0, 7);
+            }
+            // Cargar empleados en el selector
+            loadEmployeesForReport('employeeFilterEmployeeSelect');
+        } else if (reportType === 'comparativo' && filterComparativo) {
+            filterComparativo.style.display = 'block';
             const hoy = new Date();
-            filterMonth.value = hoy.toISOString().substring(0, 7);
+            const mesActual = hoy.toISOString().substring(0, 7);
+            
+            // Establecer meses por defecto
+            const mes1 = document.getElementById('comparativeMonth1');
+            const mes2 = document.getElementById('comparativeMonth2');
+            if (mes1 && !mes1.value) {
+                const hace2Meses = new Date(hoy);
+                hace2Meses.setMonth(hace2Meses.getMonth() - 2);
+                mes1.value = hace2Meses.toISOString().substring(0, 7);
+            }
+            if (mes2 && !mes2.value) {
+                const hace1Mes = new Date(hoy);
+                hace1Mes.setMonth(hace1Mes.getMonth() - 1);
+                mes2.value = hace1Mes.toISOString().substring(0, 7);
+            }
+            // Cargar empleados en el selector
+            loadEmployeesForReport('comparativeFilterEmployee');
         }
 
         document.getElementById('payrollResults').innerHTML = `
@@ -748,18 +872,81 @@ window.selectPayrollReport = function (reportType) {
     }
 };
 
+// ===================== FUNCIONES DE TOGGLE FILTROS =====================
+window.toggleEmployeeFilters = function () {
+    const monthGroup = document.getElementById('employeeMonthGroup');
+    const rangeStartGroup = document.getElementById('employeeRangeStartGroup');
+    const rangeEndGroup = document.getElementById('employeeRangeEndGroup');
+    
+    const selectedOption = document.querySelector('input[name="periodRangeEmployee"]:checked').value;
+    
+    monthGroup.style.display = 'none';
+    rangeStartGroup.style.display = 'none';
+    rangeEndGroup.style.display = 'none';
+    
+    if (selectedOption === 'specific') {
+        monthGroup.style.display = 'block';
+    } else if (selectedOption === 'range') {
+        rangeStartGroup.style.display = 'block';
+        rangeEndGroup.style.display = 'block';
+    }
+};
+
+window.toggleComparativeFilters = function () {
+    const monthsGroup = document.getElementById('comparativeMonthsGroup');
+    const rangeGroup = document.getElementById('comparativeRangeGroup');
+    const yearlyGroup = document.getElementById('comparativeYearlyGroup');
+    
+    const selectedOption = document.querySelector('input[name="comparativeType"]:checked').value;
+    
+    monthsGroup.style.display = 'none';
+    rangeGroup.style.display = 'none';
+    yearlyGroup.style.display = 'none';
+    
+    if (selectedOption === 'months') {
+        monthsGroup.style.display = 'block';
+    } else if (selectedOption === 'range') {
+        rangeGroup.style.display = 'block';
+    } else if (selectedOption === 'yearly') {
+        yearlyGroup.style.display = 'block';
+    }
+};
+
+// ===================== CARGAR EMPLEADOS PARA REPORTES =====================
+async function loadEmployeesForReport(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        const snapshot = await getDocs(collection(db, "usuario"));
+        const options = '<option value="">Todos los empleados</option>';
+        let optionsHtml = '';
+
+        snapshot.forEach(doc => {
+            const user = doc.data();
+            const displayName = user.displayName || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email;
+            const optionHtml = `<option value="${doc.id}">${displayName}</option>`;
+            optionsHtml += optionHtml;
+        });
+
+        select.innerHTML = options + optionsHtml;
+    } catch (error) {
+        console.error("Error al cargar empleados:", error);
+    }
+}
+
 window.generatePayrollReport = async function () {
     const month = document.getElementById('payrollFilterMonth').value;
     const employeeId = document.getElementById('payrollFilterEmployee').value;
     const reportType = currentPayrollReportType;
 
     if (!month) {
-        alert('⚠️ Por favor selecciona un mes');
+        alert('Por favor selecciona un mes');
         return;
     }
 
     if (!reportType) {
-        alert('⚠️ Por favor selecciona un tipo de reporte primero');
+        alert('Por favor selecciona un tipo de reporte primero');
         return;
     }
 
@@ -776,14 +963,12 @@ window.generatePayrollReport = async function () {
 
     try {
         const [year, monthNum] = month.split('-');
-        const startDate = `${year}-${monthNum}-01`;
-        const endDate = `${year}-${monthNum}-${new Date(year, monthNum, 0).getDate()}`;
+        const periodoPago = `${year}-${monthNum}`;
 
-        // Obtener pagos del período
+        // Obtener pagos de la colección pagos_empleados
         const q = query(
-            collection(db, "pagos"),
-            where("fecha", ">=", startDate),
-            where("fecha", "<=", endDate)
+            collection(db, "pagos_empleados"),
+            where("periodo_pago", "==", periodoPago)
         );
         const pagosSnapshot = await getDocs(q);
 
@@ -793,7 +978,7 @@ window.generatePayrollReport = async function () {
         usuariosSnapshot.forEach(doc => {
             const user = doc.data();
             usuariosMap[doc.id] = {
-                displayName: user.displayName || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email,
+                displayName: `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email,
                 email: user.email,
                 rol: user.rol || 'Empleado'
             };
@@ -803,56 +988,87 @@ window.generatePayrollReport = async function () {
         const pagosPorEmpleado = {};
         pagosSnapshot.forEach(doc => {
             const pago = doc.data();
-            if (!employeeId || pago.userId === employeeId) {
-                if (!pagosPorEmpleado[pago.userId]) {
-                    pagosPorEmpleado[pago.userId] = {
-                        ...usuariosMap[pago.userId],
+            if (!employeeId || pago.uid === employeeId) {
+                if (!pagosPorEmpleado[pago.uid]) {
+                    pagosPorEmpleado[pago.uid] = {
+                        ...usuariosMap[pago.uid],
                         totalPagos: 0,
                         montoPagado: 0,
+                        salarioTotal: 0,
+                        bonoTotal: 0,
+                        deduccionTotal: 0,
                         pagos: []
                     };
                 }
-                pagosPorEmpleado[pago.userId].totalPagos++;
-                pagosPorEmpleado[pago.userId].montoPagado += parseFloat(pago.monto || 0);
-                pagosPorEmpleado[pago.userId].pagos.push(pago);
+                pagosPorEmpleado[pago.uid].totalPagos++;
+                pagosPorEmpleado[pago.uid].montoPagado += parseFloat(pago.pago_total || 0);
+                pagosPorEmpleado[pago.uid].salarioTotal += parseFloat(pago.salario || 0);
+                pagosPorEmpleado[pago.uid].bonoTotal += parseFloat(pago.bono || 0);
+                pagosPorEmpleado[pago.uid].deduccionTotal += parseFloat(pago.deduccion || 0);
+                pagosPorEmpleado[pago.uid].pagos.push(pago);
             }
         });
 
         // Renderizar según tipo de reporte
         const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const nombreMes = new Date(year, monthNum - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
         let html = `
             <div id="printableArea">
                 <div style="margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 5px 0; color: #374151;">Reporte de Nómina - ${new Date(year, monthNum - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</h3>
+                    <h3 style="margin: 0 0 5px 0; color: #374151;">Reporte de Nómina - ${nombreMes}</h3>
                     <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 0.85rem;">Fecha de generación: ${fechaReporte}</p>
                 </div>
-                <table>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                     <thead>
-                        <tr>
-                            <th>Empleado</th>
-                            <th>Rol</th>
-                            <th>Total Pagos</th>
-                            <th>Monto Total</th>
+                        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #d1d5db;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Empleado</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Rol</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Salario</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Bonos</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Deducciones</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Neto</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
 
+        let totalSalarios = 0;
+        let totalBonos = 0;
+        let totalDeducciones = 0;
+        let totalNeto = 0;
+
         Object.values(pagosPorEmpleado)
             .sort((a, b) => b.montoPagado - a.montoPagado)
             .forEach(emp => {
+                totalSalarios += emp.salarioTotal;
+                totalBonos += emp.bonoTotal;
+                totalDeducciones += emp.deduccionTotal;
+                totalNeto += emp.montoPagado;
+                
                 html += `
-                    <tr>
-                        <td><strong>${emp.displayName}</strong><br><small style="color: #9ca3af;">${emp.email}</small></td>
-                        <td>${emp.rol}</td>
-                        <td>${emp.totalPagos}</td>
-                        <td><span class="status-badge status-complete">$${emp.montoPagado.toFixed(2)}</span></td>
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 12px; text-align: left;"><strong>${emp.displayName}</strong><br><small style="color: #9ca3af; font-size: 0.85rem;">${emp.email}</small></td>
+                        <td style="padding: 12px; text-align: left; color: #6b7280;">${emp.rol}</td>
+                        <td style="padding: 12px; text-align: right; color: #374151;">S/ ${emp.salarioTotal.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #10b981;">+ S/ ${emp.bonoTotal.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #ef4444;">- S/ ${emp.deduccionTotal.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right;"><span class="status-badge status-complete"><strong>S/ ${emp.montoPagado.toFixed(2)}</strong></span></td>
                     </tr>
                 `;
             });
 
         if (Object.keys(pagosPorEmpleado).length === 0) {
-            html += '<tr><td colspan="4" style="text-align:center; padding: 40px; color: #6b7280;"><i class="fas fa-inbox"></i> No se encontraron pagos para este período</td></tr>';
+            html += '<tr><td colspan="6" style="text-align:center; padding: 40px; color: #6b7280;"><i class="fas fa-inbox"></i> No se encontraron pagos para este período</td></tr>';
+        } else {
+            html += `
+                    <tr style="background-color: #f3f4f6; font-weight: bold; border-top: 2px solid #d1d5db;">
+                        <td colspan="2" style="padding: 12px; text-align: right; color: #374151;">TOTALES:</td>
+                        <td style="padding: 12px; text-align: right; color: #374151;">S/ ${totalSalarios.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #10b981;">S/ ${totalBonos.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #ef4444;">S/ ${totalDeducciones.toFixed(2)}</td>
+                        <td style="padding: 12px; text-align: right; color: #667eea;">S/ ${totalNeto.toFixed(2)}</td>
+                    </tr>
+            `;
         }
 
         html += '</tbody></table></div>';
@@ -862,13 +1078,424 @@ window.generatePayrollReport = async function () {
         currentReportData = {
             type: 'nomina-mensual',
             month,
-            data: pagosPorEmpleado
+            data: pagosPorEmpleado,
+            totales: {
+                salarios: totalSalarios,
+                bonos: totalBonos,
+                deducciones: totalDeducciones,
+                neto: totalNeto
+            }
         };
 
         exportButtons.style.display = 'flex';
-        console.log('✅ Reporte de nómina generado');
     } catch (error) {
-        console.error("❌ Error al generar reporte:", error);
+        console.error("Error al generar reporte:", error);
+        resultsDiv.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
+                <h3 style="margin: 0 0 10px 0; color: #ef4444;">Error al generar reporte</h3>
+                <p style="color: #6b7280; margin: 0;">${error.message}</p>
+            </div>
+        `;
+    }
+};
+
+// ===================== FUNCIONES AUXILIARES DE PAGOS =====================
+async function obtenerPagosEmpleado(empleadoId, mes) {
+    try {
+        const periodoPago = mes;
+        const q = query(
+            collection(db, "pagos_empleados"),
+            where("uid", "==", empleadoId),
+            where("periodo_pago", "==", periodoPago)
+        );
+        const snapshot = await getDocs(q);
+        const pagos = [];
+        snapshot.forEach(doc => {
+            pagos.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        return pagos;
+    } catch (error) {
+        console.error("Error obteniendo pagos del empleado:", error);
+        return [];
+    }
+}
+
+async function obtenerPagosRango(mesInicio, mesFin) {
+    try {
+        const q = query(
+            collection(db, "pagos_empleados"),
+            where("periodo_pago", ">=", mesInicio),
+            where("periodo_pago", "<=", mesFin)
+        );
+        const snapshot = await getDocs(q);
+        const pagos = [];
+        snapshot.forEach(doc => {
+            pagos.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        return pagos;
+    } catch (error) {
+        console.error("Error obteniendo pagos del rango:", error);
+        return [];
+    }
+}
+
+// ===================== GENERAR REPORTE POR EMPLEADO =====================
+window.generatePayrollByEmployee = async function () {
+    const reportType = currentPayrollReportType;
+    const empleadoId = document.getElementById('employeeFilterEmployeeSelect').value;
+
+    if (!empleadoId) {
+        alert('Por favor selecciona un empleado');
+        return;
+    }
+
+    const resultsDiv = document.getElementById('payrollResults');
+    const exportButtons = document.getElementById('payrollExportButtons');
+
+    resultsDiv.innerHTML = `
+        <div style="text-align: center; padding: 60px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+            <h3 style="margin: 0; color: #374151;">Generando reporte...</h3>
+            <p style="color: #6b7280; margin: 10px 0 0 0;">Consultando datos de Firestore</p>
+        </div>
+    `;
+
+    try {
+        const selectedRange = document.querySelector('input[name="periodRangeEmployee"]:checked').value;
+        let pagos = [];
+
+        // Obtener empleado info
+        const usuarioRef = doc(db, "usuario", empleadoId);
+        const usuarioSnap = await getDoc(usuarioRef);
+        const empleadoInfo = usuarioSnap.exists() ? usuarioSnap.data() : {};
+        const empleadoNombre = `${empleadoInfo.nombre || ''} ${empleadoInfo.apellido || ''}`.trim();
+
+        if (selectedRange === 'specific') {
+            const mes = document.getElementById('employeeFilterMonth').value;
+            if (!mes) {
+                alert('Por favor selecciona un mes');
+                return;
+            }
+            pagos = await obtenerPagosEmpleado(empleadoId, mes);
+        } else if (selectedRange === 'all') {
+            // Obtener todos los pagos del empleado
+            const q = query(
+                collection(db, "pagos_empleados"),
+                where("uid", "==", empleadoId)
+            );
+            const snapshot = await getDocs(q);
+            snapshot.forEach(doc => {
+                pagos.push({ id: doc.id, ...doc.data() });
+            });
+        } else if (selectedRange === 'range') {
+            const mesInicio = document.getElementById('employeeFilterStartMonth').value;
+            const mesFin = document.getElementById('employeeFilterEndMonth').value;
+            
+            if (!mesInicio || !mesFin) {
+                alert('Por favor selecciona rango de meses');
+                return;
+            }
+            
+            const q = query(
+                collection(db, "pagos_empleados"),
+                where("uid", "==", empleadoId),
+                where("periodo_pago", ">=", mesInicio),
+                where("periodo_pago", "<=", mesFin)
+            );
+            const snapshot = await getDocs(q);
+            snapshot.forEach(doc => {
+                pagos.push({ id: doc.id, ...doc.data() });
+            });
+        }
+
+        // Ordenar pagos por periodo
+        pagos.sort((a, b) => a.periodo_pago.localeCompare(b.periodo_pago));
+
+        // Renderizar tabla
+        const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        let html = `
+            <div id="printableArea">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 5px 0; color: #374151;">Historial de Pagos - ${empleadoNombre}</h3>
+                    <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 0.85rem;">Fecha de generación: ${fechaReporte}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <thead>
+                        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #d1d5db;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Período</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Salario</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Bonos</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Deducciones</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Neto</th>
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        let totalSalario = 0, totalBono = 0, totalDeduccion = 0, totalNeto = 0;
+
+        pagos.forEach(pago => {
+            totalSalario += parseFloat(pago.salario || 0);
+            totalBono += parseFloat(pago.bono || 0);
+            totalDeduccion += parseFloat(pago.deduccion || 0);
+            totalNeto += parseFloat(pago.pago_total || 0);
+
+            const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const [año, mes] = pago.periodo_pago.split('-');
+            const periodoFormato = `${meses[parseInt(mes) - 1]} ${año}`;
+
+            html += `
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px; text-align: left; font-weight: 500;">${periodoFormato}</td>
+                    <td style="padding: 12px; text-align: right; color: #374151;">S/ ${parseFloat(pago.salario || 0).toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #10b981;">+ S/ ${parseFloat(pago.bono || 0).toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #ef4444;">- S/ ${parseFloat(pago.deduccion || 0).toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right;"><strong style="color: #667eea;">S/ ${parseFloat(pago.pago_total || 0).toFixed(2)}</strong></td>
+                    <td style="padding: 12px; text-align: left; font-size: 0.9rem; color: #6b7280;">${pago.detalle || '-'}</td>
+                </tr>
+            `;
+        });
+
+        if (pagos.length === 0) {
+            html += '<tr><td colspan="6" style="text-align:center; padding: 40px; color: #6b7280;"><i class="fas fa-inbox"></i> No se encontraron pagos para este rango</td></tr>';
+        } else {
+            html += `
+                <tr style="background-color: #f3f4f6; font-weight: bold; border-top: 2px solid #d1d5db;">
+                    <td style="padding: 12px; text-align: left; color: #374151;">TOTALES:</td>
+                    <td style="padding: 12px; text-align: right; color: #374151;">S/ ${totalSalario.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #10b981;">S/ ${totalBono.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #ef4444;">S/ ${totalDeduccion.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #667eea;">S/ ${totalNeto.toFixed(2)}</td>
+                    <td style="padding: 12px;"></td>
+                </tr>
+            `;
+        }
+
+        html += '</tbody></table></div>';
+        resultsDiv.innerHTML = html;
+
+        currentReportData = {
+            type: 'por-empleado',
+            empleado: empleadoNombre,
+            data: pagos,
+            totales: {
+                salarios: totalSalario,
+                bonos: totalBono,
+                deducciones: totalDeduccion,
+                neto: totalNeto
+            }
+        };
+
+        exportButtons.style.display = 'flex';
+    } catch (error) {
+        console.error("Error al generar reporte:", error);
+        resultsDiv.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
+                <h3 style="margin: 0 0 10px 0; color: #ef4444;">Error al generar reporte</h3>
+                <p style="color: #6b7280; margin: 0;">${error.message}</p>
+            </div>
+        `;
+    }
+};
+
+// ===================== GENERAR REPORTE COMPARATIVO =====================
+window.generatePayrollComparative = async function () {
+    const reportType = currentPayrollReportType;
+    const comparationType = document.querySelector('input[name="comparativeType"]:checked').value;
+    const empleadoId = document.getElementById('comparativeFilterEmployee').value;
+
+    const resultsDiv = document.getElementById('payrollResults');
+    const exportButtons = document.getElementById('payrollExportButtons');
+
+    resultsDiv.innerHTML = `
+        <div style="text-align: center; padding: 60px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
+            <h3 style="margin: 0; color: #374151;">Generando reporte...</h3>
+            <p style="color: #6b7280; margin: 10px 0 0 0;">Consultando datos de Firestore</p>
+        </div>
+    `;
+
+    try {
+        let mesesAComparar = [];
+        
+        if (comparationType === 'months') {
+            const m1 = document.getElementById('comparativeMonth1').value;
+            const m2 = document.getElementById('comparativeMonth2').value;
+            const m3 = document.getElementById('comparativeMonth3').value;
+
+            if (!m1 || !m2) {
+                alert('Por favor selecciona al menos 2 meses');
+                return;
+            }
+            
+            mesesAComparar = [m1, m2];
+            if (m3) mesesAComparar.push(m3);
+        } else if (comparationType === 'range') {
+            const mesInicio = document.getElementById('comparativeStartMonth').value;
+            const mesFin = document.getElementById('comparativeEndMonth').value;
+
+            if (!mesInicio || !mesFin) {
+                alert('Por favor selecciona rango de meses');
+                return;
+            }
+
+            // Generar lista de meses entre dos fechas
+            const [año1, mes1] = mesInicio.split('-').map(Number);
+            const [año2, mes2] = mesFin.split('-').map(Number);
+            
+            let fechaActual = new Date(año1, mes1 - 1);
+            const fechaFin = new Date(año2, mes2 - 1);
+            
+            while (fechaActual <= fechaFin) {
+                const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
+                const año = fechaActual.getFullYear();
+                mesesAComparar.push(`${año}-${mes}`);
+                fechaActual.setMonth(fechaActual.getMonth() + 1);
+            }
+        } else if (comparationType === 'yearly') {
+            const año1 = parseInt(document.getElementById('comparativeYear1').value);
+            const año2 = parseInt(document.getElementById('comparativeYear2').value);
+
+            if (!año1 || !año2) {
+                alert('Por favor selecciona 2 años');
+                return;
+            }
+
+            // Crear meses para comparación anual
+            for (let mes = 1; mes <= 12; mes++) {
+                const mesFormato = String(mes).padStart(2, '0');
+                mesesAComparar.push(`${año1}-${mesFormato}`);
+                mesesAComparar.push(`${año2}-${mesFormato}`);
+            }
+        }
+
+        // Obtener datos para comparación
+        const datosComparacion = {};
+
+        for (const mes of mesesAComparar) {
+            let q;
+            if (empleadoId) {
+                q = query(
+                    collection(db, "pagos_empleados"),
+                    where("periodo_pago", "==", mes),
+                    where("uid", "==", empleadoId)
+                );
+            } else {
+                q = query(
+                    collection(db, "pagos_empleados"),
+                    where("periodo_pago", "==", mes)
+                );
+            }
+
+            const snapshot = await getDocs(q);
+            let totalMes = 0, totalSalario = 0, totalBono = 0, totalDeduccion = 0, cantidadPagos = 0;
+
+            snapshot.forEach(doc => {
+                const pago = doc.data();
+                totalMes += parseFloat(pago.pago_total || 0);
+                totalSalario += parseFloat(pago.salario || 0);
+                totalBono += parseFloat(pago.bono || 0);
+                totalDeduccion += parseFloat(pago.deduccion || 0);
+                cantidadPagos++;
+            });
+
+            datosComparacion[mes] = {
+                total: totalMes,
+                salario: totalSalario,
+                bono: totalBono,
+                deduccion: totalDeduccion,
+                cantidad: cantidadPagos
+            };
+        }
+
+        // Renderizar tabla comparativa
+        const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        let html = `
+            <div id="printableArea">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 5px 0; color: #374151;">Reporte Comparativo de Nómina</h3>
+                    <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 0.85rem;">Fecha de generación: ${fechaReporte}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #d1d5db;">
+                            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151;">Período</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Cantidad Pagos</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Salarios</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Bonos</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Deduc.</th>
+                            <th style="padding: 12px; text-align: right; font-weight: 600; color: #374151;">Total Neto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        let totalGralMes = 0, totalGralSalario = 0, totalGralBono = 0, totalGralDeduccion = 0, totalGralCantidad = 0;
+
+        mesesAComparar.forEach(mes => {
+            const datos = datosComparacion[mes];
+            totalGralMes += datos.total;
+            totalGralSalario += datos.salario;
+            totalGralBono += datos.bono;
+            totalGralDeduccion += datos.deduccion;
+            totalGralCantidad += datos.cantidad;
+
+            const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const [año, mesNum] = mes.split('-');
+            const mesFormato = `${meses[parseInt(mesNum) - 1]} ${año}`;
+
+            html += `
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px; text-align: left; font-weight: 500;">${mesFormato}</td>
+                    <td style="padding: 12px; text-align: right; color: #374151;">${datos.cantidad}</td>
+                    <td style="padding: 12px; text-align: right; color: #374151;">S/ ${datos.salario.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #10b981;">S/ ${datos.bono.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right; color: #ef4444;">S/ ${datos.deduccion.toFixed(2)}</td>
+                    <td style="padding: 12px; text-align: right;"><strong style="color: #667eea;">S/ ${datos.total.toFixed(2)}</strong></td>
+                </tr>
+            `;
+        });
+
+        html += `
+            <tr style="background-color: #f3f4f6; font-weight: bold; border-top: 2px solid #d1d5db;">
+                <td style="padding: 12px; text-align: left; color: #374151;">TOTALES:</td>
+                <td style="padding: 12px; text-align: right; color: #374151;">${totalGralCantidad}</td>
+                <td style="padding: 12px; text-align: right; color: #374151;">S/ ${totalGralSalario.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; color: #10b981;">S/ ${totalGralBono.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; color: #ef4444;">S/ ${totalGralDeduccion.toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; color: #667eea;">S/ ${totalGralMes.toFixed(2)}</td>
+            </tr>
+        `;
+
+        html += '</tbody></table></div>';
+        resultsDiv.innerHTML = html;
+
+        currentReportData = {
+            type: 'comparativo',
+            comparationType: comparationType,
+            data: datosComparacion,
+            meses: mesesAComparar,
+            totales: {
+                cantidad: totalGralCantidad,
+                salarios: totalGralSalario,
+                bonos: totalGralBono,
+                deducciones: totalGralDeduccion,
+                neto: totalGralMes
+            }
+        };
+
+        exportButtons.style.display = 'flex';
+    } catch (error) {
+        console.error("Error al generar reporte:", error);
         resultsDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
@@ -886,6 +1513,7 @@ window.selectHRReport = function (reportType) {
     currentHRReportType = reportType;
     const reportArea = document.getElementById('hrReportArea');
     const reportTitle = document.getElementById('hrReportTitle');
+
 
     if (reportArea && reportTitle) {
         reportArea.style.display = 'block';
@@ -916,7 +1544,7 @@ window.generateHRReport = async function () {
     const filterStatus = document.getElementById('hrFilterStatus')?.value || '';
 
     if (!reportType) {
-        alert('⚠️ Por favor selecciona un tipo de reporte primero');
+        alert('Por favor selecciona un tipo de reporte primero');
         return;
     }
 
@@ -954,43 +1582,27 @@ window.generateHRReport = async function () {
             });
         });
 
-        // Aplicar filtros
         let empleadosFiltrados = empleados;
-
-        console.log('🔍 Filtros aplicados:', { reportType, filterRole, filterStatus });
-        console.log('📊 Total empleados antes de filtrar:', empleados.length);
-
-        // Filtrar por tipo de reporte
-        // NOTA: Por defecto muestra TODOS los usuarios (activos e inactivos)
-        // El filtro de estado se aplica solo si el usuario selecciona un estado específico
-        console.log('📋 Mostrando todos los usuarios (activos e inactivos)');
-        // Si es 'rotacion', muestra TODOS (activos e inactivos)
 
         // Filtrar por rol (solo si el usuario seleccionó un rol específico)
         if (filterRole) {
-            console.log('🎭 Filtrando por rol:', filterRole);
             empleadosFiltrados = empleadosFiltrados.filter(emp => {
                 const empRol = (emp.rol || '').toLowerCase();
                 const filtroRol = filterRole.toLowerCase();
                 console.log(`  Comparando: "${empRol}" === "${filtroRol}"`, empRol === filtroRol);
                 return empRol === filtroRol;
             });
-            console.log('✅ Después de filtrar por rol:', empleadosFiltrados.length);
         }
 
         // Filtrar por estado (solo si el usuario seleccionó un estado específico)
         if (filterStatus) {
-            console.log('📌 Filtrando por estado:', filterStatus);
             empleadosFiltrados = empleadosFiltrados.filter(emp => {
                 const empEstado = (emp.estado || '').toLowerCase();
                 const filtroEstado = filterStatus.toLowerCase();
                 console.log(`  Comparando: "${empEstado}" === "${filtroEstado}"`, empEstado === filtroEstado);
                 return empEstado === filtroEstado;
             });
-            console.log('✅ Después de filtrar por estado:', empleadosFiltrados.length);
         }
-
-        console.log(`📊 RRHH Report - Total empleados: ${empleados.length}, Filtrados: ${empleadosFiltrados.length}, Tipo: ${reportType}`);
 
         const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
         let html = `
@@ -1018,7 +1630,6 @@ window.generateHRReport = async function () {
                             <th>Estado</th>
             `;
         } else {
-            // Rotación
             html += `
                             <th>Empleado</th>
                             <th>Rol</th>
@@ -1041,7 +1652,6 @@ window.generateHRReport = async function () {
                 const rolDisplay = emp.rol ? emp.rol.charAt(0).toUpperCase() + emp.rol.slice(1) : 'Empleado';
 
                 if (reportType === 'empleados-activos') {
-                    // Tabla de Empleados Activos
                     html += `
                         <tr>
                             <td><strong>${emp.displayName}</strong></td>
@@ -1055,7 +1665,6 @@ window.generateHRReport = async function () {
                         </tr>
                     `;
                 } else {
-                    // Tabla de Rotación
                     html += `
                         <tr>
                             <td><strong>${emp.displayName}</strong><br><small style="color: #9ca3af;">${emp.email}</small></td>
@@ -1083,9 +1692,8 @@ window.generateHRReport = async function () {
         };
 
         exportButtons.style.display = 'flex';
-        console.log('✅ Reporte de RRHH generado');
     } catch (error) {
-        console.error("❌ Error al generar reporte:", error);
+        console.error("Error al generar reporte:", error);
         resultsDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
@@ -1128,7 +1736,6 @@ window.selectInventoryReport = function (reportType) {
 
         reportArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        console.log(`📦 Reporte de inventario seleccionado: ${reportType}`);
     }
 };
 
@@ -1152,9 +1759,8 @@ async function loadInventoryCategories() {
             categorySelect.appendChild(option);
         });
 
-        console.log(`✅ ${categoriasSnapshot.size} categorías cargadas en el filtro`);
     } catch (error) {
-        console.error("❌ Error al cargar categorías:", error);
+        console.error(" Error al cargar categorías:", error);
     }
 }
 
@@ -1162,7 +1768,7 @@ window.generateInventoryReport = async function () {
     const reportType = currentInventoryReportType;
 
     if (!reportType) {
-        alert('⚠️ Por favor selecciona un tipo de reporte primero');
+        alert('Por favor selecciona un tipo de reporte primero');
         return;
     }
 
@@ -1178,7 +1784,7 @@ window.generateInventoryReport = async function () {
     `;
 
     try {
-        // Obtener artículos (la colección se llama "articulos" no "productos")
+        // Obtener artículos
         const articulosSnapshot = await getDocs(collection(db, "articulos"));
         const productos = [];
 
@@ -1186,13 +1792,12 @@ window.generateInventoryReport = async function () {
             const articulo = doc.data();
             productos.push({
                 id: doc.id,
-                id_articulo: articulo.id_articulo, // ID correlativo para match con stock
                 nombre: articulo.nombre || 'Sin nombre',
-                categoria: articulo.id_categoria || 'Sin categoría',
-                stock: 0, // Se calculará del stock_inventario
-                stockMinimo: parseInt(articulo.stock_minimo || 10),
-                precio: parseFloat(articulo.precio_base || 0),
-                valorTotal: 0 // Se calculará después
+                categoria: articulo.id_categoria || articulo.categoria || 'Sin categoría',
+                stock: 0,
+                stockMinimo: parseInt(articulo.stock_minimo || articulo.stock_minimo || 10),
+                precio: parseFloat(articulo.precio_base || articulo.precio || 0),
+                valorTotal: 0 
             });
         });
 
@@ -1202,21 +1807,21 @@ window.generateInventoryReport = async function () {
 
         stockSnapshot.forEach(doc => {
             const stockData = doc.data();
-            const idArticulo = stockData.id_articulo;
+            const idArticulo = stockData.id_articulo || doc.id;
+            
             if (!stockPorArticulo[idArticulo]) {
                 stockPorArticulo[idArticulo] = 0;
             }
             stockPorArticulo[idArticulo] += parseInt(stockData.stock || 0);
         });
 
-        console.log('📦 Stock por artículo:', stockPorArticulo);
-        console.log('📦 Productos:', productos.map(p => ({ id_articulo: p.id_articulo, nombre: p.nombre })));
-
         // Actualizar stock y calcular valor total
         productos.forEach(prod => {
-            const idArticulo = prod.id_articulo; // Usar id_articulo correlativo, no el ID del documento
-            prod.stock = stockPorArticulo[idArticulo] || 0;
+            // Intentar matchear primero por ID del documento, luego por id_articulo
+            prod.stock = stockPorArticulo[prod.id] || 0;
             prod.valorTotal = prod.stock * prod.precio;
+            
+            console.log(`Producto: ${prod.nombre}, ID: ${prod.id}, Stock: ${prod.stock}`);
         });
 
         // Filtrar según tipo de reporte
@@ -1230,10 +1835,13 @@ window.generateInventoryReport = async function () {
         const categoriasMap = {};
         categoriasSnapshot.forEach(doc => {
             const cat = doc.data();
-            categoriasMap[cat.id_categoria] = cat.nombre;
+            // Matchear por ID del documento o por id_categoria
+            categoriasMap[doc.id] = cat.nombre;
+            if (cat.id_categoria) {
+                categoriasMap[cat.id_categoria] = cat.nombre;
+            }
         });
 
-        // Actualizar nombres de categorías en productos
         productosFiltrados.forEach(prod => {
             prod.categoriaNombre = categoriasMap[prod.categoria] || 'Sin categoría';
         });
@@ -1242,12 +1850,11 @@ window.generateInventoryReport = async function () {
         const filterCategory = document.getElementById('inventoryFilterCategory')?.value || '';
         if (filterCategory) {
             productosFiltrados = productosFiltrados.filter(p => p.categoria == filterCategory);
-            console.log(`🔍 Filtrado por categoría ${filterCategory}:`, productosFiltrados.length);
+ 
         }
 
         // Obtener opción de ordenamiento
         const sortOption = document.getElementById('inventoryFilterSort')?.value || 'nombre';
-        console.log(`📊 Ordenando por: ${sortOption}`);
 
         const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
         const totalValor = productosFiltrados.reduce((sum, p) => sum + p.valorTotal, 0);
@@ -1289,12 +1896,12 @@ window.generateInventoryReport = async function () {
         productosFiltrados.sort((a, b) => {
             switch (sortOption) {
                 case 'stock':
-                    return a.stock - b.stock; // Ascendente
+                    return a.stock - b.stock;
                 case 'precio':
-                    return b.precio - a.precio; // Descendente
+                    return b.precio - a.precio;
                 case 'nombre':
                 default:
-                    return a.nombre.localeCompare(b.nombre); // Alfabético
+                    return a.nombre.localeCompare(b.nombre); 
             }
         });
 
@@ -1303,7 +1910,7 @@ window.generateInventoryReport = async function () {
                 const stockBadge = prod.stock <= prod.stockMinimo ? 'status-absent' : prod.stock <= prod.stockMinimo * 1.5 ? 'status-incomplete' : 'status-complete';
                 html += `
                     <tr>
-                        <td>${prod.id_articulo || '-'}</td>
+                        <td>${prod.id || '-'}</td>
                         <td><strong>${prod.nombre}</strong></td>
                         <td>${prod.categoriaNombre}</td>
                         <td><span class="status-badge ${stockBadge}">${prod.stock}</span></td>
@@ -1341,16 +1948,14 @@ window.generateInventoryReport = async function () {
         html += '</tbody></table></div>';
         resultsDiv.innerHTML = html;
 
-        // Guardar datos para exportación
         currentReportData = {
             type: 'inventario-' + reportType,
             data: productosFiltrados
         };
 
         exportButtons.style.display = 'flex';
-        console.log('✅ Reporte de inventario generado');
     } catch (error) {
-        console.error("❌ Error al generar reporte:", error);
+        console.error("Error al generar reporte:", error);
         resultsDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
@@ -1361,4 +1966,564 @@ window.generateInventoryReport = async function () {
     }
 };
 
-console.log("✅ Reportes.js completamente cargado");
+// ===================== REPORTES DE VENTAS =====================
+
+let currentSalesReportType = null;
+let currentSalesData = null;
+
+// Seleccionar tipo de reporte de ventas
+window.selectSalesReport = async function(reportType) {
+    currentSalesReportType = reportType;
+    
+    const filterVentasPeriodo = document.getElementById('filterVentasPeriodo');
+    const filterProductosVendidos = document.getElementById('filterProductosVendidos');
+    const filterVentasCliente = document.getElementById('filterVentasCliente');
+    const salesReportArea = document.getElementById('salesReportArea');
+    const salesReportResults = document.getElementById('salesReportResults');
+    
+    // Ocultar todos los filtros primero
+    if (filterVentasPeriodo) filterVentasPeriodo.style.display = 'none';
+    if (filterProductosVendidos) filterProductosVendidos.style.display = 'none';
+    if (filterVentasCliente) filterVentasCliente.style.display = 'none';
+    if (salesReportArea) salesReportArea.style.display = 'none';
+    
+    // Mostrar filtro apropiado
+    switch(reportType) {
+        case 'ventas-periodo':
+            if (filterVentasPeriodo) {
+                filterVentasPeriodo.style.display = 'block';
+            }
+            setDefaultDates('filterVentasDesde', 'filterVentasHasta');
+            break;
+        case 'productos-vendidos':
+            if (filterProductosVendidos) {
+                filterProductosVendidos.style.display = 'block';
+            }
+            setDefaultDates('filterProductosFechaDesde', 'filterProductosFechaHasta');
+            break;
+        case 'ventas-cliente':
+            if (filterVentasCliente) {
+                filterVentasCliente.style.display = 'block';
+            }
+            setDefaultDates('filterClienteFechaDesde', 'filterClienteFechaHasta');
+            await loadClientsForSalesReport();
+            break;
+    }
+    
+};
+
+// Establecer fechas por defecto
+function setDefaultDates(desdeId, hastaId) {
+    const hoje = new Date();
+    const ultimoMes = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    
+    const desde = document.getElementById(desdeId);
+    const hasta = document.getElementById(hastaId);
+    
+    if (desde) desde.valueAsDate = ultimoMes;
+    if (hasta) hasta.valueAsDate = hoje;
+}
+
+// Cargar clientes
+async function loadClientsForSalesReport() {
+    const clienteSel = document.getElementById('filterVentasClienteSel');
+    if (!clienteSel) return;
+    
+    clienteSel.innerHTML = '<option value="">⏳ Cargando clientes...</option>';
+    
+    try {
+        const q = query(
+            collection(db, "usuario"),
+            where("rol", "==", "Cliente")
+        );
+        
+        const snapshot = await getDocs(q);
+        const clientes = [];
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            clientes.push({
+                id: doc.id,
+                nombre: `${data.nombre} ${data.apellido || ''}`.trim()
+            });
+        });
+        
+        clientes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        
+        // Limpiar y cargar opciones
+        clienteSel.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+        
+        clientes.forEach(cliente => {
+            const option = document.createElement('option');
+            option.value = cliente.id;
+            option.textContent = cliente.nombre;
+            clienteSel.appendChild(option);
+        });
+        
+    } catch(error) {
+        console.error("Error cargando clientes:", error);
+        clienteSel.innerHTML = '<option value="">Error al cargar clientes</option>';
+        alert(`Error al cargar clientes: ${error.message}`);
+    }
+}
+
+// Generar reporte de ventas por período
+window.generateSalesReport = async function() {
+    const desde = document.getElementById('filterVentasDesde')?.value;
+    const hasta = document.getElementById('filterVentasHasta')?.value;
+    
+    if (!desde || !hasta) {
+        alert('Selecciona rango de fechas');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('salesReportResults');
+    const salesReportArea = document.getElementById('salesReportArea');
+    const exportButtons = document.getElementById('salesExportButtons');
+    
+    resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
+    salesReportArea.style.display = 'block';
+    exportButtons.style.display = 'none';
+    
+    try {
+        const desdeDate = new Date(desde);
+        const hastaDate = new Date(hasta);
+        hastaDate.setHours(23, 59, 59, 999);
+        
+        const q = query(
+            collection(db, "ventas"),
+            where("fecha_registro", ">=", desdeDate),
+            where("fecha_registro", "<=", hastaDate)
+        );
+        
+        const snapshot = await getDocs(q);
+        const ventas = [];
+        let totalGeneral = 0;
+        
+        snapshot.forEach(doc => {
+            const v = doc.data();
+            ventas.push({
+                id: doc.id,
+                cliente: v.cliente_nombre || '-',
+                fecha: v.fecha_registro?.toDate?.() || new Date(),
+                cantidad: v.cantidad_items || 0,
+                total: v.total_general || 0
+            });
+            totalGeneral += v.total_general || 0;
+        });
+
+        ventas.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+        
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 5px 0;">Resumen de Ventas</h3>
+                <p style="margin: 0; color: #6b7280;">Del ${desde} al ${hasta}</p>
+                <p style="margin: 5px 0 0 0; color: #667eea; font-weight: bold;">
+                    Total de ventas: ${ventas.length} | Monto total: S/ ${totalGeneral.toFixed(2)}
+                </p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Cantidad de artículos</th>
+                        <th>Monto total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        if (ventas.length === 0) {
+            html += '<tr><td colspan="4" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas en este período</td></tr>';
+        } else {
+            ventas.forEach(v => {
+                html += `
+                    <tr>
+                        <td>${v.fecha.toLocaleDateString('es-PE')}</td>
+                        <td>${v.cliente}</td>
+                        <td>${v.cantidad}</td>
+                        <td>S/ ${v.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += '</tbody></table>';
+        resultsDiv.innerHTML = html;
+        
+        currentSalesData = {
+            type: 'ventas-periodo',
+            data: ventas,
+            totalGeneral: totalGeneral,
+            desde: desde,
+            hasta: hasta
+        };
+        
+        exportButtons.style.display = 'flex';
+    } catch(error) {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
+    }
+};
+
+// Generar reporte de productos más vendidos
+window.generateTopProductsReport = async function() {
+    const desde = document.getElementById('filterProductosFechaDesde')?.value;
+    const hasta = document.getElementById('filterProductosFechaHasta')?.value;
+    const limit = parseInt(document.getElementById('filterProductosLimit')?.value || 10);
+    
+    if (!desde || !hasta) {
+        alert('Selecciona rango de fechas');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('salesReportResults');
+    const salesReportArea = document.getElementById('salesReportArea');
+    const exportButtons = document.getElementById('salesExportButtons');
+    
+    resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
+    salesReportArea.style.display = 'block';
+    exportButtons.style.display = 'none';
+    
+    try {
+        const desdeDate = new Date(desde);
+        const hastaDate = new Date(hasta);
+        hastaDate.setHours(23, 59, 59, 999);
+        
+        // Obtener detalles de venta en el período
+        const q = query(
+            collection(db, "detalle_venta")
+        );
+        
+        const snapshot = await getDocs(q);
+        const ventasMap = new Map();
+        const ventaIds = new Set();
+        
+        // Primero, obtener IDs de ventas en el rango de fechas
+        const ventasQ = query(
+            collection(db, "ventas"),
+            where("fecha_registro", ">=", desdeDate),
+            where("fecha_registro", "<=", hastaDate)
+        );
+        const ventasSnap = await getDocs(ventasQ);
+        ventasSnap.forEach(doc => ventaIds.add(doc.id));
+        
+        // Procesar detalles
+        snapshot.forEach(doc => {
+            const detalle = doc.data();
+            if (ventaIds.has(detalle.id_venta)) {
+                const key = detalle.id_articulo;
+                const existing = ventasMap.get(key) || {
+                    id_articulo: detalle.id_articulo,
+                    nombre: detalle.nombre,
+                    cantidad_total: 0,
+                    veces_vendida: 0,
+                    monto_total: 0
+                };
+                existing.cantidad_total += detalle.cantidad || 0;
+                existing.veces_vendida += 1;
+                existing.monto_total += detalle.subtotal || 0;
+                ventasMap.set(key, existing);
+            }
+        });
+        
+        // Ordenar por cantidad vendida
+        const productos = Array.from(ventasMap.values())
+            .sort((a, b) => b.cantidad_total - a.cantidad_total)
+            .slice(0, limit);
+        
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 5px 0;">Productos Más Vendidos</h3>
+                <p style="margin: 0; color: #6b7280;">Del ${desde} al ${hasta}</p>
+                <p style="margin: 5px 0 0 0; color: #667eea;">Top ${limit} productos</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Cantidad Total</th>
+                        <th>Veces Vendida</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        if (productos.length === 0) {
+            html += '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas en este período</td></tr>';
+        } else {
+            productos.forEach((p, i) => {
+                html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${p.nombre}</td>
+                        <td>${p.cantidad_total}</td>
+                        <td>${p.veces_vendida}</td>
+                        <td>S/ ${p.monto_total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += '</tbody></table>';
+        resultsDiv.innerHTML = html;
+        
+        currentSalesData = {
+            type: 'productos-vendidos',
+            data: productos,
+            desde: desde,
+            hasta: hasta
+        };
+        
+        exportButtons.style.display = 'flex';
+    } catch(error) {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
+    }
+};
+
+// Generar reporte de ventas por cliente
+window.generateSalesByClientReport = async function() {
+    const clienteId = document.getElementById('filterVentasClienteSel')?.value;
+    const desde = document.getElementById('filterClienteFechaDesde')?.value;
+    const hasta = document.getElementById('filterClienteFechaHasta')?.value;
+    
+    if (!clienteId || !desde || !hasta) {
+        alert('Completa todos los filtros');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('salesReportResults');
+    const salesReportArea = document.getElementById('salesReportArea');
+    const exportButtons = document.getElementById('salesExportButtons');
+    
+    resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
+    salesReportArea.style.display = 'block';
+    exportButtons.style.display = 'none';
+    
+    try {
+        // Obtener datos del cliente
+        const clienteDoc = await getDoc(doc(db, "usuario", clienteId));
+        const clienteNombre = clienteDoc.exists() ? `${clienteDoc.data().nombre} ${clienteDoc.data().apellido || ''}`.trim() : '-';
+        
+        const desdeDate = new Date(desde);
+        const hastaDate = new Date(hasta);
+        hastaDate.setHours(23, 59, 59, 999);
+        
+        const q = query(
+            collection(db, "ventas"),
+            where("cliente_id", "==", clienteId),
+            where("fecha_registro", ">=", desdeDate),
+            where("fecha_registro", "<=", hastaDate)
+        );
+        
+        const snapshot = await getDocs(q);
+        const ventas = [];
+        let totalGeneral = 0;
+        
+        snapshot.forEach(doc => {
+            const v = doc.data();
+            ventas.push({
+                id: doc.id,
+                fecha: v.fecha_registro?.toDate?.() || new Date(),
+                cantidad: v.cantidad_items || 0,
+                total: v.total_general || 0
+            });
+            totalGeneral += v.total_general || 0;
+        });
+        
+        ventas.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+        
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 5px 0;">Ventas - ${clienteNombre}</h3>
+                <p style="margin: 0; color: #6b7280;">Del ${desde} al ${hasta}</p>
+                <p style="margin: 5px 0 0 0; color: #667eea; font-weight: bold;">
+                    Total de ventas: ${ventas.length} | Monto total: S/ ${totalGeneral.toFixed(2)}
+                </p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cantidad de artículos</th>
+                        <th>Monto total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        if (ventas.length === 0) {
+            html += '<tr><td colspan="3" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas para este cliente en el período seleccionado</td></tr>';
+        } else {
+            ventas.forEach(v => {
+                html += `
+                    <tr>
+                        <td>${v.fecha.toLocaleDateString('es-PE')}</td>
+                        <td>${v.cantidad}</td>
+                        <td>S/ ${v.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += '</tbody></table>';
+        resultsDiv.innerHTML = html;
+        
+        currentSalesData = {
+            type: 'ventas-cliente',
+            data: ventas,
+            clienteNombre: clienteNombre,
+            totalGeneral: totalGeneral,
+            desde: desde,
+            hasta: hasta
+        };
+        
+        exportButtons.style.display = 'flex';
+        console.log('Reporte de ventas por cliente generado');
+    } catch(error) {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
+    }
+};
+
+// Exportar reporte de ventas
+window.exportSalesReport = function(format) {
+    if (!currentSalesData) {
+        alert('No hay reporte para exportar');
+        return;
+    }
+    
+    if (format === 'xlsx') {
+        exportSalesExcel();
+    } else if (format === 'pdf') {
+        exportSalesPDF();
+    }
+};
+
+function exportSalesExcel() {
+    try {
+        const { type, data, totalGeneral, clienteNombre, desde, hasta } = currentSalesData;
+        
+        let ws_data = [];
+        
+        if (type === 'ventas-periodo') {
+            ws_data = [
+                ['REPORTE DE VENTAS POR PERÍODO'],
+                [`Período: ${desde} al ${hasta}`],
+                [],
+                ['Fecha', 'Cliente', 'Cantidad', 'Monto Total'],
+                ...data.map(v => [
+                    v.fecha.toLocaleDateString('es-PE'),
+                    v.cliente,
+                    v.cantidad,
+                    `S/ ${v.total.toFixed(2)}`
+                ]),
+                [],
+                ['TOTAL', '', '', `S/ ${totalGeneral.toFixed(2)}`]
+            ];
+        } else if (type === 'productos-vendidos') {
+            ws_data = [
+                ['REPORTE DE PRODUCTOS MÁS VENDIDOS'],
+                [`Período: ${desde} al ${hasta}`],
+                [],
+                ['#', 'Producto', 'Cantidad Total', 'Veces Vendida', 'Monto Total'],
+                ...data.map((p, i) => [
+                    i + 1,
+                    p.nombre,
+                    p.cantidad_total,
+                    p.veces_vendida,
+                    `S/ ${p.monto_total.toFixed(2)}`
+                ])
+            ];
+        } else if (type === 'ventas-cliente') {
+            ws_data = [
+                ['REPORTE DE VENTAS POR CLIENTE'],
+                [`Cliente: ${clienteNombre}`],
+                [`Período: ${desde} al ${hasta}`],
+                [],
+                ['Fecha', 'Cantidad de artículos', 'Monto Total'],
+                ...data.map(v => [
+                    v.fecha.toLocaleDateString('es-PE'),
+                    v.cantidad,
+                    `S/ ${v.total.toFixed(2)}`
+                ]),
+                [],
+                ['TOTAL', '', `S/ ${totalGeneral.toFixed(2)}`]
+            ];
+        }
+        
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        ws['!cols'] = [{ wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte Ventas");
+        
+        const fecha = new Date().toLocaleDateString('es-PE').replaceAll('/', '-');
+        XLSX.writeFile(wb, `reporte_ventas_${fecha}.xlsx`);
+        
+    } catch(error) {
+        console.error("Error exportando Excel:", error);
+        alert('Error al exportar Excel');
+    }
+}
+
+function exportSalesPDF() {
+    try {
+        const { type, data, totalGeneral, clienteNombre, desde, hasta } = currentSalesData;
+        const { jsPDF } = window.jspdf;
+        
+        const pdf = new jsPDF();
+        let y = 20;
+        
+        pdf.setFontSize(16);
+        pdf.text("REPORTE DE VENTAS", 105, y, { align: "center" });
+        y += 15;
+        
+        pdf.setFontSize(11);
+        if (type === 'ventas-periodo') {
+            pdf.text(`Período: ${desde} al ${hasta}`, 20, y);
+        } else if (type === 'ventas-cliente') {
+            pdf.text(`Cliente: ${clienteNombre}`, 20, y); y += 7;
+            pdf.text(`Período: ${desde} al ${hasta}`, 20, y);
+        } else {
+            pdf.text(`Período: ${desde} al ${hasta}`, 20, y);
+        }
+        y += 15;
+  
+        pdf.setFontSize(10);
+        const headers = type === 'productos-vendidos' 
+            ? ['#', 'Producto', 'Cantidad', 'Veces', 'Monto']
+            : type === 'ventas-cliente'
+            ? ['Fecha', 'Cantidad', 'Monto']
+            : ['Fecha', 'Cliente', 'Cantidad', 'Monto'];
+        
+        const rows = type === 'productos-vendidos'
+            ? data.map((p, i) => [i+1, p.nombre, p.cantidad_total, p.veces_vendida, `S/ ${p.monto_total.toFixed(2)}`])
+            : type === 'ventas-cliente'
+            ? data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cantidad, `S/ ${v.total.toFixed(2)}`])
+            : data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cliente, v.cantidad, `S/ ${v.total.toFixed(2)}`]);
+        
+        pdf.autoTable({
+            head: [headers],
+            body: rows,
+            startY: y,
+            theme: 'grid',
+            styles: { fontSize: 9 }
+        });
+        
+        pdf.setFontSize(11);
+        pdf.text(`TOTAL: S/ ${totalGeneral.toFixed(2)}`, 20, pdf.lastAutoTable.finalY + 10);
+        
+        const fecha = new Date().toLocaleDateString('es-PE').replaceAll('/', '-');
+        pdf.save(`reporte_ventas_${fecha}.pdf`);
+        
+    } catch(error) {
+        console.error("Error exportando PDF:", error);
+        alert('Error al exportar PDF. Verifica que autoTable está disponible.');
+    }
+}
+

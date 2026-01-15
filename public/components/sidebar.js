@@ -1,6 +1,3 @@
-// ===================== SIDEBAR COMPONENT =====================
-// Componente reutilizable que se adapta según el rol del usuario
-
 import { getCurrentUser, isAdmin, logout } from './auth-guard.js';
 
 class Sidebar {
@@ -13,7 +10,7 @@ class Sidebar {
     render(containerId = 'sidebar-container') {
         const container = document.getElementById(containerId);
         if (!container) {
-            console.error(`❌ Contenedor ${containerId} no encontrado`);
+            console.error(`Contenedor ${containerId} no encontrado`);
             return;
         }
 
@@ -22,11 +19,6 @@ class Sidebar {
 
         this.attachEventListeners();
         this.setActivePage();
-
-        console.log(`✅ Sidebar renderizado (${this.isAdminUser ? 'Admin' : 'Empleado'})`);
-        console.log(`👤 Usuario:`, this.user);
-        console.log(`📝 Display Name:`, this.getUserDisplayName());
-        console.log(`🎭 Role:`, this.getUserRole());
     }
 
     getAdminSidebar() {
@@ -116,9 +108,7 @@ class Sidebar {
     setActivePage() {
         const links = document.querySelectorAll('.sidebar-menu a');
         const currentPath = window.location.pathname;
-        const currentFile = currentPath.split('/').pop(); // Obtener solo el nombre del archivo
-
-        console.log('🔍 Detectando página activa:', currentFile);
+        const currentFile = currentPath.split('/').pop(); 
 
         links.forEach(link => {
             const href = link.getAttribute('href');
@@ -127,11 +117,9 @@ class Sidebar {
             link.classList.remove('active');
             link.parentElement.classList.remove('active');
 
-            // Verificar si el href coincide con la página actual
             if (href && (href === `./${currentFile}` || href === currentFile)) {
                 link.classList.add('active');
                 link.parentElement.classList.add('active');
-                console.log('✅ Página activa encontrada:', href);
             }
         });
     }
@@ -145,7 +133,6 @@ class Sidebar {
             });
         }
 
-        // Agregar click en user-info para ir al perfil
         const userInfo = document.querySelector('.user-info');
         if (userInfo) {
             userInfo.addEventListener('click', () => {
