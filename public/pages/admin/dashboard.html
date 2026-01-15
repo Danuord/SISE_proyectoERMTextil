@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Dashboard | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/dashboard.css">
@@ -198,22 +198,30 @@
         </main>
     </div>
 
+    <script>
+        // Toggle menu para hamburger (debe estar disponible ANTES que sidebar.js se cargue)
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+                console.log('✅ Sidebar toggle:', sidebar.classList.contains('active') ? 'VISIBLE' : 'OCULTO');
+            }
+        };
+    </script>
+
     <script type="module">
         import authService from '../../src/auth/services/authService.js';
 
         const session = authService.getSession();
 
         if (!session || !session.email) {
-            console.warn('⚠️ No hay sesión válida en dashboard admin');
+            console.warn('No hay sesión válida en dashboard admin');
             window.location.replace('../login.html');
         }
 
         window.logout = async function () {
-            console.log('🔐 Iniciando logout seguro...');
             try {
                 await authService.logout();
-                console.log('✅ Sesión de Firebase cerrada');
-                
                 secureLogout();
             } catch (e) {
                 console.error('Error en logout:', e);
@@ -221,25 +229,12 @@
             }
         };
 
-        window.toggleMenu = function () {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
-        };
-
-        document.querySelectorAll('.sidebar-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    document.getElementById('sidebar').classList.remove('active');
-                }
-            });
-        });
-
         const statusDiv = document.getElementById('statusMessage');
-        statusDiv.className = 'status-message show success';
-        statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}!`;
-        setTimeout(() => { statusDiv.classList.remove('show'); }, 3000);
-
-        console.log('Dashboard admin cargado exitosamente');
+        if (statusDiv) {
+            statusDiv.className = 'status-message show success';
+            statusDiv.innerHTML = `¡Bienvenido ${session?.displayName || 'Usuario'}!`;
+            setTimeout(() => { statusDiv.classList.remove('show'); }, 3000);
+        }
     </script>
 
     <script type="module" src="../../components/sidebar.js"></script>

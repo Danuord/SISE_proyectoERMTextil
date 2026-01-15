@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Reportes | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/reportes.css">
@@ -15,8 +15,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -29,6 +37,9 @@
                     <h1>Reportes y Análisis</h1>
                     <p>Genera reportes detallados y analiza el desempeño de tu empresa</p>
                 </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
             <div id="adminView">
@@ -81,7 +92,6 @@
                                     <h3 id="attendanceReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte
                                     </h3>
 
-                                    <!-- Selector de tipo de filtro -->
                                     <div class="form-group" style="margin-bottom: 20px;">
                                         <label style="display: block; margin-bottom: 10px; font-weight: 600;">Tipo de
                                             Período</label>
@@ -102,13 +112,11 @@
                                     </div>
 
                                     <div class="filters-row">
-                                        <!-- Filtro de mes (por defecto visible) -->
                                         <div id="monthFilterGroup" class="form-group">
                                             <label>Mes</label>
                                             <input type="month" id="filterMonth" class="filter-select">
                                         </div>
-
-                                        <!-- Filtro de rango personalizado (oculto por defecto) -->
+                                        
                                         <div id="rangeFilterGroup" class="form-group" style="display: none;">
                                             <label>Desde</label>
                                             <input type="date" id="filterStartDate" class="filter-select">
@@ -182,7 +190,6 @@
                                 <div class="filters-panel" style="margin-top: 30px;">
                                     <h3 id="payrollReportTitle" style="margin: 0 0 15px 0; color: #374151;">Reporte</h3>
                                     
-                                    <!-- Filtros para Resumen Mensual -->
                                     <div id="filterResumenMensual" style="display: none;">
                                         <div class="filters-row">
                                             <div class="form-group">
@@ -204,7 +211,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Filtros para Por Empleado -->
                                     <div id="filterPorEmpleado" style="display: none;">
                                         <div style="margin-bottom: 15px;">
                                             <label style="display: block; margin-bottom: 10px; font-weight: 600;">Rango de Período</label>
@@ -252,7 +258,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Filtros para Comparativo -->
                                     <div id="filterComparativo" style="display: none;">
                                         <div style="margin-bottom: 15px;">
                                             <label style="display: block; margin-bottom: 10px; font-weight: 600;">Tipo de Comparación</label>
@@ -273,7 +278,6 @@
                                         </div>
 
                                         <div class="filters-row">
-                                            <!-- Meses individuales -->
                                             <div id="comparativeMonthsGroup">
                                                 <div class="form-group">
                                                     <label>Mes 1</label>
@@ -289,7 +293,6 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Rango de meses -->
                                             <div id="comparativeRangeGroup" style="display: none;">
                                                 <div class="form-group">
                                                     <label>Desde</label>
@@ -301,7 +304,6 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Comparación anual -->
                                             <div id="comparativeYearlyGroup" style="display: none;">
                                                 <div class="form-group">
                                                     <label>Año 1</label>
@@ -512,7 +514,6 @@
                             </div>
                         </div>
 
-                        <!-- Filtros para Ventas por Período -->
                         <div id="filterVentasPeriodo" class="filter-panel">
                             <div class="filter-group">
                                 <label>Fecha desde:</label>
@@ -525,7 +526,6 @@
                             <button onclick="generateSalesReport()" class="btn-primary">Generar Reporte</button>
                         </div>
 
-                        <!-- Filtros para Productos Más Vendidos -->
                         <div id="filterProductosVendidos" class="filter-panel">
                             <div class="filter-group">
                                 <label>Rango de fechas:</label>
@@ -552,7 +552,6 @@
                             <button onclick="generateTopProductsReport()" class="btn-primary">Generar Reporte</button>
                         </div>
 
-                        <!-- Filtros para Ventas por Cliente -->
                         <div id="filterVentasCliente" class="filter-panel">
                             <div class="filter-group">
                                 <label>Cliente:</label>
@@ -576,7 +575,6 @@
                             <button onclick="generateSalesByClientReport()" class="btn-primary">Generar Reporte</button>
                         </div>
 
-                        <!-- Área de resultados -->
                         <div id="salesReportArea" style="display: none; margin-top: 30px;">
                             <div class="section-header">
                                 <h3 id="salesReportTitle">Reporte de Ventas</h3>
@@ -608,3 +606,4 @@
 </body>
 
 </html>
+

@@ -1,11 +1,8 @@
-// ===================== IMPORTS DE FIREBASE =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp, Timestamp, collection, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-console.log("✅ ASISTENCIA.JS CARGADO");
 
-// ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -20,9 +17,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log("✅ Firebase inicializado");
-
-// ===================== OBTENER USUARIO ACTUAL =====================
 let currentUser = null;
 let isAdmin = false;
 
@@ -30,19 +24,15 @@ const session = localStorage.getItem('textileflow_session');
 if (session) {
     currentUser = JSON.parse(session);
     isAdmin = currentUser.rol === 'Administrador' || currentUser.rol === 'admin';
-    console.log("👤 Usuario:", currentUser.displayName || currentUser.email);
-    console.log("🔑 Rol:", currentUser.rol, "| Admin:", isAdmin);
 }
 
-// ===================== CARGAR EMPLEADOS EN SELECT (TIEMPO REAL) =====================
+// ===================== CARGAR EMPLEADOS EN SELECT =====================
 document.addEventListener("DOMContentLoaded", () => {
     const manualEmployeeSelect = document.getElementById("manualEmployeeSelect");
 
     if (manualEmployeeSelect) {
-        console.log("📋 Configurando listener para empleados...");
 
         onSnapshot(collection(db, "usuario"), (snapshot) => {
-            console.log(`📥 Empleados recibidos: ${snapshot.size}`);
 
             manualEmployeeSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
 
@@ -54,15 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.dataset.name = option.textContent;
                 manualEmployeeSelect.appendChild(option);
             });
-
-            console.log("✅ Select de empleados poblado");
         }, (error) => {
-            console.error("❌ Error al cargar empleados:", error);
+            console.error("Error al cargar empleados:", error);
         });
     }
 });
 
-// ===================== ACTUALIZAR ESTADO DE HOY (EMPLEADO) =====================
+// =================== ACTUALIZAR ESTADO DE HOY =====================
 async function actualizarEstadoHoy() {
     if (!currentUser) return;
 
@@ -93,25 +81,25 @@ async function actualizarEstadoHoy() {
         if (entrada && salida) {
             if (btnCheckIn) btnCheckIn.disabled = true;
             if (btnCheckOut) btnCheckOut.disabled = true;
-            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada: ${entrada} | Salida: ${salida}</p>`;
+            if (statusDiv) statusDiv.innerHTML = `<p>Entrada: ${entrada} | Salida: ${salida}</p>`;
         } else if (entrada) {
             if (btnCheckIn) btnCheckIn.disabled = true;
             if (btnCheckOut) btnCheckOut.disabled = false;
-            if (statusDiv) statusDiv.innerHTML = `<p>✅ Entrada registrada: ${entrada}</p>`;
+            if (statusDiv) statusDiv.innerHTML = `<p> Entrada registrada: ${entrada}</p>`;
         } else {
             if (btnCheckIn) btnCheckIn.disabled = false;
             if (btnCheckOut) btnCheckOut.disabled = true;
-            if (statusDiv) statusDiv.innerHTML = `<p>⏳ Sin registro hoy</p>`;
+            if (statusDiv) statusDiv.innerHTML = `<p>Sin registro hoy</p>`;
         }
     } catch (error) {
-        console.error("❌ Error al actualizar estado:", error);
+        console.error("Error al actualizar estado:", error);
     }
 }
 
 // ===================== MARCAR ASISTENCIA (EMPLEADO) =====================
 async function marcarAsistencia(tipo) {
     if (!currentUser) {
-        showToast("❌ No hay usuario autenticado", "error");
+        showToast("No hay usuario autenticado", "error");
         return;
     }
 
@@ -133,12 +121,12 @@ async function marcarAsistencia(tipo) {
             createdAt: serverTimestamp()
         });
 
-        showToast(`✅ ${tipo === 'entrada' ? 'Entrada' : 'Salida'} registrada: ${hora}`, "success");
+        showToast(`${tipo === 'entrada' ? 'Entrada' : 'Salida'} registrada: ${hora}`, "success");
         actualizarEstadoHoy();
 
     } catch (error) {
-        console.error("❌ Error al marcar asistencia:", error);
-        showToast(`❌ Error: ${error.message}`, "error");
+        console.error("Error al marcar asistencia:", error);
+        showToast(`Error: ${error.message}`, "error");
     }
 }
 
@@ -158,7 +146,7 @@ if (manualRegisterForm) {
         const hora = document.getElementById("manualTime").value;
 
         if (!employeeId || !fecha || !tipo || !hora) {
-            showToast("❌ Completa todos los campos", "error");
+            showToast("Completa todos los campos", "error");
             return;
         }
 
@@ -177,14 +165,14 @@ if (manualRegisterForm) {
                 createdAt: serverTimestamp()
             });
 
-            showToast(`✅ Asistencia registrada para ${employeeName}`, "success");
+            showToast(`Asistencia registrada para ${employeeName}`, "success");
             closeManualRegisterModal();
             manualRegisterForm.reset();
             cargarAsistenciasHoy();
 
         } catch (error) {
-            console.error("❌ Error al registrar asistencia manual:", error);
-            showToast(`❌ Error: ${error.message}`, "error");
+            console.error("Error al registrar asistencia manual:", error);
+            showToast(`Error: ${error.message}`, "error");
         }
     });
 }
@@ -208,10 +196,10 @@ async function cargarAsistenciasHoy() {
                 const config = configSnap.data();
                 horaInicio = config.horaInicio || '08:30';
                 horaFin = config.horaFin || '17:30';
-                console.log(`✅ Horarios cargados: Entrada ${horaInicio}, Salida ${horaFin}`);
+
             }
         } catch (configError) {
-            console.warn('⚠️ No se pudo cargar configuración de horarios, usando valores por defecto');
+            console.warn('No se pudo cargar configuración de horarios, usando valores por defecto');
         }
 
         const q = query(
@@ -223,7 +211,15 @@ async function cargarAsistenciasHoy() {
         tbody.innerHTML = "";
 
         const usuariosSnapshot = await getDocs(collection(db, "usuario"));
-        const totalEmpleados = usuariosSnapshot.size;
+        let totalEmpleados = 0;
+        
+        // Contar solo empleados con rol "Empleado" y estado "activo"
+        usuariosSnapshot.forEach(doc => {
+            const user = doc.data();
+            if (user.rol === "Empleado" && user.estado === "activo") {
+                totalEmpleados++;
+            }
+        });
 
         if (querySnapshot.empty) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay registros hoy</td></tr>';
@@ -317,11 +313,10 @@ async function cargarAsistenciasHoy() {
             tbody.appendChild(tr);
         });
 
-        console.log(`✅ Asistencias de hoy cargadas: ${Object.keys(porEmpleado).length} empleados`);
         actualizarEstadisticas(totalEmpleados, presentes, tardanzas, ausentes);
 
     } catch (error) {
-        console.error("❌ Error al cargar asistencias:", error);
+        console.error("Error al cargar asistencias:", error);
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Error al cargar datos</td></tr>';
     }
 }
@@ -342,7 +337,7 @@ function filterTodayAttendance() {
         }
 
         // Obtener el estado de la fila
-        const statusCell = row.cells[6]; // Columna de "Estado"
+        const statusCell = row.cells[6];
         if (!statusCell) return;
 
         const statusBadge = statusCell.querySelector('.status-badge');
@@ -362,7 +357,7 @@ function filterTodayAttendance() {
                 break;
             case 'late':
                 // Buscar badge de tardanza en la columna de entrada
-                const entryCell = row.cells[2]; // Columna "Entrada Real"
+                const entryCell = row.cells[2];
                 shouldShow = entryCell && entryCell.querySelector('.status-late');
                 break;
             default:
@@ -372,7 +367,6 @@ function filterTodayAttendance() {
         row.style.display = shouldShow ? '' : 'none';
     });
 
-    console.log(`✅ Filtro aplicado: ${filterValue || 'todos'}`);
 }
 
 // ===================== ACTUALIZAR ESTADÍSTICAS =====================
@@ -395,10 +389,8 @@ function actualizarEstadisticas(total, presentes, tardanzas, ausentes) {
         statDate.textContent = fechaFormateada;
     }
 
-    console.log(`📊 Estadísticas: Total=${total}, Presentes=${presentes}, Tardanzas=${tardanzas}, Ausentes=${ausentes}`);
 }
 
-// ===================== UTILIDADES =====================
 function showToast(message, type = "info") {
     const toast = document.getElementById("statusMessage");
     if (!toast) {
@@ -414,7 +406,6 @@ function showToast(message, type = "info") {
     }, 4000);
 }
 
-// ===================== MODALES =====================
 window.openManualRegisterModal = async function () {
     const modal = document.getElementById("manualRegisterModal");
     if (modal) {
@@ -430,11 +421,9 @@ window.openManualRegisterModal = async function () {
                 const horaInicio = config.horaInicio || '08:30';
                 const horaFin = config.horaFin || '17:30';
 
-                // Pre-llenar hora según el tipo seleccionado
                 const tipoSelect = document.getElementById("manualType");
                 const horaInput = document.getElementById("manualTime");
 
-                // Listener para cambiar hora cuando cambia el tipo
                 const updateTimeByType = () => {
                     if (tipoSelect.value === 'entrada') {
                         horaInput.value = horaInicio;
@@ -443,17 +432,14 @@ window.openManualRegisterModal = async function () {
                     }
                 };
 
-                // Aplicar al abrir
                 updateTimeByType();
 
-                // Aplicar cuando cambia el tipo
                 tipoSelect.removeEventListener('change', updateTimeByType); // Evitar duplicados
                 tipoSelect.addEventListener('change', updateTimeByType);
 
-                console.log(`✅ Horarios cargados: Entrada ${horaInicio}, Salida ${horaFin}`);
             }
         } catch (error) {
-            console.error('❌ Error al cargar configuración de horarios:', error);
+            console.error('Error al cargar configuración de horarios:', error);
             // Usar valores por defecto si falla
             const horaInput = document.getElementById("manualTime");
             const tipoSelect = document.getElementById("manualType");
@@ -479,7 +465,6 @@ window.openEditModal = function (userId, entryTime, exitTime) {
         document.getElementById("editEntryTime").value = entryTime !== "--:--" ? entryTime : "";
         document.getElementById("editExitTime").value = exitTime !== "--:--" ? exitTime : "";
         document.getElementById("editNotes").value = "";
-        console.log("📝 Abriendo modal de edición:", { userId, entryTime, exitTime });
     }
 };
 
@@ -509,8 +494,6 @@ if (editForm) {
         const exitTime = document.getElementById("editExitTime").value;
         const hoy = new Date().toISOString().split('T')[0];
 
-        console.log("💾 Guardando edición:", { userId, entryTime, exitTime, hoy });
-
         try {
             if (entryTime) {
                 const entryDocId = `${userId}_${hoy}_entrada`;
@@ -524,7 +507,6 @@ if (editForm) {
                     editedBy: currentUser.uid,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                console.log("✅ Entrada actualizada");
             }
 
             if (exitTime) {
@@ -539,22 +521,20 @@ if (editForm) {
                     editedBy: currentUser.uid,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                console.log("✅ Salida actualizada");
             }
 
-            showToast("✅ Asistencia actualizada correctamente", "success");
+            showToast("Asistencia actualizada correctamente", "success");
             closeEditModal();
             cargarAsistenciasHoy();
 
         } catch (error) {
-            console.error("❌ Error al actualizar asistencia:", error);
-            showToast(`❌ Error: ${error.message}`, "error");
+            showToast(`Error: ${error.message}`, "error");
         }
     });
 }
 
 // ===================== HISTORIAL GENERAL (ADMINISTRADOR) =====================
-let allHistoryData = []; // Almacenar todos los datos para filtrado
+let allHistoryData = [];
 
 async function cargarHistorialGeneral(days = 7, employeeFilter = '', statusFilter = '') {
     const container = document.getElementById("historyContainer");
@@ -582,7 +562,7 @@ async function cargarHistorialGeneral(days = 7, employeeFilter = '', statusFilte
 
         // Agrupar por fecha y empleado
         const porFecha = {};
-        allHistoryData = []; // Reset
+        allHistoryData = [];
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
@@ -618,10 +598,7 @@ async function cargarHistorialGeneral(days = 7, employeeFilter = '', statusFilte
         // Aplicar filtros y renderizar
         renderFilteredHistory(employeeFilter, statusFilter);
 
-        console.log(`✅ Historial general cargado: ${allHistoryData.length} registros`);
-
     } catch (error) {
-        console.error("❌ Error al cargar historial general:", error);
         container.innerHTML = '<p style="text-align:center; padding:40px; color:#e74c3c;">Error al cargar historial</p>';
     }
 }
@@ -665,7 +642,7 @@ function renderFilteredHistory(employeeFilter = '', statusFilter = '') {
     }
 }
 
-// ===================== RENDERIZAR TABLA SIMPLE (PARA IMPRIMIR) =====================
+// ===================== RENDERIZAR TABLA SIMPLE PARA IMPRIMIR =====================
 function renderSimpleHistoryTable(data, employeeFilter) {
     const container = document.getElementById("historyContainer");
 
@@ -678,7 +655,7 @@ function renderSimpleHistoryTable(data, employeeFilter) {
     data.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
     const tableWrapper = document.createElement('div');
-    tableWrapper.className = 'simple-history-table';
+    tableWrapper.className = 'simple-history-table table-container';
     tableWrapper.id = 'printableHistoryTable';
 
     const header = document.createElement('div');
@@ -748,7 +725,6 @@ function renderSimpleHistoryTable(data, employeeFilter) {
     container.appendChild(tableWrapper);
 }
 
-// ===================== RENDERIZAR VISTA AGRUPADA =====================
 function renderGroupedHistory(data) {
     const container = document.getElementById("historyContainer");
 
@@ -833,7 +809,6 @@ function renderGroupedHistory(data) {
         dateGroup.appendChild(header);
         dateGroup.appendChild(content);
 
-        // Toggle expand/collapse
         header.addEventListener('click', () => {
             content.classList.toggle('expanded');
         });
@@ -985,14 +960,13 @@ async function cargarEstadisticasGenerales(days = 7) {
                 tbody.appendChild(tr);
             });
 
-        console.log(`✅ Estadísticas generales cargadas`);
 
         // Renderizar gráficos
         renderWeeklyChart(porEmpleadoFecha, days);
         renderLatenessChart(usuariosMap);
 
     } catch (error) {
-        console.error("❌ Error al cargar estadísticas:", error);
+        console.error("Error al cargar estadísticas:", error);
         const tbody = statsTable.querySelector('tbody');
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Error al cargar estadísticas</td></tr>';
@@ -1048,7 +1022,6 @@ function renderWeeklyChart(porEmpleadoFecha, days) {
             });
         });
 
-        // Preparar datos para el gráfico
         const dataCompletos = [];
         const dataIncompletos = [];
 
@@ -1101,10 +1074,9 @@ function renderWeeklyChart(porEmpleadoFecha, days) {
             }
         });
 
-        console.log('✅ Gráfico semanal renderizado');
 
     } catch (error) {
-        console.error('❌ Error al renderizar gráfico semanal:', error);
+        console.error('Error al renderizar gráfico semanal:', error);
     }
 }
 
@@ -1116,20 +1088,16 @@ function renderLatenessChart(usuariosMap) {
     if (!canvas) return;
 
     try {
-        // Destruir gráfico anterior si existe
         if (latenessChartInstance) {
             latenessChartInstance.destroy();
             latenessChartInstance = null;
         }
-
-        // Obtener top 10 empleados con más tardanzas
         const empleadosConTardanzas = Object.entries(usuariosMap)
             .filter(([_, stats]) => stats.tardanzas > 0)
             .sort((a, b) => b[1].tardanzas - a[1].tardanzas)
             .slice(0, 10);
 
         if (empleadosConTardanzas.length === 0) {
-            // Mostrar mensaje si no hay tardanzas
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.font = '16px Arial';
@@ -1178,10 +1146,9 @@ function renderLatenessChart(usuariosMap) {
             }
         });
 
-        console.log('✅ Gráfico de tardanzas renderizado');
 
     } catch (error) {
-        console.error('❌ Error al renderizar gráfico de tardanzas:', error);
+        console.error('Error al renderizar gráfico de tardanzas:', error);
     }
 }
 
@@ -1193,7 +1160,6 @@ async function cargarAsistenciasPorEmpleado(employeeId = null) {
 
 // ===================== TABS =====================
 function switchTab(tabName) {
-    console.log("Cambiando a tab:", tabName);
 
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(tab => tab.classList.remove('active'));
@@ -1204,13 +1170,11 @@ function switchTab(tabName) {
     const selectedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
     if (selectedBtn) {
         selectedBtn.classList.add('active');
-        console.log("✅ Botón activado:", tabName);
     }
 
     const selectedContent = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
     if (selectedContent) {
         selectedContent.classList.add('active');
-        console.log("✅ Contenido activado:", tabName);
     }
 
     // Cargar datos según el tab
@@ -1299,17 +1263,15 @@ async function loadEmployeeHistory(days = 7) {
             tbody.appendChild(tr);
         });
 
-        console.log(`✅ Historial cargado: ${Object.keys(porFecha).length} días`);
 
     } catch (error) {
-        console.error("❌ Error al cargar historial:", error);
+        console.error("Error al cargar historial:", error);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar historial</td></tr>';
     }
 }
 
 // ===================== SETUP EVENT LISTENERS =====================
 function setupEventListeners() {
-    console.log("🎯 Configurando event listeners...");
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
@@ -1360,7 +1322,6 @@ function setupEventListeners() {
         // Filtro de empleado en historial
         const historyEmployeeFilter = document.getElementById('historyEmployeeFilter');
         if (historyEmployeeFilter) {
-            // Poblar select con empleados
             onSnapshot(collection(db, "usuario"), (snapshot) => {
                 historyEmployeeFilter.innerHTML = '<option value="">Todos los empleados</option>';
                 snapshot.forEach((doc) => {
@@ -1380,7 +1341,6 @@ function setupEventListeners() {
             });
         }
 
-        // Filtro de estado en historial
         const historyStatusFilter = document.getElementById('historyStatusFilter');
         if (historyStatusFilter) {
             historyStatusFilter.addEventListener('change', () => {
@@ -1397,7 +1357,6 @@ function setupEventListeners() {
         }
     });
 
-    console.log("✅ Event listeners configurados");
 }
 
 // Función para aplicar rango personalizado
@@ -1406,7 +1365,7 @@ window.applyCustomRange = function () {
     const endDate = document.getElementById('historyEndDate').value;
 
     if (!startDate || !endDate) {
-        showToast("❌ Selecciona ambas fechas", "error");
+        showToast("Selecciona ambas fechas", "error");
         return;
     }
 
@@ -1420,7 +1379,6 @@ window.applyCustomRange = function () {
 
 // ===================== INICIALIZACIÓN =====================
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("🚀 Inicializando módulo de asistencias...");
 
     mostrarPanelSegunRol();
     setupEventListeners();
@@ -1439,8 +1397,6 @@ document.addEventListener("DOMContentLoaded", () => {
         actualizarEstadoHoy();
         loadEmployeeHistory(7);
     }
-
-    console.log("✅ Módulo de asistencias listo");
 });
 
 // ===================== MOSTRAR PANEL SEGÚN ROL =====================
@@ -1448,41 +1404,12 @@ function mostrarPanelSegunRol() {
     const employeeView = document.getElementById("employeeView");
     const adminView = document.getElementById("adminView");
 
-    console.log("🎨 Mostrando panel para:", isAdmin ? "Administrador" : "Empleado");
-
     if (isAdmin) {
         if (employeeView) employeeView.style.display = "none";
         if (adminView) adminView.style.display = "block";
-        console.log("✅ Panel de administrador visible");
     } else {
         if (employeeView) employeeView.style.display = "block";
         if (adminView) adminView.style.display = "none";
-        console.log("✅ Panel de empleado visible");
-    }
-
-    cargarInfoUsuario();
-}
-
-// ===================== CARGAR INFO USUARIO EN SIDEBAR =====================
-function cargarInfoUsuario() {
-    const userNameElement = document.getElementById("userNameDisplay");
-    const userRoleElement = document.getElementById("userRoleDisplay");
-
-    console.log("📝 Cargando info de usuario en sidebar...");
-
-    if (currentUser) {
-        const displayName = currentUser.displayName || `${currentUser.nombre || ''} ${currentUser.apellido || ''}`.trim() || currentUser.email;
-        const role = currentUser.rol || currentUser.role || 'Usuario';
-
-        if (userNameElement) {
-            userNameElement.textContent = displayName;
-            console.log("✅ Nombre actualizado:", displayName);
-        }
-
-        if (userRoleElement) {
-            userRoleElement.textContent = role;
-            console.log("✅ Rol actualizado:", role);
-        }
     }
 }
 
@@ -1490,9 +1417,4 @@ function cargarInfoUsuario() {
 window.toggleMenu = function () {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('active');
-};
-
-window.logout = function () {
-    localStorage.removeItem('textileflow_session');
-    window.location.href = './login.html';
 };

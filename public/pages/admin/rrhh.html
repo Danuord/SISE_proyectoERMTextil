@@ -7,29 +7,25 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>RRHH - Gestión de Usuarios | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/rrhh.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/rrhh.css">
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
 
-    <!-- DEBUG SCRIPT - TEMPORARY -->
     <script>
-        setTimeout(() => {
-            const roleElement = document.getElementById('userRoleDisplay');
-            console.log('🔍 DEBUG RRHH - userRoleDisplay element:', roleElement);
-            console.log('🔍 DEBUG RRHH - textContent:', roleElement?.textContent);
-            console.log('🔍 DEBUG RRHH - innerHTML:', roleElement?.innerHTML);
-            console.log('🔍 DEBUG RRHH - computed style:', window.getComputedStyle(roleElement));
-        }, 2000);
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
     </script>
 </head>
 
 <body>
     <div class="layout">
-        <!-- Sidebar Component -->
         <div id="sidebar-container"></div>
 
         <main class="main-content">
@@ -205,16 +201,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
-
-    <!-- Access Control -->
     <script type="module">
         import { requireAdmin } from '../../components/auth-guard.js';
         requireAdmin();
     </script>
-
     <script type="module" src="../../js/rrhh.js"></script>
 </body>
 

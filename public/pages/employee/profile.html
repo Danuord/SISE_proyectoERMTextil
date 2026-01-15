@@ -7,12 +7,20 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Mi Perfil | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/employee/common.css">
     <link rel="stylesheet" href="../../css/modules/employee/profile.css">
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -21,13 +29,13 @@
 
         <main class="main-content">
             <div class="header">
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div>
                     <h1>Mi Perfil</h1>
                     <p>Información personal y configuración</p>
                 </div>
-                <button class="toggle-menu-btn" onclick="toggleMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
 
             <div class="profile-header">
@@ -126,3 +134,4 @@
 </body>
 
 </html>
+

@@ -7,9 +7,18 @@
   <title>Registro de pagos | TextileFlow</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/common/sidebar-new.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
   <link rel="stylesheet" href="../../css/modules/ventas.css">
-  <!-- Protección de sesión -->
   <script src="../../js/sessionProtection.js"></script>
+  <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -19,6 +28,7 @@
     <main class="main-content">
 
       <div class="header">
+        <button class="toggle-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
         <div>
           <h1>Control de ventas</h1>
           <p>Gestión y registro de ventas</p>
@@ -54,7 +64,7 @@
           
         </div>
   
-        <div style="margin-top:20px;overflow:auto">
+        <div style="margin-top:20px; overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
           <table id="salesTable">
             <thead>
@@ -116,7 +126,7 @@
           <button id="btnCloseModal" class="btn-secondary">Cerrar</button>
         </div>
  
-        <div class="items-wrap">
+        <div class="items-wrap" style="overflow-x: auto;">
           <table>
             <thead>
               <tr>
@@ -136,7 +146,6 @@
   </div>
 </div>
  
-<!-- MODAL VER -->
 <div id="viewBack" class="modal-back">
   <div class="modal">
     <h3>Detalle de venta</h3>
@@ -157,10 +166,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
  
-<!-- AQUI CARGA EL JS SEPARADO -->
 <script type="module" src="../../js/ventas.js"></script>
 
 <div id="pdfViewerModal" class="pdf-modal hidden">
@@ -175,3 +182,4 @@
  
 </body>
 </html>
+

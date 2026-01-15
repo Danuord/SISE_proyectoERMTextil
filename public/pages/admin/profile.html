@@ -7,12 +7,20 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Mi Perfil | TextileFlow Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/profile.css">
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -21,6 +29,7 @@
 
         <main class="main-content">
             <div class="header">
+                <button class="toggle-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                 <div>
                     <h1><i class="fas fa-user-shield"></i> Mi Perfil de Administrador</h1>
                     <p>Información personal y configuración de cuenta</p>
@@ -146,9 +155,9 @@
         </main>
     </div>
 
-    <!-- Scripts -->
     <script type="module" src="../../components/sidebar.js"></script>
     <script type="module" src="../../js/admin-profile.js"></script>
 </body>
 
 </html>
+
