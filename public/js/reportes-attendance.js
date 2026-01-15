@@ -1,8 +1,6 @@
-// ===================== FIREBASE IMPORTS =====================
 import { getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-// Configuración de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -16,15 +14,12 @@ const firebaseConfig = {
 let app;
 try {
     app = getApp();
-    console.log("✅ reportes-attendance.js: Usando instancia de Firebase existente");
 } catch (error) {
     app = initializeApp(firebaseConfig);
-    console.log("✅ reportes-attendance.js: Nueva instancia de Firebase creada");
 }
 
 const db = getFirestore(app);
 
-console.log("✅ reportes-attendance.js cargado y Firebase inicializado");
 
 let currentReportData = null;
 
@@ -58,7 +53,6 @@ window.selectAttendanceReport = function (reportType) {
     const contentSection = document.querySelector('.tab-content.active .content-section');
 
     if (reportArea && reportTitle) {
-        // Mover el área de reporte al principio (después del header)
         const sectionHeader = contentSection.querySelector('.section-header');
         if (sectionHeader && sectionHeader.nextSibling) {
             contentSection.insertBefore(reportArea, sectionHeader.nextSibling);
@@ -91,10 +85,8 @@ window.selectAttendanceReport = function (reportType) {
         `;
         document.getElementById('exportButtons').style.display = 'none';
 
-        // Scroll suave al área de filtros
         reportArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        console.log(`📊 Reporte seleccionado: ${reportType}`);
     }
 };
 
@@ -110,7 +102,7 @@ window.generateAttendanceReport = async function () {
     if (filterType === 'month') {
         const month = document.getElementById('filterMonth').value;
         if (!month) {
-            alert('⚠️ Por favor selecciona un mes');
+            alert('Por favor selecciona un mes');
             document.getElementById('filterMonth').focus();
             return;
         }
@@ -123,12 +115,12 @@ window.generateAttendanceReport = async function () {
         endDate = document.getElementById('filterEndDate').value;
 
         if (!startDate || !endDate) {
-            alert('⚠️ Por favor selecciona ambas fechas (desde y hasta)');
+            alert('Por favor selecciona ambas fechas (desde y hasta)');
             return;
         }
 
         if (startDate > endDate) {
-            alert('⚠️ La fecha de inicio debe ser anterior a la fecha de fin');
+            alert('La fecha de inicio debe ser anterior a la fecha de fin');
             return;
         }
 
@@ -136,7 +128,7 @@ window.generateAttendanceReport = async function () {
     }
 
     if (!reportType) {
-        alert('⚠️ Por favor selecciona un tipo de reporte primero');
+        alert('Por favor selecciona un tipo de reporte primero');
         return;
     }
 
@@ -152,8 +144,6 @@ window.generateAttendanceReport = async function () {
     `;
 
     try {
-        console.log(`🔄 Generando reporte: ${reportType}, Período: ${displayPeriod}, Empleado: ${employeeId || 'Todos'}`);
-
         switch (reportType) {
             case 'asistencia-mensual':
                 await generateMonthlyAttendanceReport(startDate, endDate, displayPeriod, employeeId);
@@ -170,9 +160,8 @@ window.generateAttendanceReport = async function () {
         }
 
         exportButtons.style.display = 'flex';
-        console.log('✅ Reporte generado exitosamente');
     } catch (error) {
-        console.error("❌ Error al generar reporte:", error);
+        console.error("Error al generar reporte:", error);
         resultsDiv.innerHTML = `
             <div style="text-align: center; padding: 40px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;"></i>
@@ -216,7 +205,6 @@ async function generateMonthlyAttendanceReport(startDate, endDate, displayPeriod
     snapshot.forEach(doc => {
         const data = doc.data();
 
-        // Filtrar por empleado si se especificó
         if (employeeId && data.userId !== employeeId) return;
 
         if (!porEmpleadoFecha[data.userId]) {
@@ -234,7 +222,6 @@ async function generateMonthlyAttendanceReport(startDate, endDate, displayPeriod
         }
     });
 
-    // Calcular estadísticas
     Object.entries(porEmpleadoFecha).forEach(([userId, fechas]) => {
         if (!usuariosMap[userId]) return;
 
@@ -268,7 +255,7 @@ async function generateMonthlyAttendanceReport(startDate, endDate, displayPeriod
 
     while (currentDate <= endDateObj) {
         const diaSemana = currentDate.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) { // No domingo ni sábado
+        if (diaSemana !== 0 && diaSemana !== 6) {
             diasLaborales++;
         }
         currentDate.setDate(currentDate.getDate() + 1);
@@ -343,31 +330,28 @@ async function generateMonthlyAttendanceReport(startDate, endDate, displayPeriod
         period: displayPeriod,
         data: usuariosMap
     };
-
-    console.log(`✅ Reporte mensual generado: ${hasData ? Object.keys(usuariosMap).length + ' empleados' : 'Sin datos'}`);
+    
 }
 
 // ===================== FUNCIONES DE EXPORTACIÓN E IMPRESIÓN =====================
 window.exportToPDF = function () {
     if (!currentReportData) {
-        alert('⚠️ No hay datos para exportar. Por favor genera un reporte primero.');
+        alert('No hay datos para exportar. Por favor genera un reporte primero.');
         return;
     }
 
-    alert('📄 Exportación a PDF en desarrollo. Por ahora usa la opción de Imprimir y guarda como PDF desde el navegador.');
+    alert('Exportación a PDF en desarrollo. Por ahora usa la opción de Imprimir y guarda como PDF desde el navegador.');
 };
 
 window.exportToExcel = function () {
     if (!currentReportData) {
-        alert('⚠️ No hay datos para exportar. Por favor genera un reporte primero.');
+        alert('No hay datos para exportar. Por favor genera un reporte primero.');
         return;
     }
 
     try {
-        // Crear workbook
         const wb = XLSX.utils.book_new();
 
-        // Preparar datos según el tipo de reporte
         let data = [];
         let sheetName = 'Reporte';
 
@@ -422,7 +406,6 @@ window.exportToExcel = function () {
             });
         }
 
-        // Crear worksheet
         const ws = XLSX.utils.aoa_to_sheet(data);
 
         // Agregar worksheet al workbook
@@ -432,9 +415,8 @@ window.exportToExcel = function () {
         const fileName = `reporte_${currentReportData.type}_${currentReportData.month || new Date().toISOString().slice(0, 7)}.xlsx`;
         XLSX.writeFile(wb, fileName);
 
-        console.log('✅ Excel exportado:', fileName);
     } catch (error) {
-        console.error('❌ Error al exportar Excel:', error);
+        console.error('Error al exportar Excel:', error);
         alert('Error al exportar a Excel. Verifica que la librería XLSX esté cargada.');
     }
 }
@@ -442,7 +424,7 @@ window.exportToExcel = function () {
 // ===================== REPORTE DE TARDANZAS =====================
 async function generateLatenessReport(startDate, endDate, displayPeriod, employeeId) {
 
-    // Obtener asistencias del período (sin filtro de tipo para evitar índice compuesto)
+    // Obtener asistencias del período
     const q = query(
         collection(db, "asistencias"),
         where("fecha", ">=", startDate),
@@ -460,8 +442,6 @@ async function generateLatenessReport(startDate, endDate, displayPeriod, employe
             rol: doc.data().rol || 'Empleado'
         };
     });
-
-    // Filtrar tardanzas (después de 8:30 AM) - filtrar tipo en JavaScript
     const tardanzas = [];
     asistenciasSnapshot.forEach(doc => {
         const data = doc.data();
@@ -482,7 +462,6 @@ async function generateLatenessReport(startDate, endDate, displayPeriod, employe
         }
     });
 
-    // Renderizar tabla
     const resultsDiv = document.getElementById('reportResults');
     const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -528,14 +507,12 @@ async function generateLatenessReport(startDate, endDate, displayPeriod, employe
     html += '</tbody></table></div>';
     resultsDiv.innerHTML = html;
 
-    // Guardar datos para exportación
     currentReportData = {
         type: 'tardanzas',
         period: displayPeriod,
         data: tardanzas
     };
 
-    console.log(`✅ Reporte de tardanzas generado: ${tardanzas.length} registros`);
 }
 
 // ===================== REPORTE DE AUSENCIAS =====================
@@ -560,7 +537,6 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
         }
     });
 
-    // Obtener asistencias del período (sin filtro de tipo para evitar índice compuesto)
     const q = query(
         collection(db, "asistencias"),
         where("fecha", ">=", startDate),
@@ -568,11 +544,9 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
     );
     const asistenciasSnapshot = await getDocs(q);
 
-    // Contar días asistidos por empleado - filtrar tipo en JavaScript
     const diasAsistidos = {};
     asistenciasSnapshot.forEach(doc => {
         const data = doc.data();
-        // Filtrar solo entradas
         if (data.tipo !== "entrada") return;
         if (!diasAsistidos[data.userId]) {
             diasAsistidos[data.userId] = new Set();
@@ -580,8 +554,6 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
         diasAsistidos[data.userId].add(data.fecha);
     });
 
-    // Calcular ausencias (días laborales - días asistidos)
-    // Asumiendo 5 días laborales por semana
     const ausencias = [];
     empleados.forEach(emp => {
         const diasPresentes = diasAsistidos[emp.id] ? diasAsistidos[emp.id].size : 0;
@@ -593,7 +565,7 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
 
         while (currentDate <= endDateObj) {
             const diaSemana = currentDate.getDay();
-            if (diaSemana !== 0 && diaSemana !== 6) { // No domingo ni sábado
+            if (diaSemana !== 0 && diaSemana !== 6) {
                 diasLaborales++;
             }
             currentDate.setDate(currentDate.getDate() + 1);
@@ -612,7 +584,6 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
         }
     });
 
-    // Renderizar tabla
     const resultsDiv = document.getElementById('reportResults');
     const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -661,17 +632,14 @@ async function generateAbsencesReport(startDate, endDate, displayPeriod, employe
     html += '</tbody></table></div>';
     resultsDiv.innerHTML = html;
 
-    // Guardar datos para exportación
     currentReportData = {
         type: 'ausencias',
         period: displayPeriod,
         data: ausencias
     };
-
-    console.log(`✅ Reporte de ausencias generado: ${ausencias.length} empleados con ausencias`);
+    
 }
 
-// Sobrescribir la función de imprimir para solo imprimir el área del reporte
 window.printReport = function () {
     const printableArea = document.getElementById('printableArea');
 
@@ -683,4 +651,3 @@ window.printReport = function () {
     window.print();
 };
 
-console.log("✅ reportes-attendance.js cargado correctamente");

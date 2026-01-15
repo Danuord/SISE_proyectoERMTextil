@@ -1,4 +1,3 @@
-// ===================== ADMIN PROFILE =====================
 import { requireAuth, getCurrentUser } from '../../components/auth-guard.js';
 import { getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -16,14 +15,11 @@ const firebaseConfig = {
     appId: "1:227349652064:web:d32994273a529a07e25905"
 };
 
-// Intentar obtener la instancia del dashboard, o crear una nueva
 let app;
 try {
     app = getApp('dashboard-app');
-    console.log("✅ Usando instancia 'dashboard-app' existente");
 } catch (error) {
     app = initializeApp(firebaseConfig);
-    console.log("✅ Nueva instancia de Firebase creada");
 }
 
 const auth = getAuth(app);
@@ -31,26 +27,24 @@ const db = getFirestore(app);
 
 // Configurar persistencia
 setPersistence(auth, browserLocalPersistence).then(() => {
-    console.log("✅ Persistencia configurada en admin-profile");
+    console.log("Persistencia configurada en admin-profile");
 }).catch((error) => {
-    console.error("❌ Error configurando persistencia:", error);
+    console.error("Error configurando persistencia:", error);
 });
 
-console.log("🔥 Firebase inicializado");
-console.log("🔐 auth.currentUser al cargar:", auth.currentUser);
 
 // Listener para detectar cambios en el estado de autenticación
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        console.log("✅ onAuthStateChanged - Usuario detectado:", user.email);
+        console.log("onAuthStateChanged - Usuario detectado:", user.email);
     } else {
-        console.log("⚠️ onAuthStateChanged - No hay usuario autenticado");
+        console.log("onAuthStateChanged - No hay usuario autenticado");
     }
 });
 
 // Esperar a que Firebase Auth restaure la sesión
 setTimeout(() => {
-    console.log("🔐 auth.currentUser después de 1 segundo:", auth.currentUser);
+    console.log("auth.currentUser después de 1 segundo:", auth.currentUser);
 }, 1000);
 
 // Cargar datos del perfil
@@ -63,7 +57,6 @@ async function loadProfile() {
         if (userDoc.exists()) {
             const data = userDoc.data();
 
-            // Actualizar campos del formulario
             document.getElementById('nombre').value = data.nombre || '';
             document.getElementById('apellido').value = data.apellido || '';
             document.getElementById('email').value = data.email || '';
@@ -72,7 +65,6 @@ async function loadProfile() {
             document.getElementById('rol').value = data.rol || '';
             document.getElementById('dni').value = data.documento || '';
 
-            // Actualizar header del perfil
             const fullName = `${data.nombre || ''} ${data.apellido || ''}`.trim() || 'Usuario';
             document.getElementById('profileName').textContent = fullName;
             document.getElementById('profileRole').textContent = data.rol || 'Empleado';
@@ -112,10 +104,10 @@ if (profileForm) {
             session.displayName = `${nombre} ${apellido}`;
             localStorage.setItem('textileflow_session', JSON.stringify(session));
 
-            showNotification("✅ Perfil actualizado correctamente", "success");
+            showNotification("Perfil actualizado correctamente", "success");
         } catch (error) {
             console.error("Error al actualizar perfil:", error);
-            showNotification(`❌ Error: ${error.message}`, "error");
+            showNotification(`Error: ${error.message}`, "error");
         }
     });
 }
@@ -131,44 +123,40 @@ if (passwordForm) {
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (newPassword !== confirmPassword) {
-            showNotification("❌ Las contraseñas no coinciden", "error");
+            showNotification("Las contraseñas no coinciden", "error");
             return;
         }
 
         if (newPassword.length < 6) {
-            showNotification("❌ La contraseña debe tener al menos 6 caracteres", "error");
+            showNotification("La contraseña debe tener al menos 6 caracteres", "error");
             return;
         }
 
         try {
-            console.log("🔐 Intentando cambiar contraseña...");
-            console.log("🔐 auth object:", auth);
-            console.log("🔐 auth.currentUser:", auth.currentUser);
 
             const user = auth.currentUser;
 
             if (!user) {
-                console.error("❌ auth.currentUser es NULL");
-                console.log("💡 Esto significa que Firebase Auth no tiene sesión activa");
-                console.log("📋 Verifica que hayas iniciado sesión recientemente");
-                showNotification("⚠️ Debes cerrar sesión y volver a iniciar sesión para cambiar tu contraseña", "error");
+                console.error("auth.currentUser es NULL");
+                console.log("Esto significa que Firebase Auth no tiene sesión activa");
+                console.log("Verifica que hayas iniciado sesión recientemente");
+                showNotification("Debes cerrar sesión y volver a iniciar sesión para cambiar tu contraseña", "error");
                 return;
             }
 
-            console.log("✅ Usuario encontrado:", user.email);
             const credential = EmailAuthProvider.credential(user.email, currentPassword);
 
             await reauthenticateWithCredential(user, credential);
             await updatePassword(user, newPassword);
 
-            showNotification("✅ Contraseña actualizada correctamente", "success");
+            showNotification("Contraseña actualizada correctamente", "success");
             passwordForm.reset();
         } catch (error) {
             console.error("Error al cambiar contraseña:", error);
             if (error.code === 'auth/wrong-password') {
-                showNotification("❌ Contraseña actual incorrecta", "error");
+                showNotification("Contraseña actual incorrecta", "error");
             } else {
-                showNotification(`❌ Error: ${error.message}`, "error");
+                showNotification(`Error: ${error.message}`, "error");
             }
         }
     });
