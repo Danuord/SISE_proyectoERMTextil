@@ -1,16 +1,17 @@
 .sidebar {
   position: fixed;
-  left: 0;
   top: 0;
+  left: 0;
   width: 280px;
   height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  z-index: 1000;
+  z-index: 1050;
   padding: 20px 0;
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar.collapsed {
@@ -22,6 +23,7 @@
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   margin-bottom: 20px;
+  position: relative;
 }
 
 .sidebar-header h1 {
@@ -38,22 +40,27 @@
   opacity: 0.8;
 }
 
-.sidebar-toggle {
-  background: none;
+.sidebar-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: #667eea;
-  font-size: 18px;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  width: 40px;
-  height: 40px;
+  font-size: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.sidebar-toggle:hover {
-  background-color: #e9ecef;
-  transform: scale(1.1);
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
 }
 
 
@@ -93,6 +100,7 @@
   border-left-color: white;
   font-weight: 600;
 }
+
 
 .sidebar-footer {
   position: absolute;
@@ -169,56 +177,140 @@
   font-size: 16px;
 }
 
-.sidebar.collapsed {
-  width: 70px;
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 280px;
+  }
+
+  .main-content.sidebar-hidden {
+    margin-left: 280px;
+  }
 }
-
-.sidebar.collapsed .section-title,
-.sidebar.collapsed .sidebar-link span {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-link {
-  justify-content: center;
-  padding: 12px;
-}
-
-.sidebar.collapsed .user-details {
-  display: none;
-}
-
-
 
 @media (max-width: 768px) {
   .sidebar {
-    position: fixed;
-    left: -250px;
-    width: 250px;
-    height: calc(100vh - 60px);
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    /* Oculto por defecto (fuera de vista a la izquierda) */
+    transform: translateX(-100%);
+    width: 280px;
+    height: 100vh;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    z-index: 1050;
   }
 
+  /* Mostrar sidebar cuando está activo */
   .sidebar.active {
-    left: 0;
+    transform: translateX(0);
   }
 
-  .main-content-wrapper {
+  /* Botón de cierre visible solo en móvil */
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  .sidebar.active::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+
+  .sidebar-menu {
+    margin-bottom: 100px;
+  }
+
+  .sidebar-menu a {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .sidebar-menu a:hover {
+    padding-left: 20px;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .sidebar-header h1 {
+    font-size: 20px;
+  }
+
+  .main-content {
     margin-left: 0;
   }
 }
 
-@media (min-width: 769px) {
-  .main-content-wrapper {
-    margin-left: 250px;
-    transition: all 0.3s ease;
+/* Extra small mobile (≤480px) */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 75vw;
+    max-width: 280px;
+    transform: translateX(-100%);
   }
 
-  .main-content-wrapper.sidebar-collapsed {
-    margin-left: 70px;
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .sidebar-header h1 {
+    font-size: 18px;
+  }
+
+  .sidebar-header {
+    padding: 12px;
+  }
+
+  .sidebar-menu a {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .sidebar-menu a i {
+    width: 18px;
+  }
+
+  .user-info {
+    padding: 8px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .user-name {
+    font-size: 12px;
+  }
+
+  .user-role {
+    font-size: 11px;
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+  }
+
+  .logout-btn {
+    padding: 8px;
+    font-size: 12px;
   }
 }
 
-/* Scrollbar Styles */
 .sidebar::-webkit-scrollbar {
   width: 6px;
 }

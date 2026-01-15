@@ -206,6 +206,207 @@
     border-radius: 4px;
 }
 
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: white;
+    margin: 1.5rem 0;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.table-container thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-container th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.table-container td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.table-container tbody tr {
+    transition: background-color 0.2s;
+}
+
+.table-container tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-complete {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-incomplete {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-absent {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-late {
+    background-color: #fed7aa;
+    color: #92400e;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #f0f0f0;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-icon:hover {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.simple-history-table table,
+.history-date-group table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.simple-history-table thead,
+.history-date-group thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.simple-history-table th,
+.history-date-group th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.simple-history-table td,
+.history-date-group td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.history-date-group {
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.history-date-header {
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: all 0.3s;
+}
+
+.history-date-header:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.history-date-header h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.history-date-summary {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.history-date-content {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.history-date-content.expanded {
+    max-height: none;
+}
+
+.table-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filter-select:hover {
+    border-color: #667eea;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 @media (max-width: 768px) {
     .attendance-summary {
         grid-template-columns: 1fr;
@@ -217,5 +418,51 @@
 
     .view-toggle {
         flex-direction: column;
+    }
+
+    .table-container {
+        border-radius: 0;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        width: calc(100% + 2rem);
+    }
+
+    .table-container th {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .table-container td {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-icon {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .table-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .history-date-header {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .history-date-header h4 {
+        font-size: 0.9rem;
     }
 }

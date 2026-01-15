@@ -27,6 +27,9 @@ class Sidebar {
                 <div class="sidebar-header">
                     <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
                     <p>ERP Textil</p>
+                    <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar sidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <ul class="sidebar-menu">
@@ -64,6 +67,9 @@ class Sidebar {
                 <div class="sidebar-header">
                     <h1><i class="fas fa-shirt"></i> TextileFlow</h1>
                     <p>Portal Empleado</p>
+                    <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Cerrar sidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <ul class="sidebar-menu">
@@ -140,14 +146,44 @@ class Sidebar {
             });
         }
 
-        const toggleBtn = document.querySelector('.toggle-menu-btn');
         const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
 
-        if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
+        // Botón de cierre (X)
+        const closeBtn = document.getElementById('sidebarCloseBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sidebar.classList.remove('active');
             });
         }
+
+        // Cerrar sidebar al hacer clic en un enlace de menú
+        const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // En móvil, cerrar después de navegar
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        sidebar.classList.remove('active');
+                    }, 100);
+                }
+            });
+        });
+
+        // Cerrar sidebar al hacer clic fuera (solo en móvil)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                const toggleBtn = document.querySelector('.toggle-menu-btn');
+                const isClickInSidebar = sidebar.contains(e.target);
+                const isClickOnToggle = toggleBtn && toggleBtn.contains(e.target);
+                
+                if (!isClickInSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        }, true); // Usar captura para que se ejecute primero
     }
 }
 

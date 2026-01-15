@@ -152,6 +152,21 @@ a {
     margin-left: 280px;
     padding: 20px;
     overflow-y: auto;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile - Sidebar hidden by default */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* Desktop - Sidebar always visible */
+@media (min-width: 1024px) {
+    .main-content {
+        margin-left: 280px;
+    }
 }
 
 .header {

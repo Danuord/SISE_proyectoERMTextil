@@ -9,11 +9,19 @@
     <title>Registro de pagos | TextileFlow</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/inventario.css">
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -27,25 +35,24 @@
                     <h1>Control de Inventario</h1>
                     <p>Resumen y gestión inventario</p>
                 </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
-            <!-- sección categorias -->
             <div class="categoria-section">
-
-                <!-- Encabezado desplegable -->
                 <div class="categoria-header" id="toggleCategoria">
                     <h2>Categorías</h2>
                     <span>Ingresa nuevas categorías o visualiza las ya creadas</span>
                     <i class="fa fa-chevron-down categoria-icon"></i>
                 </div>
-
-                <!-- Contenido oculto -->
                 <div class="categoria-content" id="categoriaContent">
 
                     <button class="btn btn-primary" id="btnAddCategoria">
                         <i class="fa fa-plus"></i> Nueva Categoría
                     </button>
 
+                    <div style="overflow-x: auto; margin-top: 20px;">
                     <table>
                         <thead>
                             <tr>
@@ -55,21 +62,19 @@
                             </tr>
                         </thead>
                         <tbody id="tablaCategorias">
-                            <!-- Cargar con onSnapshot -->
                         </tbody>
                     </table>
 
                 </div>
 
             </div>
-
-            <!-- sección artículos -->
             <div class="container">
                 <h2>Artículos</h2>
                 <button class="btn btn-primary" id="btnAddArticulo">
                     <i class="fa fa-plus"></i> Nuevo Artículo
                 </button>
 
+                <div style="overflow-x: auto; margin-top: 20px;">
                 <table>
                     <thead>
                         <tr>
@@ -85,12 +90,11 @@
                         </tr>
                     </thead>
                     <tbody id="tablaArticulos">
-                        <!-- Cargar con onSnapshot -->
                     </tbody>
                 </table>
+                </div>
             </div>
 
-            <!-- modal agregar categoria -->
             <div class="modal" id="modalCategoria">
                 <div class="modal-content">
                     <div class="modal-header">Nueva Categoría</div>
@@ -101,7 +105,6 @@
                 </div>
             </div>
 
-            <!-- modal agregar articulo -->
             <div class="modal" id="modalArticulo">
                 <div class="modal-content">
                     <div class="modal-header">Nuevo Artículo</div>
@@ -139,7 +142,6 @@
                 </div>
             </div>
 
-            <!-- modal agregar atributo -->
             <div class="modal" id="modalAtributo">
                 <div class="modal-content">
                     <div class="modal-header">Nueva Característica</div>
@@ -150,7 +152,6 @@
                 </div>
             </div>
 
-            <!-- modal agregar valor -->
             <div class="modal" id="modalValor">
                 <div class="modal-content">
                     <div class="modal-header">Nuevo Valor</div>
@@ -165,7 +166,6 @@
                 </div>
             </div>
 
-            <!-- modal editar articulo -->
             <div class="modal" id="modalEditarArticulo">
                 <div class="modal-content">
 
@@ -213,3 +213,4 @@
     </script>
     <script type="module" src="../../js/inventario.js"></script>
 </body>
+

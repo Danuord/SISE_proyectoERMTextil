@@ -1,4 +1,4 @@
-/* ===================== DASHBOARD ADMIN - ESTILOS ESPECÍFICOS ===================== */
+/* ===================== DASHBOARD ADMIN ===================== */
 
 .kpi-grid {
     display: grid;
@@ -84,7 +84,7 @@
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 24px;
     margin-bottom: 32px;
 }
@@ -95,10 +95,14 @@
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .chart-card-wide {
     grid-column: 1 / -1;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .chart-header {
@@ -140,6 +144,15 @@
 .chart-container {
     position: relative;
     height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100%;
+}
+
+.chart-container canvas {
+    max-height: 300px;
+    max-width: 100%;
 }
 
 .activity-section {
@@ -295,6 +308,28 @@
         grid-template-columns: 1fr;
     }
 
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .chart-card {
+        padding: 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chart-card-wide {
+        grid-column: 1;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chart-container {
+        height: 280px;
+        min-width: 100%;
+    }
+
     .activity-section {
         grid-template-columns: 1fr;
     }
@@ -302,8 +337,26 @@
     .quick-actions {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 480px) {
+    .kpi-card {
+        padding: 16px;
+    }
+
+    .kpi-value {
+        font-size: 24px;
+    }
 
     .chart-container {
         height: 250px;
+    }
+
+    .chart-card {
+        padding: 12px;
+    }
+
+    .chart-header h3 {
+        font-size: 14px;
     }
 }

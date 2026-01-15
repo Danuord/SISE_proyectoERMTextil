@@ -7,14 +7,22 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <title>Asistencia | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/asistencia.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/asistencia.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 <body>
@@ -449,3 +457,4 @@
 </body>
 
 </html>
+

@@ -8,13 +8,21 @@
 
     <title>Registro de pagos | TextileFlow</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/common/sidebar.css">
+    <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/pagos.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/pagos.css">
-    <!-- Protección de sesión -->
     <script src="../../js/sessionProtection.js"></script>
+
+    <script>
+        window.toggleMenu = function () {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        };
+    </script>
 </head>
 
 
@@ -29,12 +37,11 @@
                     <h1>Registro de pagos</h1>
                     <p>Resumen y gestión de los pagos</p>
                 </div>
+                <button class="toggle-menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
-
-            <!-- ========================================================= -->
-            <!--  TARJETAS DE RESUMEN -->
-            <!-- ========================================================= -->
             <div class="cards-grid">
                 <div class="card">
                     <h3>📦 SALARIO PROYECTADO</h3>
@@ -55,25 +62,16 @@
             </div>
 
 
-            <!-- ========================================================= -->
-            <!--  ACCIONES: FILTRO + BOTONES -->
-            <!-- ========================================================= -->
             <div class="button-actions">
 
-                <!-- Fila 1: Botón Filtrar + Panel -->
                 <div class="filter-group">
-
-                    <!-- Botón filtrar -->
                     <button id="filterBtn" class="btn btn-secondary">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
-
-                    <!-- Exportar / Reportes -->
                     <button id="reportBtn" class="btn btn-secondary">
                         <i class="fas fa-save"></i>
                     </button>
 
-                    <!-- Selector de columnas -->
                     <div class="column-selector-container">
                         <button id="columnSelectorBtn" class="btn btn-light">
                             <i class="fas fa-columns"></i> Columnas
@@ -92,24 +90,18 @@
                         </div>
                     </div>
 
-                    <!-- Botón editar planilla -->
                     <button id="editUserPlanilla" class="btn btn-primary">
                         <i class="fas fa-pen"></i> Editar información salarial
                     </button>
 
-                    <!-- Botón agregar salario -->
                     <button id="addSalaryBtn" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Registrar pago
                     </button>   
-
                     
                 </div>
 
-
-                <!-- Fila 2: Resto de botones -->
                 <div class="other-buttons">
 
-                    <!-- Panel de filtrado -->
                     <div id="filterPanel" class="filter-panel">
                         <div class="filter-content">
 
@@ -129,10 +121,6 @@
                 </div>
             </div>
 
-
-            <!-- ========================================================= -->
-            <!--  TABLA DE PAGOS -->
-            <!-- ========================================================= -->
             <div class="table-container">
                 <table id="salaryTable">
                     <thead>
@@ -152,9 +140,6 @@
                 </table>
             </div>
 
-            <!-- ========================================================= -->
-            <!-- 🟦 MODAL: NUEVO SALARIO -->
-            <!-- ========================================================= -->
             <div id="addSalaryModal" class="modal">
                 <div class="modal-content">
                     <span class="close-btn regresar-btn">Regresar</span>
@@ -192,9 +177,6 @@
                 </div>
             </div>
 
-            <!-- ========================================================= -->
-            <!-- 🟦 MODAL: EDITAR PLANILLA COMPLETA -->
-            <!-- ========================================================= -->
             <div id="editUserPlanillaModal" class="modal">
                 <div class="modal-content">
                     <span class="close-btn regresar-btn">Regresar</span>
@@ -224,16 +206,8 @@
                 </div>
             </div>
 
-
-            <!-- ========================================================= -->
-            <!-- 🟨 MENSAJE DE ESTADO -->
-            <!-- ========================================================= -->
             <div id="statusMessage" class="status-message"></div>
 
-
-            <!-- ========================================================= -->
-            <!-- 🟥 FOOTER -->
-            <!-- ========================================================= -->
             <footer>
                 <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
             </footer>
@@ -241,24 +215,13 @@
         </main>
     </div>
 
-
-    <!-- Librerías para las tarjetas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-    <!-- Sidebar Component -->
     <script type="module" src="../../components/sidebar.js"></script>
-
-    <!-- Access Control -->
     <script type="module">
         import { requireAdmin } from '../../components/auth-guard.js';
         requireAdmin();
     </script>
-
-    <!-- Reporte de pago -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- Script del módulo -->
     <script type="module" src="../../js/pagos.js"></script>
     
 
@@ -275,3 +238,4 @@
 </body>
 
 </html>
+

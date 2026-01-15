@@ -2,9 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-console.log("✅ SCHEDULES.JS CARGADO");
-
-// ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -26,13 +23,11 @@ if (session) {
 
 // ===================== CARGAR HORARIOS AL INICIAR =====================
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🕐 Inicializando gestión de horarios...");
 
     await loadDefaultSchedule();
     await loadCustomSchedulesList();
     setupScheduleEventListeners();
 
-    console.log("✅ Gestión de horarios lista");
 });
 
 // ===================== CARGAR HORARIO POR DEFECTO =====================
@@ -46,12 +41,11 @@ async function loadDefaultSchedule() {
             document.getElementById('defaultExit').value = data.salida || "17:00";
             document.getElementById('defaultTolerance').value = data.tolerancia || 15;
 
-            console.log("✅ Horario por defecto cargado:", data);
         } else {
-            console.log("ℹ️ No hay horario por defecto configurado, usando valores predeterminados");
+            console.log("No hay horario por defecto configurado, usando valores predeterminados");
         }
     } catch (error) {
-        console.error("❌ Error al cargar horario por defecto:", error);
+        console.error("Error al cargar horario por defecto:", error);
     }
 }
 
@@ -72,11 +66,10 @@ async function saveDefaultSchedule(e) {
             updatedBy: currentUser?.uid || 'unknown'
         });
 
-        showToast("✅ Horario por defecto guardado correctamente", "success");
-        console.log("✅ Horario por defecto guardado");
+        showToast("Horario por defecto guardado correctamente", "success");
     } catch (error) {
-        console.error("❌ Error al guardar horario por defecto:", error);
-        showToast(`❌ Error: ${error.message}`, "error");
+        console.error("Error al guardar horario por defecto:", error);
+        showToast(`Error: ${error.message}`, "error");
     }
 }
 
@@ -126,7 +119,7 @@ async function loadCustomSchedulesList() {
                 container.appendChild(scheduleItem);
             }
         } catch (error) {
-            console.error(`❌ Error al cargar horario de ${dia}:`, error);
+            console.error(` Error al cargar horario de ${dia}:`, error);
         }
     }
 
@@ -151,7 +144,7 @@ async function saveCustomSchedule(e) {
 
     const dia = document.getElementById('customDaySelect').value;
     if (!dia) {
-        showToast("❌ Selecciona un día", "error");
+        showToast("Selecciona un día", "error");
         return;
     }
 
@@ -169,13 +162,12 @@ async function saveCustomSchedule(e) {
             updatedBy: currentUser?.uid || 'unknown'
         });
 
-        showToast(`✅ Horario de ${dia} guardado correctamente`, "success");
-        console.log(`✅ Horario de ${dia} guardado`);
+        showToast(`Horario de ${dia} guardado correctamente`, "success");
 
         await loadCustomSchedulesList();
     } catch (error) {
-        console.error(`❌ Error al guardar horario de ${dia}:`, error);
-        showToast(`❌ Error: ${error.message}`, "error");
+        console.error(`Error al guardar horario de ${dia}:`, error);
+        showToast(`Error: ${error.message}`, "error");
     }
 }
 
@@ -183,7 +175,7 @@ async function saveCustomSchedule(e) {
 window.deleteCustomSchedule = async function () {
     const dia = document.getElementById('customDaySelect').value;
     if (!dia) {
-        showToast("❌ Selecciona un día", "error");
+        showToast("Selecciona un día", "error");
         return;
     }
 
@@ -194,8 +186,7 @@ window.deleteCustomSchedule = async function () {
     try {
         await deleteDoc(doc(db, "configuracion", `horario_${dia}`));
 
-        showToast(`✅ Horario de ${dia} eliminado`, "success");
-        console.log(`✅ Horario de ${dia} eliminado`);
+        showToast(`Horario de ${dia} eliminado`, "success");
 
         // Reset form
         document.getElementById('customScheduleForm').style.display = 'none';
@@ -203,8 +194,7 @@ window.deleteCustomSchedule = async function () {
 
         await loadCustomSchedulesList();
     } catch (error) {
-        console.error(`❌ Error al eliminar horario de ${dia}:`, error);
-        showToast(`❌ Error: ${error.message}`, "error");
+        showToast(`Error: ${error.message}`, "error");
     }
 };
 
@@ -260,13 +250,12 @@ function setupScheduleEventListeners() {
                     }
                 }
             } catch (error) {
-                console.error(`❌ Error al cargar horario de ${dia}:`, error);
+                console.error(`Error al cargar horario de ${dia}:`, error);
             }
         });
     }
 }
 
-// ===================== UTILIDADES =====================
 function showToast(message, type = "info") {
     const toast = document.getElementById("statusMessage");
     if (!toast) {

@@ -1,12 +1,8 @@
 // ===================== DASHBOARD - ADMIN =====================
-// Modern dashboard with Chart.js visualizations
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-console.log("✅ DASHBOARD.JS CARGADO");
-
-// ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -19,12 +15,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig, 'dashboard-app');
 const db = getFirestore(app);
-console.log('✅ Firebase inicializado para dashboard');
 
-// ===================== CONSTANTES =====================
 const HORA_INICIO_LABORAL = { hora: 8, minuto: 30 };
 
-// Chart instances
 let attendanceChart, employeeChart, stockChart;
 
 // ===================== UTILIDADES =====================
@@ -78,7 +71,6 @@ async function loadDashboardKPIs() {
     if (!db) return;
 
     try {
-        console.log('📊 Cargando KPIs del dashboard...');
 
         await Promise.all([
             loadEmpleadosKPI(),
@@ -86,30 +78,45 @@ async function loadDashboardKPIs() {
             loadInventarioKPI()
         ]);
 
-        console.log('✅ KPIs cargados');
     } catch (error) {
-        console.error('❌ Error al cargar KPIs:', error);
+        console.error('Error al cargar KPIs:', error);
     }
 }
 
 async function loadEmpleadosKPI() {
     try {
         const usuariosSnapshot = await getDocs(collection(db, "usuario"));
-        const empleadosActuales = usuariosSnapshot.size;
+        
+        let empleadosActuales = 0;
+        let empleadosPrevios = 0;
+        
+        const prevMonth = getPreviousMonthRange();
+        
+        usuariosSnapshot.forEach(doc => {
+            const user = doc.data();
+            if (user.rol === "Empleado" && user.estado === "activo") {
+                empleadosActuales++;
+            }
+        });
+        
         updateKPI('kpiEmpleados', empleadosActuales);
 
         // Calcular tendencia (comparar con mes anterior)
-        // Por simplicidad, asumimos que todos los usuarios activos son del mes actual
-        // En un sistema real, filtrarías por fecha de creación
-        const prevMonth = getPreviousMonthRange();
-        const usuariosPrevQuery = query(
-            collection(db, "usuario"),
-            where("fecha_creacion", "<=", prevMonth.end)
-        );
-
         try {
+            const usuariosPrevQuery = query(
+                collection(db, "usuario"),
+                where("fecha_creacion", "<=", prevMonth.end)
+            );
+
             const usuariosPrevSnapshot = await getDocs(usuariosPrevQuery);
-            const empleadosPrevios = usuariosPrevSnapshot.size;
+            
+            // Contar solo empleados activos del mes anterior
+            usuariosPrevSnapshot.forEach(doc => {
+                const user = doc.data();
+                if (user.rol === "Empleado" && user.estado === "activo") {
+                    empleadosPrevios++;
+                }
+            });
 
             if (empleadosPrevios > 0) {
                 const cambio = ((empleadosActuales - empleadosPrevios) / empleadosPrevios) * 100;
@@ -117,11 +124,10 @@ async function loadEmpleadosKPI() {
                 updateKPITrend(kpiCard, cambio, cambio >= 0);
             }
         } catch (err) {
-            // Si no hay campo fecha_creacion, mostrar tendencia neutral
-            console.log('ℹ️ No se pudo calcular tendencia de empleados');
+            console.log('No se pudo calcular tendencia de empleados');
         }
     } catch (error) {
-        console.error('❌ Error al cargar empleados:', error);
+        console.error('Error al cargar empleados:', error);
         updateKPI('kpiEmpleados', 'Error');
     }
 }
@@ -148,7 +154,6 @@ async function loadAsistenciaKPIs() {
 
         updateKPI('kpiAsistencia', `${tasaAsistencia}%`);
 
-        // Calcular tardanzas del mes actual
         let tardanzas = 0;
         asistenciasSnapshot.forEach(doc => {
             const data = doc.data();
@@ -193,12 +198,11 @@ async function loadAsistenciaKPIs() {
         if (tardanzasPrev > 0) {
             const cambioTardanzas = ((tardanzas - tardanzasPrev) / tardanzasPrev) * 100;
             const kpiTardanzasCard = document.querySelector('.kpi-card:nth-child(3)');
-            // Invertir lógica: menos tardanzas es mejor (verde)
             updateKPITrend(kpiTardanzasCard, cambioTardanzas, cambioTardanzas <= 0);
         }
 
     } catch (error) {
-        console.error('❌ Error al cargar asistencias:', error);
+        console.error('Error al cargar asistencias:', error);
         updateKPI('kpiAsistencia', 'Error');
         updateKPI('kpiTardanzas', 'Error');
     }
@@ -214,25 +218,20 @@ async function loadInventarioKPI() {
         const stockBajoActual = productosSnapshot.size;
         updateKPI('kpiStockBajo', stockBajoActual);
 
-        // Para calcular tendencia, necesitaríamos histórico de stock
-        // Por ahora, simulamos comparando con un valor guardado en localStorage
         const stockBajoPrevio = parseInt(localStorage.getItem('stockBajoPrevMonth') || stockBajoActual);
 
         if (stockBajoPrevio > 0 && stockBajoPrevio !== stockBajoActual) {
             const cambioStock = ((stockBajoActual - stockBajoPrevio) / stockBajoPrevio) * 100;
             const kpiStockCard = document.querySelector('.kpi-card:nth-child(4)');
-            // Invertir lógica: menos productos con stock bajo es mejor (verde)
             updateKPITrend(kpiStockCard, cambioStock, cambioStock <= 0);
         }
 
-        // Guardar valor actual para próxima comparación (esto se haría mejor con una colección de históricos)
         const hoy = new Date();
         if (hoy.getDate() === 1) {
-            // Primer día del mes, guardar el valor del mes anterior
             localStorage.setItem('stockBajoPrevMonth', stockBajoActual);
         }
     } catch (error) {
-        console.error('❌ Error al cargar inventario:', error);
+        console.error('Error al cargar inventario:', error);
         updateKPI('kpiStockBajo', 'Error');
     }
 }
@@ -242,7 +241,6 @@ async function loadCharts() {
     if (!db) return;
 
     try {
-        console.log('📈 Cargando gráficos...');
 
         await Promise.all([
             loadAttendanceChart(),
@@ -250,9 +248,8 @@ async function loadCharts() {
             loadStockChart()
         ]);
 
-        console.log('✅ Gráficos cargados');
     } catch (error) {
-        console.error('❌ Error al cargar gráficos:', error);
+        console.error('Error al cargar gráficos:', error);
     }
 }
 
@@ -262,7 +259,6 @@ async function loadAttendanceChart() {
         const labels = [];
         const data = [];
 
-        // Últimos 7 días
         for (let i = 6; i >= 0; i--) {
             const fecha = new Date(hoy);
             fecha.setDate(fecha.getDate() - i);
@@ -303,9 +299,20 @@ async function loadAttendanceChart() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10,
+                            left: 5,
+                            right: 5
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        filler: {
+                            propagate: true
                         }
                     },
                     scales: {
@@ -313,11 +320,21 @@ async function loadAttendanceChart() {
                             beginAtZero: true,
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 480 ? 10 : 12
+                                }
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 480 ? 10 : 12
+                                }
                             }
                         }
                     }
@@ -325,7 +342,7 @@ async function loadAttendanceChart() {
             });
         }
     } catch (error) {
-        console.error('❌ Error en gráfico de asistencia:', error);
+        console.error('Error en gráfico de asistencia:', error);
     }
 }
 
@@ -362,12 +379,18 @@ async function loadEmployeeChart() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: 10
+                    },
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: window.innerWidth < 768 ? 'bottom' : 'bottom',
                             labels: {
-                                padding: 15,
-                                usePointStyle: true
+                                padding: window.innerWidth < 480 ? 8 : 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: window.innerWidth < 480 ? 10 : 12
+                                }
                             }
                         }
                     }
@@ -375,7 +398,7 @@ async function loadEmployeeChart() {
             });
         }
     } catch (error) {
-        console.error('❌ Error en gráfico de empleados:', error);
+        console.error('Error en gráfico de empleados:', error);
     }
 }
 
@@ -389,34 +412,45 @@ async function loadStockChart() {
         const categoriasMap = {};
         categoriasSnapshot.forEach(doc => {
             const cat = doc.data();
-            categoriasMap[cat.id_categoria] = cat.nombre;
+            const catId = cat.id_categoria || doc.id;
+            categoriasMap[catId] = cat.nombre;
+        });
+
+        // Mapear artículos a categorías
+        const articulosPorCategoria = {};
+        articulosSnapshot.forEach(doc => {
+            const articulo = doc.data();
+            const artId = articulo.id_articulo || doc.id;
+            const catId = articulo.id_categoria || articulo.categoria || doc.id;
+            const catNombre = categoriasMap[catId] || 'Sin categoría';
+            articulosPorCategoria[artId] = catNombre;
         });
 
         // Calcular stock por categoría
         const stockPorCategoria = {};
-        const articulosPorCategoria = {};
-
-        articulosSnapshot.forEach(doc => {
-            const articulo = doc.data();
-            const catNombre = categoriasMap[articulo.id_categoria] || 'Sin categoría';
-            articulosPorCategoria[articulo.id_articulo] = catNombre;
-        });
-
         stockSnapshot.forEach(doc => {
             const stock = doc.data();
-            const catNombre = articulosPorCategoria[stock.id_articulo] || 'Sin categoría';
+            const artId = stock.id_articulo || stock.articulo_id || doc.id;
+            const catNombre = articulosPorCategoria[artId] || 'Sin categoría';
             stockPorCategoria[catNombre] = (stockPorCategoria[catNombre] || 0) + parseInt(stock.stock || 0);
         });
 
         const ctx = document.getElementById('stockChart');
         if (ctx) {
+            if (stockChart) {
+                stockChart.destroy();
+            }
+
+            const labels = Object.keys(stockPorCategoria);
+            const data = Object.values(stockPorCategoria);
+
             stockChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(stockPorCategoria),
+                    labels: labels,
                     datasets: [{
                         label: 'Stock Total',
-                        data: Object.values(stockPorCategoria),
+                        data: data,
                         backgroundColor: [
                             '#667eea',
                             '#f093fb',
@@ -431,6 +465,15 @@ async function loadStockChart() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    indexAxis: window.innerWidth < 600 ? 'y' : 'x',
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10,
+                            left: 5,
+                            right: 5
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
@@ -441,29 +484,56 @@ async function loadStockChart() {
                             beginAtZero: true,
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 480 ? 9 : 12
+                                }
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 480 ? 9 : 12
+                                }
                             }
                         }
                     }
                 }
             });
+            
         }
     } catch (error) {
-        console.error('❌ Error en gráfico de stock:', error);
+        console.error('Error en gráfico de stock:', error);
     }
 }
 
-// ===================== INICIALIZACIÓN =====================
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🚀 Inicializando dashboard admin...");
 
     setTimeout(async () => {
         await loadDashboardKPIs();
         await loadCharts();
-        console.log("✅ Dashboard admin listo");
     }, 100);
+
+    // Manejar redimensionamiento de ventana para gráficos responsivos
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            // Los gráficos se redibujaran automáticamente gracias a responsive: true
+            // pero podemos recrear el gráfico de stock si el indexAxis cambió
+            if (window.innerWidth < 600 && attendanceChart) {
+                attendanceChart.resize();
+            }
+            if (employeeChart) {
+                employeeChart.resize();
+            }
+            if (stockChart) {
+                stockChart.resize();
+            }
+        }, 250);
+    });
 });
