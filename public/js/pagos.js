@@ -1,12 +1,8 @@
-// ===================== IMPORTS FIREBASE =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot, getDocs, getDoc, addDoc } 
+import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot, getDocs, getDoc, addDoc, query, where }
     from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import { query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-console.log("ARCHIVO JS CARGADO ✔️");
 
-// ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -24,14 +20,38 @@ const db = getFirestore(app);
 
 // ===================== VARIABLES GENERALES =====================
 const meses = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
 const anioActual = new Date().getFullYear();
 const hoy = new Date();
-const mesActual = meses[hoy.getMonth()];
-const mesPasado = meses[(hoy.getMonth() - 1 + 12) % 12];
+
+function getTodayLima() {
+    const now = new Date();
+    const limaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+    return limaTime.toISOString().split('T')[0];
+}
+
+function getMesAnterior(mesYao) {
+    const [year, month] = mesYao.split('-').map(Number);
+    let prevYear = year;
+    let prevMonth = month - 1;
+    if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear -= 1;
+    }
+    return `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
+}
+
+function formatMonthName(mesYao) {
+    const [year, month] = mesYao.split('-').map(Number);
+    return `${meses[month - 1]} ${year}`;
+}
+
+const todayLima = getTodayLima();
+const mesActual = todayLima.substring(0, 7);
+const mesPasado = getMesAnterior(mesActual);
 
 const q = query(
     collection(db, "usuario"),
@@ -55,13 +75,14 @@ function cerrarModal(idModal, claseBoton) {
     });
 }
 
-// Cerrar modales
 cerrarModal("addSalaryModal", "regresar-btn");
 cerrarModal("editUserPlanillaModal", "regresar-btn");
+cerrarModal("anularPagoModal", "regresar-btn");
+cerrarModal("anularPagoModal", "close-modal-btn");
 
-// ===================== MENSAJES =====================
+
 const statusMessage = document.getElementById("statusMessage");
-function showStatus(message, type="info") {
+function showStatus(message, type = "info") {
     statusMessage.textContent = message;
     statusMessage.className = `status-message show ${type}`;
 
@@ -80,12 +101,9 @@ const periodoPago = document.getElementById("periodo_pago");
 const btnRegistrarPago = document.getElementById("btnRegistrarPago");
 const selectPeriodo = document.getElementById("periodo_pago");
 
-// Abrir modal
 addSalaryBtn.addEventListener("click", () => {
     addSalaryModal.style.display = "block";
 });
-
-// Cargar empleados en tiempo real
 onSnapshot(q, (snapshot) => {
     employeeSelect.innerHTML = `<option value="">Seleccione empleado</option>`;
 
@@ -108,15 +126,93 @@ employeeSelect.addEventListener("change", async () => {
     salaryInput.value = docSnap.exists() ? docSnap.data().salario ?? "" : "";
 });
 
-// ===================== SELECT PERIODO =====================
-meses.forEach((mes, index) => {
-    const value = `${anioActual}-${String(index + 1).padStart(2, "0")}`;
-    const texto = `${mes} ${anioActual}`;
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = texto;
-    selectPeriodo.appendChild(option);
+// Filtrar empleados ya pagados en el periodo seleccionado
+async function actualizarListaEmpleados(periodo) {
+    if (!periodo) return;
+
+    // Obtener empleados activos
+    const usuariosActivosSnap = await getDocs(q);
+
+    // Obtener pagos del periodo
+    const pagosSnap = await getDocs(query(collection(db, "pagos_empleados"), where("periodo_pago", "==", periodo)));
+    const empleadosPagados = new Set();
+    pagosSnap.forEach(doc => empleadosPagados.add(doc.data().uid));
+
+    // Actualizar select
+    employeeSelect.innerHTML = `<option value="">Seleccione empleado</option>`;
+    usuariosActivosSnap.forEach(doc => {
+        if (!empleadosPagados.has(doc.id)) {
+            const data = doc.data();
+            const rol = (data.rol || "").toLowerCase();
+            if (rol === "empleado" || rol === "administrador") {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = `${data.nombre} ${data.apellido} (${data.rol})`;
+                employeeSelect.appendChild(option);
+            }
+        }
+    });
+}
+
+periodoPago.addEventListener("change", () => {
+    actualizarListaEmpleados(periodoPago.value);
 });
+
+// Al abrir el modal, actualizamos con el periodo que esté seleccionado o el actual
+addSalaryBtn.addEventListener("click", () => {
+    addSalaryModal.style.display = "block";
+    // Seleccionar por defecto el mes del filtro principal si está en las opciones, sino el actual
+    const currentFilter = monthFilterSelect.value;
+    actualizarListaEmpleados(periodoPago.value);
+});
+
+
+// ===================== INICIALIZACIÓN DEL FILTRO MES =====================
+const monthFilterSelect = document.getElementById("monthFilter");
+function populateMonthFilter() {
+    if (!monthFilterSelect) return;
+
+    const options = [];
+    const date = new Date(getTodayLima());
+    date.setDate(1);
+
+    for (let i = 0; i < 12; i++) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const value = `${year}-${month}`;
+        const label = formatMonthName(value);
+        options.push({ value, label });
+        date.setMonth(date.getMonth() - 1);
+    }
+
+    monthFilterSelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('');
+    monthFilterSelect.value = mesActual;
+}
+populateMonthFilter();
+
+// ===================== SELECT PERIODO=====================
+function updateModalPeriodoOptions() {
+    if (!selectPeriodo) return;
+    selectPeriodo.innerHTML = "";
+
+    // Mostramos los últimos 3 meses en el modal de registro
+    const date = new Date(getTodayLima());
+    date.setDate(1);
+
+    for (let i = 0; i < 3; i++) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const value = `${year}-${month}`;
+        const label = formatMonthName(value);
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        selectPeriodo.appendChild(option);
+        date.setMonth(date.getMonth() - 1);
+    }
+}
+updateModalPeriodoOptions();
+
 
 // ===================== FUNCIONES DE FECHA =====================
 function obtenerPeriodoFirebase(mesTexto) {
@@ -137,7 +233,7 @@ function obtenerUltimosTresMeses() {
     for (let i = 1; i <= 3; i++) {
         const fecha = new Date(hoy);
         fecha.setMonth(hoy.getMonth() - i);
-        mesesArr.push(`${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`);
+        mesesArr.push(`${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`);
     }
     return mesesArr;
 }
@@ -153,7 +249,6 @@ async function obtenerTotalesPorMes(mesesArr) {
     return resultados;
 }
 
-// ===================== GRAFICO =====================
 async function renderGrafico() {
     const mesesArr = obtenerUltimosTresMeses();
     const totales = await obtenerTotalesPorMes(mesesArr);
@@ -190,6 +285,10 @@ const addSalaryForm = document.getElementById("addSalaryForm");
 addSalaryForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Validar usando la función que da feedback
+    if (!validarFormularioPago()) return;
+
+    // Obtener valores (ya validados visualmente, pero requerimos variables)
     const uidEmpleado = employeeSelect.value;
     const salario = Number(salaryInput.value) || 0;
     const bono = Number(document.getElementById("bonusInput").value) || 0;
@@ -197,29 +296,38 @@ addSalaryForm.addEventListener("submit", async (e) => {
     const periodo = periodoPago.value;
     const comentario = document.getElementById("commentInput").value;
 
-    if (!uidEmpleado) return showStatus("Selecciona un empleado.", "error");
-    if (!periodo) return showStatus("Selecciona un periodo de pago.", "error");
-
-    const dataPago = { uid: uidEmpleado, salario, bono, deduccion, pago_total: salario+bono-deduccion, periodo_pago: periodo, detalle: comentario, estado:"pagado", fecha_registro: new Date() };
+    const dataPago = { uid: uidEmpleado, salario, bono, deduccion, pago_total: salario + bono - deduccion, periodo_pago: periodo, detalle: comentario, estado: "pagado", fecha_registro: new Date() };
 
     try {
         await addDoc(collection(db, "pagos_empleados"), dataPago);
         showStatus("Pago registrado correctamente ✔️", "success");
         addSalaryForm.reset();
         addSalaryModal.style.display = "none";
-    } catch(e) { console.error(e); showStatus("Hubo un error al registrar el pago.", "error"); }
+    } catch (e) { console.error(e); showStatus("Hubo un error al registrar el pago.", "error"); }
 });
 
 // ===================== VALIDAR FORMULARIO =====================
 function validarFormularioPago() {
-    const salarioValido = salaryInput.value.trim() !== "" && salaryInput.value.trim() !== "0";
-    const periodoValido = periodoPago.value.trim() !== "";
-    btnRegistrarPago.disabled = !(salarioValido && periodoValido);
+    const salario = parseFloat(salaryInput.value || 0);
+    const periodo = periodoPago.value.trim();
+    const empleado = employeeSelect.value;
+
+    if (!empleado) {
+        showStatus("Seleccione un empleado.", "error");
+        return false;
+    }
+    if (!periodo) {
+        showStatus("Seleccione un periodo de pago.", "error");
+        return false;
+    }
+    if (salario <= 0) {
+        showStatus("El salario base debe ser mayor a 0. Verifique la información del empleado.", "error");
+        return false;
+    }
+    return true;
 }
-periodoPago.addEventListener("change", validarFormularioPago);
-const salaryObserver = new MutationObserver(validarFormularioPago);
-salaryObserver.observe(salaryInput, { attributes: true, attributeFilter: ["value"] });
-validarFormularioPago();
+
+btnRegistrarPago.disabled = false;
 
 // ===================== MODAL EDITAR PLANILLA =====================
 const editUserPlanillaBtn = document.getElementById("editUserPlanilla");
@@ -232,25 +340,54 @@ const editSalaryBtn = document.getElementById("editSalary");
 
 editUserPlanillaBtn.addEventListener("click", () => editUserPlanillaModal.style.display = "block");
 
-onSnapshot(collection(db, "usuario"), snapshot => {
-    employeeSelectPlanilla.innerHTML = `<option value="">Seleccione empleado</option>`;
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        const option = document.createElement("option");
-        option.value = doc.id;
-        option.textContent = `${data.nombre} ${data.apellido}`;
-        employeeSelectPlanilla.appendChild(option);
-    });
-});
+// Cargar empleados para editar planilla
+onSnapshot(
+    query(collection(db, "usuario"), where("estado", "==", "activo")),
+    snapshot => {
+        employeeSelectPlanilla.innerHTML = `<option value="">Seleccione empleado</option>`;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.rol === "Empleado" || data.rol === "Administrador") {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = `${data.nombre} ${data.apellido} (${data.rol})`;
+                employeeSelectPlanilla.appendChild(option);
+            }
+        });
+    }
+);
+
+
 
 employeeSelectPlanilla.addEventListener("change", async () => {
     const uid = employeeSelectPlanilla.value;
-    if (!uid) { salaryInputPlanilla.value = ""; return; }
 
-    const docRef = doc(db, "usuario_admin", uid);
-    const docSnap = await getDoc(docRef);
-    salaryInputPlanilla.value = docSnap.exists() ? docSnap.data().salario ?? "" : "";
+    // Si no hay selección, limpiar campos
+    if (!uid) {
+        salaryInputPlanilla.value = "";
+        employeeSelectDate.value = "";
+        return;
+    }
+
+    try {
+        const docRef = doc(db, "usuario_admin", uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            salaryInputPlanilla.value = data.salario ?? "";
+            employeeSelectDate.value = data.fechaIngreso ?? "";
+        } else {
+            salaryInputPlanilla.value = "";
+            employeeSelectDate.value = "";
+        }
+    } catch (error) {
+        console.error("Error al cargar datos de planilla:", error);
+        salaryInputPlanilla.value = "";
+        employeeSelectDate.value = "";
+    }
 });
+
 
 editSalaryBtn.addEventListener("click", () => {
     salaryInputPlanilla.disabled = false;
@@ -265,70 +402,185 @@ editPlanillaForm.addEventListener("submit", async e => {
     if (!uid || salario <= 0 || !fechaIngreso) return showStatus("Seleccione un empleado y coloque salario válido", "error");
 
     try {
-        await setDoc(doc(db,"usuario_admin",uid), { uid, salario, fechaIngreso: fechaIngreso, horas_trabajadas:0, bonificaciones:0, descuentos:0 });
+        await setDoc(doc(db, "usuario_admin", uid), { uid, salario, fechaIngreso: fechaIngreso, horas_trabajadas: 0, bonificaciones: 0, descuentos: 0 });
         showStatus("Datos de planilla actualizados correctamente", "success");
         editPlanillaForm.reset();
         editUserPlanillaModal.style.display = "none";
-    } catch(err) { console.error(err); showStatus(`Error: ${err.message}`, "error"); }
+    } catch (err) { console.error(err); showStatus(`Error: ${err.message}`, "error"); }
 });
 
 // ===================== TABLA DE PAGOS EN TIEMPO REAL =====================
 const salaryTableBody = document.getElementById("salaryTable").querySelector("tbody");
-onSnapshot(collection(db,"pagos_empleados"), async snapshot => {
-    salaryTableBody.innerHTML = "";
-    for (const pagoDoc of snapshot.docs) {
-        const pago = { id: pagoDoc.id, ...pagoDoc.data() };
-        const usuarioSnap = await getDoc(doc(db,"usuario",pago.uid));
-        const nombre = usuarioSnap.exists() ? `${usuarioSnap.data().nombre} ${usuarioSnap.data().apellido}` : "Desconocido";
-        const cargo = usuarioSnap.exists() ? usuarioSnap.data().rol : "—";
-        const tr = document.createElement("tr");
-        tr.innerHTML = 
-        `<td>${nombre}</td>
-        <td>${cargo}</td>
-        <td>${pago.salario}</td>
-        <td>${pago.bono}</td>
-        <td>${pago.deduccion}</td>
-        <td>${pago.pago_total}</td>
-        <td>${pago.periodo_pago}</td>
-        </td><td class="detalle-col hidden-col">${pago.detalle}</td>
-        <td><button class="btnReporte" data-id="${pago.id}">Ver</button></td>`;
-        salaryTableBody.appendChild(tr);
-    }
-    updateColumnVisibility();
+const showAnulledSwitch = document.getElementById("showAnulledSwitch");
+let paymentsUnsubscribe = null;
+
+async function cargarPagosMes(mesSeleccionado) {
+    if (paymentsUnsubscribe) paymentsUnsubscribe();
+
+    const qPagos = query(
+        collection(db, "pagos_empleados"),
+        where("periodo_pago", "==", mesSeleccionado)
+    );
+
+    paymentsUnsubscribe = onSnapshot(qPagos, async snapshot => {
+        salaryTableBody.innerHTML = "";
+        let totalMes = 0;
+
+        const mostrarAnulados = showAnulledSwitch.checked;
+        const pagosFiltrados = [];
+
+        if (snapshot.empty) {
+            salaryTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No hay registros para este mes</td></tr>';
+        } else {
+            for (const pagoDoc of snapshot.docs) {
+                const pago = { id: pagoDoc.id, ...pagoDoc.data() };
+                const esAnulado = pago.estado === "anulado";
+
+                // Filtro visual: si no mostrar anulados y es anulado, saltar
+                if (!mostrarAnulados && esAnulado) continue;
+
+                pagosFiltrados.push(pago);
+            }
+
+            if (pagosFiltrados.length === 0) {
+                salaryTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No hay pagos activos (o visibles) para este mes</td></tr>';
+            }
+
+            for (const pago of pagosFiltrados) {
+                const usuarioSnap = await getDoc(doc(db, "usuario", pago.uid));
+                const nombre = usuarioSnap.exists() ? `${usuarioSnap.data().nombre} ${usuarioSnap.data().apellido}` : "Desconocido";
+                const cargo = usuarioSnap.exists() ? usuarioSnap.data().rol : "—";
+                const esAnulado = pago.estado === "anulado";
+
+                // Solo sumar al total si NO es anulado
+                if (!esAnulado) {
+                    totalMes += Number(pago.pago_total || 0);
+                }
+
+                const tr = document.createElement("tr");
+                if (esAnulado) tr.classList.add("row-anulado");
+
+                const accionBtn = esAnulado
+                    ? `<span class="badge-anulado">ANULADO</span>`
+                    : `<button class="btnDelete" data-id="${pago.id}" title="Anular Pago"><i class="fas fa-ban"></i></button>`;
+
+                tr.innerHTML =
+                    `<td>${nombre}</td>
+                <td>${cargo}</td>
+                <td>${formatearSoles(pago.salario)}</td>
+                <td>${formatearSoles(pago.bono)}</td>
+                <td>${formatearSoles(pago.deduccion)}</td>
+                <td><strong>${formatearSoles(pago.pago_total)}</strong></td>
+                <td>${formatMonthName(pago.periodo_pago)}</td>
+                <td class="detalle-col hidden-col">
+                    ${pago.detalle || ''}
+                    ${esAnulado && pago.motivo_anulacion ? `<br><small class="text-danger">Motivo: ${pago.motivo_anulacion}</small>` : ''}
+                </td>
+                <td>
+                    <button class="btnReporte" data-id="${pago.id}">Ver</button>
+                    ${accionBtn}
+                </td>`;
+                salaryTableBody.appendChild(tr);
+            }
+        }
+
+        actualizarCardSalarioMes(totalMes, "Actual");
+        actualizarCardPendiente(totalMes);
+
+        updateColumnVisibility();
+    });
+}
+
+showAnulledSwitch.addEventListener("change", () => {
+    cargarPagosMes(monthFilterSelect.value);
 });
 
+function actualizarCardSalarioMes(total, tipo) {
+    const el = document.getElementById("cardSalarioProyectado");
+    const label = document.getElementById("labelMesActual");
+
+    if (el) animateValue(el, 0, total);
+    if (label) label.textContent = formatMonthName(monthFilterSelect.value);
+}
+
+async function actualizarCardPendiente(totalPagado) {
+    const el = document.getElementById("cardSalarioPendiente");
+    const label = document.getElementById("labelMesPendiente");
+
+    // Obtener empleados activos y sus salarios base
+    const usuariosActivosSnap = await getDocs(query(collection(db, "usuario"), where("estado", "==", "activo")));
+    const usuariosActivos = [];
+    usuariosActivosSnap.forEach(doc => usuariosActivos.push(doc.id));
+
+    const adminSnap = await getDocs(collection(db, "usuario_admin"));
+    let totalPlanillaBase = 0;
+    const salariosBase = {};
+
+    adminSnap.forEach(doc => {
+        if (usuariosActivos.includes(doc.id) && doc.data().salario) {
+            const sal = Number(doc.data().salario);
+            salariosBase[doc.id] = sal;
+            totalPlanillaBase += sal;
+        }
+    });
+
+    // Ver quiénes han sido pagados en este mes
+    const mesSeleccionado = monthFilterSelect.value;
+    const pagosSnap = await getDocs(query(collection(db, "pagos_empleados"), where("periodo_pago", "==", mesSeleccionado)));
+
+    let totalBasePagado = 0;
+    pagosSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.estado !== "anulado") {
+            const uid = data.uid;
+            if (salariosBase[uid]) {
+                totalBasePagado += salariosBase[uid];
+            }
+        }
+    });
+
+    const pendiente = totalPlanillaBase - totalBasePagado;
+    const pendienteFinal = pendiente > 0 ? pendiente : 0;
+
+
+    if (el) animateValue(el, 0, pendienteFinal);
+    if (label) label.textContent = formatMonthName(mesSeleccionado);
+}
+
+monthFilterSelect.addEventListener("change", () => {
+    cargarPagosMes(monthFilterSelect.value);
+});
+cargarPagosMes(mesActual);
+
+
 // ===================== ANIMACIONES DE TARJETAS =====================
-function formatearSoles(valor){ return new Intl.NumberFormat("es-PE",{style:"currency",currency:"PEN"}).format(valor); }
-function animateValue(el,start,end,duration=550){
-    let startTS=null;
-    const step=timestamp=>{
-        if(!startTS) startTS=timestamp;
-        const progress=Math.min((timestamp-startTS)/duration,1);
-        el.textContent=formatearSoles(Math.floor(progress*(end-start)+start));
-        if(progress<1) requestAnimationFrame(step);
+function formatearSoles(valor) { return new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(valor); }
+function animateValue(el, start, end, duration = 550) {
+    let startTS = null;
+    const step = timestamp => {
+        if (!startTS) startTS = timestamp;
+        const progress = Math.min((timestamp - startTS) / duration, 1);
+        el.textContent = formatearSoles(Math.floor(progress * (end - start) + start));
+        if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
 }
 
 //primera tarjeta
-async function sumarSalariosBasicos() {
+// Obtener total de planillas activas (Suma de salarios base)
+async function obtenerTotalPlanillaActiva() {
     let total = 0;
 
-    // 1️⃣ Obtener usuarios activos
+    // Obtener usuarios activos
     const usuariosActivosSnap = await getDocs(
-        query(
-            collection(db, "usuario"),
-            where("estado", "==", "activo")
-        )
+        query(collection(db, "usuario"), where("estado", "==", "activo"))
     );
 
-    // 2️⃣ Guardar IDs activos
+    // Guardar IDs activos
     const usuariosActivosIds = new Set();
-    usuariosActivosSnap.forEach(doc => {
-        usuariosActivosIds.add(doc.id);
-    });
+    usuariosActivosSnap.forEach(doc => usuariosActivosIds.add(doc.id));
 
-    // 3️⃣ Leer salarios solo de usuarios activos
+    // Leer salarios solo de usuarios activos
     const adminSnap = await getDocs(collection(db, "usuario_admin"));
 
     adminSnap.forEach(doc => {
@@ -339,111 +591,143 @@ async function sumarSalariosBasicos() {
             }
         }
     });
-
-    // 4️⃣ Mostrar en la tarjeta
-    const el = document.querySelector(".card:nth-child(1) .value");
-    if (el) {
-        animateValue(el, 0, total);
-    }
+    return total;
 }
-    // (await getDocs(collection(db,"usuario_admin"))).forEach(doc=>{if(doc.data().salario) total+=Number(doc.data().salario);});
-    // animateValue(document.querySelector(".card:nth-child(1) .value"),0,total);
-
-async function sumarSalariosNetos(){
-    const mesTarjeta=document.querySelector(".card:nth-child(2) .unit").textContent.trim();
-    const periodoFirebase=obtenerPeriodoFirebase(mesTarjeta);
-    let total=0;
-    (await getDocs(collection(db,"pagos_empleados"))).forEach(doc=>{if(doc.data().periodo_pago===periodoFirebase) total+=Number(doc.data().pago_total||0);});
-    animateValue(document.querySelector(".card:nth-child(2) .value"),0,total);
-}
-
-document.querySelector(".card:nth-child(2) .unit").textContent=mesPasado;
-sumarSalariosNetos();
-sumarSalariosBasicos();
-
 // ===================== SELECTOR DE COLUMNAS =====================
-const columnSelectorBtn=document.getElementById("columnSelectorBtn");
-const columnSelectorMenu=document.getElementById("columnSelectorMenu");
-const checkboxes=columnSelectorMenu.querySelectorAll("input[type='checkbox']");
+const columnSelectorBtn = document.getElementById("columnSelectorBtn");
+const columnSelectorMenu = document.getElementById("columnSelectorMenu");
+const checkboxes = columnSelectorMenu.querySelectorAll("input[type='checkbox']");
 
-columnSelectorBtn.addEventListener("click",()=>columnSelectorMenu.classList.toggle("hidden"));
-function updateColumnVisibility(){
-    const table=document.getElementById("salaryTable");
-    checkboxes.forEach(chk=>{
-        const colIndex=Number(chk.dataset.col);
-        const visible=chk.checked;
-        table.querySelectorAll(`thead th:nth-child(${colIndex+1})`).forEach(th=>th.classList.toggle("hidden-col",!visible));
-        table.querySelectorAll(`tbody tr td:nth-child(${colIndex+1})`).forEach(td=>td.classList.toggle("hidden-col",!visible));
+columnSelectorBtn.addEventListener("click", () => columnSelectorMenu.classList.toggle("hidden"));
+function updateColumnVisibility() {
+    const table = document.getElementById("salaryTable");
+    checkboxes.forEach(chk => {
+        const colIndex = Number(chk.dataset.col);
+        const visible = chk.checked;
+        table.querySelectorAll(`thead th:nth-child(${colIndex + 1})`).forEach(th => th.classList.toggle("hidden-col", !visible));
+        table.querySelectorAll(`tbody tr td:nth-child(${colIndex + 1})`).forEach(td => td.classList.toggle("hidden-col", !visible));
     });
 }
-window.addEventListener("DOMContentLoaded",updateColumnVisibility);
-checkboxes.forEach(chk=>chk.addEventListener("change",updateColumnVisibility));
+window.addEventListener("DOMContentLoaded", updateColumnVisibility);
+checkboxes.forEach(chk => chk.addEventListener("change", updateColumnVisibility));
 
 // ===================== ORDENAR TABLA =====================
-const table=document.getElementById("salaryTable");
-const headers=table.querySelectorAll("th.sortable");
-headers.forEach((th,index)=>{
-    th.addEventListener("click",()=>{
-        const tbody=table.querySelector("tbody");
-        const rows=Array.from(tbody.querySelectorAll("tr"));
-        const isAsc=th.classList.contains("asc");
-        headers.forEach(h=>h.classList.remove("asc","desc"));
-        th.classList.toggle("asc",!isAsc);
-        th.classList.toggle("desc",isAsc);
-        const multiplier=isAsc?-1:1;
-        rows.sort((a,b)=>{
-            const A=a.children[index].innerText.trim();
-            const B=b.children[index].innerText.trim();
-            const numA=parseFloat(A.replace(/[^0-9.-]+/g,""));
-            const numB=parseFloat(B.replace(/[^0-9.-]+/g,""));
-            if(!isNaN(numA)&&!isNaN(numB)) return (numA-numB)*multiplier;
-            return A.localeCompare(B)*multiplier;
+const table = document.getElementById("salaryTable");
+const headers = table.querySelectorAll("th.sortable");
+headers.forEach((th, index) => {
+    th.addEventListener("click", () => {
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const isAsc = th.classList.contains("asc");
+        headers.forEach(h => h.classList.remove("asc", "desc"));
+        th.classList.toggle("asc", !isAsc);
+        th.classList.toggle("desc", isAsc);
+        const multiplier = isAsc ? -1 : 1;
+        rows.sort((a, b) => {
+            const A = a.children[index].innerText.trim();
+            const B = b.children[index].innerText.trim();
+            const numA = parseFloat(A.replace(/[^0-9.-]+/g, ""));
+            const numB = parseFloat(B.replace(/[^0-9.-]+/g, ""));
+            if (!isNaN(numA) && !isNaN(numB)) return (numA - numB) * multiplier;
+            return A.localeCompare(B) * multiplier;
         });
-        rows.forEach(row=>tbody.appendChild(row));
+        rows.forEach(row => tbody.appendChild(row));
     });
 });
 
+// ===================== ANULAR PAGO =====================
+const anularPagoModal = document.getElementById("anularPagoModal");
+const anularPagoForm = document.getElementById("anularPagoForm");
+const anularPagoIdInput = document.getElementById("anularPagoId");
+const motivoAnulacionInput = document.getElementById("motivoAnulacion");
+
+// Delegación de eventos para botón de anular en tabla
+document.getElementById("salaryTable").addEventListener("click", e => {
+    const btn = e.target.closest(".btnDelete");
+    if (btn) {
+        const id = btn.dataset.id;
+        abrirModalAnulacion(id);
+    }
+});
+
+function abrirModalAnulacion(id) {
+    if (!id) return;
+    anularPagoIdInput.value = id;
+    motivoAnulacionInput.value = "";
+    anularPagoModal.style.display = "block";
+    motivoAnulacionInput.focus();
+}
+
+anularPagoForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = anularPagoIdInput.value;
+    const motivo = motivoAnulacionInput.value.trim();
+
+    if (!id || !motivo) {
+        showStatus("Por favor ingrese un motivo válido.", "error");
+        return;
+    }
+
+    try {
+        const docRef = doc(db, "pagos_empleados", id);
+
+        await setDoc(docRef, {
+            estado: "anulado",
+            motivo_anulacion: motivo,
+            fecha_anulacion: new Date()
+        }, { merge: true });
+
+        showStatus("Pago anulado correctamente 🗑️", "success");
+        anularPagoModal.style.display = "none";
+
+        // Recargar si es necesario (el listener onSnapshot debería encargarse)
+    } catch (error) {
+        console.error("Error al anular pago:", error);
+        showStatus("Error al anular el pago.", "error");
+    }
+});
 // ===================== EXPORTAR EXCEL =====================
-document.getElementById("reportBtn").addEventListener("click",exportarExcel);
-function exportarExcel(){
-    const table=document.getElementById("salaryTable");
-    const clonedTable=table.cloneNode(true);
-    const hiddenIndexes=[];
-    clonedTable.querySelectorAll("th").forEach((th,index)=>{if(th.classList.contains("hidden-col")) hiddenIndexes.push(index);});
-    clonedTable.querySelectorAll("tr").forEach(tr=>hiddenIndexes.slice().reverse().forEach(i=>{if(tr.children[i]) tr.removeChild(tr.children[i]);}));
-    const tableHTML=clonedTable.outerHTML.replace(/ /g,'%20');
-    const nombreArchivo=`registro_pagos_${new Date().toLocaleDateString("es-PE")}.xls`;
-    const link=document.createElement("a");
-    link.href='data:application/vnd.ms-excel,'+tableHTML;
-    link.download=nombreArchivo;
+document.getElementById("reportBtn").addEventListener("click", exportarExcel);
+function exportarExcel() {
+    const table = document.getElementById("salaryTable");
+    const clonedTable = table.cloneNode(true);
+    const hiddenIndexes = [];
+    clonedTable.querySelectorAll("th").forEach((th, index) => { if (th.classList.contains("hidden-col")) hiddenIndexes.push(index); });
+    clonedTable.querySelectorAll("tr").forEach(tr => hiddenIndexes.slice().reverse().forEach(i => { if (tr.children[i]) tr.removeChild(tr.children[i]); }));
+    const tableHTML = clonedTable.outerHTML.replace(/ /g, '%20');
+    const nombreArchivo = `registro_pagos_${new Date().toLocaleDateString("es-PE")}.xls`;
+    const link = document.createElement("a");
+    link.href = 'data:application/vnd.ms-excel,' + tableHTML;
+    link.download = nombreArchivo;
     link.click();
 }
 
 // ===================== FILTRO DE TABLA =====================
-document.getElementById("filterBtn").addEventListener("click",()=>document.getElementById("filterPanel").classList.toggle("show"));
+document.getElementById("filterBtn").addEventListener("click", () => document.getElementById("filterPanel").classList.toggle("show"));
 
-function cargarColumnasParaFiltro(){
-    const columnasPermitidas=["Nombre","Cargo","Mes"];
-    const table=document.getElementById("salaryTable");
-    const headerCells=table.querySelectorAll("th");
-    const select=document.getElementById("filterColumn");
-    select.innerHTML="";
-    headerCells.forEach((th,index)=>{if(columnasPermitidas.includes(th.textContent.trim())){const opt=document.createElement("option");opt.value=index;opt.textContent=th.textContent;select.appendChild(opt);}});
+function cargarColumnasParaFiltro() {
+    const columnasPermitidas = ["Nombre", "Cargo", "Mes"];
+    const table = document.getElementById("salaryTable");
+    const headerCells = table.querySelectorAll("th");
+    const select = document.getElementById("filterColumn");
+    select.innerHTML = "";
+    headerCells.forEach((th, index) => { if (columnasPermitidas.includes(th.textContent.trim())) { const opt = document.createElement("option"); opt.value = index; opt.textContent = th.textContent; select.appendChild(opt); } });
 }
 cargarColumnasParaFiltro();
 
-document.getElementById("applyFilterBtn").addEventListener("click",()=>{
-    const colIndex=parseInt(document.getElementById("filterColumn").value);
-    const filterText=document.getElementById("filterText").value.toLowerCase();
-    document.querySelectorAll("#salaryTable tbody tr").forEach(row=>{
-        const cellValue=row.children[colIndex]?.textContent.toLowerCase()||"";
-        row.style.display=cellValue.includes(filterText)?"":"none";
+document.getElementById("applyFilterBtn").addEventListener("click", () => {
+    const colIndex = parseInt(document.getElementById("filterColumn").value);
+    const filterText = document.getElementById("filterText").value.toLowerCase();
+    document.querySelectorAll("#salaryTable tbody tr").forEach(row => {
+        const cellValue = row.children[colIndex]?.textContent.toLowerCase() || "";
+        row.style.display = cellValue.includes(filterText) ? "" : "none";
     });
 });
 
-document.getElementById("clearFilterBtn").addEventListener("click",()=>{
-    document.getElementById("filterText").value="";
-    document.querySelectorAll("#salaryTable tbody tr").forEach(row=>row.style.display="");
+document.getElementById("clearFilterBtn").addEventListener("click", () => {
+    document.getElementById("filterText").value = "";
+    document.querySelectorAll("#salaryTable tbody tr").forEach(row => row.style.display = "");
 });
 
 
@@ -452,79 +736,137 @@ document.getElementById("clearFilterBtn").addEventListener("click",()=>{
 
 async function generarComprobantePago(pagoId) {
     try {
-        // ====== Obtener pago ======
+        // Obtener Datos
         const pagoRef = doc(db, "pagos_empleados", pagoId);
         const pagoSnap = await getDoc(pagoRef);
-
-        if (!pagoSnap.exists()) {
-            alert("Pago no encontrado");
-            return;
-        }
+        if (!pagoSnap.exists()) return showStatus("Pago no encontrado", "error");
 
         const pago = pagoSnap.data();
-
-        // ====== Obtener empleado ======
         const usuarioRef = doc(db, "usuario", pago.uid);
         const usuarioSnap = await getDoc(usuarioRef);
-
-        if (!usuarioSnap.exists()) {
-            alert("Empleado no encontrado");
-            return;
-        }
+        if (!usuarioSnap.exists()) return showStatus("Empleado no encontrado", "error");
 
         const usuario = usuarioSnap.data();
 
-        // ====== Crear PDF ======
-        const pdf = new jsPDF();
-        let y = 20;
+        // Configuración PDF
+        const { jsPDF } = window.jspdf;
+        const docPdf = new jsPDF();
 
-        // ====== ENCABEZADO ======
-        pdf.setFontSize(16);
-        pdf.text("Empresa", 105, y, { align: "center" });
-        y += 8;
+        // Colores y Fuentes
+        const primaryColor = [41, 128, 185];
+        const darkColor = [44, 62, 80];
+        const grayColor = [127, 140, 141];
 
-        pdf.setFontSize(12);
-        pdf.text("Comprobante de Pago", 105, y, { align: "center" });
-        y += 12;
+        // --- ENCABEZADO ---
+        docPdf.setFillColor(...primaryColor);
+        docPdf.rect(0, 0, 210, 40, "F");
 
-        // ====== DATOS DEL EMPLEADO ======
-        pdf.setFontSize(11);
-        pdf.text(`Empleado: ${usuario.nombre} ${usuario.apellido}`, 20, y); y += 7;
-        pdf.text(`Documento: ${usuario.tipo_documento} ${usuario.documento}`, 20, y); y += 7;
-        pdf.text(`Cargo: ${usuario.rol}`, 20, y); y += 10;
+        docPdf.setTextColor(255, 255, 255);
+        docPdf.setFontSize(22);
+        docPdf.setFont("helvetica", "bold");
+        docPdf.text("JOAR'S S.A.C.", 20, 20);
 
-        // ====== DETALLE DEL PAGO ======
-        pdf.setFontSize(12);
-        pdf.text("Detalle del Pago", 20, y); y += 8;
+        docPdf.setFontSize(14);
+        docPdf.setFont("helvetica", "normal");
+        docPdf.text("BOLETA DE PAGO ELECTRÓNICA", 20, 30);
 
-        pdf.setFontSize(11);
-        pdf.text(`Salario básico: S/ ${pago.salario}`, 25, y); y += 6;
-        pdf.text(`Bonificaciones: S/ ${pago.bono}`, 25, y); y += 6;
-        pdf.text(`Deducciones: S/ ${pago.deduccion}`, 25, y); y += 6;
+        docPdf.setFontSize(10);
+        docPdf.text(`RUC: 20123456789`, 150, 20);
+        docPdf.text(`Fecha Emisión: ${new Date().toLocaleDateString("es-PE")}`, 150, 28);
 
-        pdf.setFontSize(12);
-        pdf.text(`Salario Neto: S/ ${pago.pago_total}`, 25, y); y += 10;
 
-        // ====== DETALLE ======
-        if (pago.detalle) {
-            pdf.setFontSize(11);
-            pdf.text("Observaciones:", 20, y); y += 6;
-            pdf.setFontSize(10);
-            pdf.text(pago.detalle, 25, y, { maxWidth: 160 });
-            y += 15;
+        // --- INFO DEL EMPLEADO Y PERIODO ---
+        let y = 55;
+        docPdf.setTextColor(...darkColor);
+
+        // Caja de Info
+        docPdf.setDrawColor(200, 200, 200);
+        docPdf.setFillColor(245, 247, 250);
+        docPdf.roundedRect(15, y, 180, 35, 3, 3, "FD");
+
+        docPdf.setFontSize(11);
+        docPdf.setFont("helvetica", "bold");
+        docPdf.text("DATOS DEL COLABORADOR", 20, y + 8);
+
+        docPdf.setFont("helvetica", "normal");
+        docPdf.setFontSize(10);
+        y += 16;
+
+        docPdf.text(`Nombre: ${usuario.nombre} ${usuario.apellido}`, 20, y);
+        docPdf.text(`Documento: ${usuario.tipo_documento || 'DNI'} ${usuario.documento || '-'}`, 20, y + 7);
+
+        docPdf.text(`Cargo: ${usuario.rol}`, 110, y);
+        docPdf.text(`Periodo Pago: ${formatMonthName(pago.periodo_pago)}`, 110, y + 7);
+
+        y += 30;
+
+        // --- DETALLE DE IMPORTES ---
+        docPdf.setFillColor(...primaryColor);
+        docPdf.setTextColor(255, 255, 255);
+        docPdf.rect(15, y, 180, 10, "F");
+        docPdf.setFont("helvetica", "bold");
+        docPdf.text("CONCEPTO", 20, y + 7);
+        docPdf.text("TIPO", 110, y + 7);
+        docPdf.text("IMPORTE", 170, y + 7);
+
+        y += 10;
+        docPdf.setTextColor(...darkColor);
+        docPdf.setFont("helvetica", "normal");
+
+        function addRow(concepto, tipo, monto) {
+            docPdf.setDrawColor(230, 230, 230);
+            docPdf.line(15, y + 8, 195, y + 8);
+
+            docPdf.text(concepto, 20, y + 6);
+            docPdf.text(tipo, 110, y + 6);
+
+            const montoStr = formatearSoles(monto);
+            const textWidth = docPdf.getTextWidth(montoStr);
+            docPdf.text(montoStr, 190 - textWidth, y + 6);
+
+            y += 10;
         }
 
-        // ====== PIE ======
-        pdf.setFontSize(9);
-        pdf.text("Documento no legal, solo informativo", 105, 285, { align: "center" });
-        
-        mostrarPDFEnModal(pdf);
+        if (Number(pago.salario) > 0) addRow("Salario Básico", "Ingreso", Number(pago.salario));
+        if (Number(pago.bono) > 0) addRow("Bonificaciones / Extras", "Ingreso", Number(pago.bono));
+        if (Number(pago.deduccion) > 0) addRow("Deducciones / Dsctos.", "Egreso", Number(pago.deduccion));
+
+        y += 5;
+
+        docPdf.setFillColor(240, 240, 240);
+        docPdf.rect(110, y, 85, 12, "F");
+        docPdf.setFontSize(12);
+        docPdf.setFont("helvetica", "bold");
+        docPdf.text("NETO A PAGAR:", 115, y + 8);
+
+        const totalStr = formatearSoles(pago.pago_total);
+        const totalWidth = docPdf.getTextWidth(totalStr);
+        docPdf.setTextColor(...primaryColor);
+        docPdf.text(totalStr, 190 - totalWidth, y + 8);
+
+        y += 30;
+        docPdf.setTextColor(...grayColor);
+        docPdf.setFontSize(9);
+        docPdf.setFont("helvetica", "normal");
+
+        docPdf.setDrawColor(150, 150, 150);
+        docPdf.line(70, y, 140, y);
+        docPdf.text("Firma del Empleador / RRHH", 105, y + 5, { align: "center" });
+        y += 15;
+        docPdf.setFontSize(8);
+        docPdf.text("Este documento es un comprobante interno generado por el sistema JOAR'S.", 105, y, { align: "center" });
+
+        const blob = docPdf.output("blob");
+        const url = URL.createObjectURL(blob);
+        const modal = document.getElementById("pdfViewerModal");
+        const iframe = document.getElementById("pdfViewerFrame");
+        iframe.src = url;
+        modal.classList.remove("hidden");
 
     } catch (error) {
-        console.error(error);
-        alert("Error al generar el comprobante");
+        console.error("Error generando PDF:", error);
+        showStatus("Error al generar el comprobante.", "error");
     }
-
 }
 
 function mostrarPDFEnModal(pdfDoc) {

@@ -20,7 +20,6 @@ const HORA_INICIO_LABORAL = { hora: 8, minuto: 30 };
 
 let attendanceChart, employeeChart, stockChart;
 
-// ===================== UTILIDADES =====================
 function updateKPI(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -86,22 +85,22 @@ async function loadDashboardKPIs() {
 async function loadEmpleadosKPI() {
     try {
         const usuariosSnapshot = await getDocs(collection(db, "usuario"));
-        
+
         let empleadosActuales = 0;
         let empleadosPrevios = 0;
-        
+
         const prevMonth = getPreviousMonthRange();
-        
+
         usuariosSnapshot.forEach(doc => {
             const user = doc.data();
             if (user.rol === "Empleado" && user.estado === "activo") {
                 empleadosActuales++;
             }
         });
-        
+
         updateKPI('kpiEmpleados', empleadosActuales);
 
-        // Calcular tendencia (comparar con mes anterior)
+        // Calcular tendencia (comparando con mes anterior)
         try {
             const usuariosPrevQuery = query(
                 collection(db, "usuario"),
@@ -109,7 +108,7 @@ async function loadEmpleadosKPI() {
             );
 
             const usuariosPrevSnapshot = await getDocs(usuariosPrevQuery);
-            
+
             // Contar solo empleados activos del mes anterior
             usuariosPrevSnapshot.forEach(doc => {
                 const user = doc.data();
@@ -180,7 +179,7 @@ async function loadAsistenciaKPIs() {
             ? ((asistenciasRealesPrev / asistenciasEsperadasPrev) * 100)
             : 0;
 
-        // Tendencia de asistencia (diferencia de tasas)
+        // Tendencia de asistencia
         const cambioAsistencia = parseFloat(tasaAsistencia) - tasaAsistenciaPrev;
         const kpiAsistenciaCard = document.querySelector('.kpi-card:nth-child(2)');
         updateKPITrend(kpiAsistenciaCard, cambioAsistencia, cambioAsistencia >= 0);
@@ -195,10 +194,14 @@ async function loadAsistenciaKPIs() {
         });
 
         // Tendencia de tardanzas (reducción es positivo)
+        const kpiTardanzasCard = document.querySelector('.kpi-card:nth-child(3)');
         if (tardanzasPrev > 0) {
             const cambioTardanzas = ((tardanzas - tardanzasPrev) / tardanzasPrev) * 100;
-            const kpiTardanzasCard = document.querySelector('.kpi-card:nth-child(3)');
             updateKPITrend(kpiTardanzasCard, cambioTardanzas, cambioTardanzas <= 0);
+        } else if (tardanzas > 0) {
+            updateKPITrend(kpiTardanzasCard, 100, false);
+        } else {
+            updateKPITrend(kpiTardanzasCard, 0, true);
         }
 
     } catch (error) {
@@ -210,26 +213,40 @@ async function loadAsistenciaKPIs() {
 
 async function loadInventarioKPI() {
     try {
-        const productosQuery = query(
-            collection(db, "producto"),
-            where("stock", "<", 10)
-        );
-        const productosSnapshot = await getDocs(productosQuery);
-        const stockBajoActual = productosSnapshot.size;
+        const stockSnapshot = await getDocs(collection(db, "stock_inventario"));
+
+        const STOCK_MINIMO = 10;
+
+        let stockBajoActual = 0;
+        stockSnapshot.forEach(doc => {
+            const stock = doc.data();
+            const stockActual = parseInt(stock.stock || 0);
+            if (stockActual < STOCK_MINIMO && stockActual >= 0) {
+                stockBajoActual++;
+            }
+        });
+
         updateKPI('kpiStockBajo', stockBajoActual);
 
-        const stockBajoPrevio = parseInt(localStorage.getItem('stockBajoPrevMonth') || stockBajoActual);
+        const stockBajoPrevio = parseInt(localStorage.getItem('stockBajoPrevMonth') || '0');
 
-        if (stockBajoPrevio > 0 && stockBajoPrevio !== stockBajoActual) {
+        const kpiStockCard = document.querySelector('.kpi-card:nth-child(4)');
+        if (stockBajoPrevio > 0) {
             const cambioStock = ((stockBajoActual - stockBajoPrevio) / stockBajoPrevio) * 100;
-            const kpiStockCard = document.querySelector('.kpi-card:nth-child(4)');
             updateKPITrend(kpiStockCard, cambioStock, cambioStock <= 0);
+        } else if (stockBajoActual > 0) {
+            // Si no había stock bajo antes pero ahora sí, mostrar como aumento
+            updateKPITrend(kpiStockCard, 100, false);
+        } else {
+            // Si no hay stock bajo ni antes ni ahora, mostrar neutral
+            updateKPITrend(kpiStockCard, 0, true);
         }
 
         const hoy = new Date();
         if (hoy.getDate() === 1) {
             localStorage.setItem('stockBajoPrevMonth', stockBajoActual);
         }
+
     } catch (error) {
         console.error('Error al cargar inventario:', error);
         updateKPI('kpiStockBajo', 'Error');
@@ -421,18 +438,25 @@ async function loadStockChart() {
         articulosSnapshot.forEach(doc => {
             const articulo = doc.data();
             const artId = articulo.id_articulo || doc.id;
-            const catId = articulo.id_categoria || articulo.categoria || doc.id;
-            const catNombre = categoriasMap[catId] || 'Sin categoría';
-            articulosPorCategoria[artId] = catNombre;
+            const catId = articulo.id_categoria || articulo.categoria;
+
+            // Solo agregar si tiene una categoría válida
+            if (catId && categoriasMap[catId]) {
+                articulosPorCategoria[artId] = categoriasMap[catId];
+            }
         });
 
         // Calcular stock por categoría
         const stockPorCategoria = {};
         stockSnapshot.forEach(doc => {
             const stock = doc.data();
-            const artId = stock.id_articulo || stock.articulo_id || doc.id;
-            const catNombre = articulosPorCategoria[artId] || 'Sin categoría';
-            stockPorCategoria[catNombre] = (stockPorCategoria[catNombre] || 0) + parseInt(stock.stock || 0);
+            const artId = stock.id_articulo || stock.articulo_id;
+
+            // Solo contar si el artículo tiene una categoría válida
+            if (artId && articulosPorCategoria[artId]) {
+                const catNombre = articulosPorCategoria[artId];
+                stockPorCategoria[catNombre] = (stockPorCategoria[catNombre] || 0) + parseInt(stock.stock || 0);
+            }
         });
 
         const ctx = document.getElementById('stockChart');
@@ -504,7 +528,7 @@ async function loadStockChart() {
                     }
                 }
             });
-            
+
         }
     } catch (error) {
         console.error('Error en gráfico de stock:', error);
@@ -523,8 +547,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
-            // Los gráficos se redibujaran automáticamente gracias a responsive: true
-            // pero podemos recrear el gráfico de stock si el indexAxis cambió
             if (window.innerWidth < 600 && attendanceChart) {
                 attendanceChart.resize();
             }

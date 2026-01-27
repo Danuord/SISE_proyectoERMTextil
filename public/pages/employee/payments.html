@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="../../css/dashboard.css">
     <link rel="stylesheet" href="../../css/modules/employee/common.css">
     <link rel="stylesheet" href="../../css/modules/employee/payments.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="../../js/sessionProtection.js"></script>
     <script>
         window.toggleMenu = function () {
@@ -39,19 +40,14 @@
 
             <div class="summary-cards">
                 <div class="summary-card">
-                    <h3><i class="fas fa-calendar-month"></i> Este Mes</h3>
-                    <p class="amount" id="totalThisMonth">S/ 0.00</p>
-                    <p class="subtitle">Total pagado</p>
-                </div>
-                <div class="summary-card">
-                    <h3><i class="fas fa-chart-line"></i> Este Año</h3>
-                    <p class="amount" id="totalThisYear">S/ 0.00</p>
-                    <p class="subtitle">Acumulado anual</p>
-                </div>
-                <div class="summary-card">
                     <h3><i class="fas fa-money-bill-wave"></i> Último Pago</h3>
                     <p class="amount" id="lastPayment">S/ 0.00</p>
                     <p class="subtitle" id="lastPaymentDate">-</p>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-calendar-month"></i> Total este Mes</h3>
+                    <p class="amount" id="totalThisMonth">S/ 0.00</p>
+                    <p class="subtitle">Ingresos del mes</p>
                 </div>
             </div>
 
@@ -71,7 +67,7 @@
                         <select id="filterStatus">
                             <option value="">Todos</option>
                             <option value="pagado">Pagado</option>
-                            <option value="pendiente">Pendiente</option>
+                            <option value="anulado">Anulado</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -86,37 +82,27 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>Historial de Pagos</h3>
-                    <div class="table-actions">
-                        <button class="btn-icon" onclick="exportToPDF()">
-                            <i class="fas fa-file-pdf"></i>
-                            PDF
-                        </button>
-                        <button class="btn-icon" onclick="exportToExcel()">
-                            <i class="fas fa-file-excel"></i>
-                            Excel
-                        </button>
-                    </div>
                 </div>
                 <div style="overflow-x: auto;">
-                <table id="paymentsTable">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Método</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentsBody">
-                        <tr>
-                            <td colspan="5" class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <p>No hay pagos registrados</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <table id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Boleta</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsBody">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No hay pagos registrados</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -131,4 +117,3 @@
 </body>
 
 </html>
-

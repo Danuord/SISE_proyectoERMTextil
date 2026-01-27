@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
-    <title>RRHH - Gestión de Usuarios | TextileFlow</title>
+    <title>Gestión de Usuarios | JOAR'S</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
@@ -22,6 +22,7 @@
             }
         };
     </script>
+
 </head>
 
 <body>
@@ -31,7 +32,7 @@
         <main class="main-content">
             <div class="header">
                 <div>
-                    <h1>Gestión de Usuarios - RRHH</h1>
+                    <h1>Gestión de Usuarios</h1>
                     <p>Administración de usuarios del sistema</p>
                 </div>
                 <button class="toggle-menu-btn" onclick="toggleMenu()">
@@ -39,79 +40,219 @@
                 </button>
             </div>
 
-
-
-            <div class="content-header">
-                <h2>Lista de Usuarios</h2>
-                <button class="btn-primary" onclick="openAddUserModal()">
-                    <i class="fas fa-plus"></i> Agregar Usuario
+            <div class="tabs-container">
+                <button class="tab-button active" onclick="switchTab('usuarios')">
+                    <i class="fas fa-users"></i> Usuarios
+                </button>
+                <button class="tab-button" onclick="switchTab('clientes')">
+                    <i class="fas fa-user-tie"></i> Clientes
+                </button>
+                <button class="tab-button" onclick="switchTab('empleados')">
+                    <i class="fas fa-user-clock"></i> Empleados
                 </button>
             </div>
 
-            <div class="filters-container">
-                <input type="text" id="searchInput" class="search-input-inline"
-                    placeholder="Buscar por Nro Documento,Nombre,Email...">
-                <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
-                <select id="filterTipoDoc" onchange="applyFilters()" class="filter-select">
-                    <option value="">Tipo Doc: Todos</option>
-                    <option value="CC">CC</option>
-                    <option value="CE">CE</option>
-                    <option value="DNI">DNI</option>
-                    <option value="PA">PA</option>
-                    <option value="RUC">RUC</option>
-                </select>
-                <select id="filterRol" onchange="applyFilters()" class="filter-select">
-                    <option value="">Rol: Todos</option>
-                    <option value="Empleado">Empleado</option>
-                    <option value="Administrador">Administrador</option>
-                </select>
-                <select id="filterEstado" onchange="applyFilters()" class="filter-select">
-                    <option value="">Estado: Todos</option>
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                </select>
-                <button class="btn-clear-filters" onclick="clearFilters()">
-                    <i class="fas fa-times-circle"></i> Limpiar
-                </button>
+            <!-- Tab Usuarios -->
+            <div class="tab-content active" id="tab-usuarios">
+                <div class="content-header">
+                    <h2>Lista de Usuarios</h2>
+                    <button class="btn-primary" onclick="openAddUserModal()">
+                        <i class="fas fa-plus"></i> Agregar Usuario
+                    </button>
+                </div>
+
+                <div class="filters-container">
+                    <input type="text" id="searchInput" class="search-input-inline"
+                        placeholder="Buscar por Nro Documento,Nombre,Email...">
+                    <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+                    <select id="filterTipoDoc" onchange="applyFilters()" class="filter-select">
+                        <option value="">Tipo Doc: Todos</option>
+                        <option value="CC">CC</option>
+                        <option value="CE">CE</option>
+                        <option value="DNI">DNI</option>
+                        <option value="PA">PA</option>
+                        <option value="RUC">RUC</option>
+                    </select>
+                    <select id="filterRol" onchange="applyFilters()" class="filter-select">
+                        <option value="">Rol: Todos</option>
+                        <option value="Empleado">Empleado</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                    <select id="filterEstado" onchange="applyFilters()" class="filter-select">
+                        <option value="">Estado: Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <button class="btn-clear-filters" onclick="clearFilters()">
+                        <i class="fas fa-times-circle"></i> Limpiar
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="clientesTable">
+                        <thead>
+                            <tr>
+                                <th>Tipo Doc</th>
+                                <th>Documento</th>
+                                <th>Nombre Completo</th>
+                                <th>Em@il</th>
+                                <th>Teléfono</th>
+                                <th>Dirección</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesList">
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="export-buttons">
+                    <button class="btn-export btn-pdf" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button class="btn-export btn-excel" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button class="btn-export btn-print" onclick="printTable()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
             </div>
 
-            <div class="table-container">
-                <table id="clientesTable">
-                    <thead>
-                        <tr>
-                            <th>Tipo Doc</th>
-                            <th>Documento</th>
-                            <th>Nombre Completo</th>
-                            <th>Em@il</th>
-                            <th>Teléfono</th>
-                            <th>Dirección</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="clientesList">
+            <!-- Tab  Clientes -->
+            <div class="tab-content" id="tab-clientes">
+                <div class="content-header">
+                    <h2>Lista de Clientes</h2>
+                    <button class="btn-primary" onclick="openAddClientModal()">
+                        <i class="fas fa-plus"></i> Agregar Cliente
+                    </button>
+                </div>
 
-                    </tbody>
-                </table>
+                <div class="filters-container">
+                    <input type="text" id="searchInputClientes" class="search-input-inline"
+                        placeholder="Buscar por Nro Documento,Nombre,Email...">
+                    <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+                    <select id="filterTipoDocClientes" onchange="applyFiltersClientes()" class="filter-select">
+                        <option value="">Tipo Doc: Todos</option>
+                        <option value="CC">CC</option>
+                        <option value="CE">CE</option>
+                        <option value="DNI">DNI</option>
+                        <option value="PA">PA</option>
+                        <option value="RUC">RUC</option>
+                    </select>
+                    <select id="filterEstadoClientes" onchange="applyFiltersClientes()" class="filter-select">
+                        <option value="">Estado: Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <button class="btn-clear-filters" onclick="clearFiltersClientes()">
+                        <i class="fas fa-times-circle"></i> Limpiar
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="clientesTableClientes">
+                        <thead>
+                            <tr>
+                                <th>Tipo Doc</th>
+                                <th>Documento</th>
+                                <th>Nombre Completo</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Dirección</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesListClientes">
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="export-buttons">
+                    <button class="btn-export btn-pdf" onclick="generatePDFClientes()">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button class="btn-export btn-excel" onclick="exportToExcelClientes()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button class="btn-export btn-print" onclick="printTableClientes()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
             </div>
 
-            <div class="export-buttons">
-                <button class="btn-export btn-pdf" onclick="generatePDF()">
-                    <i class="fas fa-file-pdf"></i> Exportar PDF
-                </button>
-                <button class="btn-export btn-excel" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel"></i> Exportar Excel
-                </button>
-                <button class="btn-export btn-print" onclick="printTable()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
+            <!-- Tab Empleados -->
+            <div class="tab-content" id="tab-empleados">
+                <div class="content-header">
+                    <h2>Lista de Empleados - Planilla</h2>
+                </div>
+
+                <div class="filters-container">
+                    <input type="text" id="searchInputEmpleados" class="search-input-inline"
+                        placeholder="Buscar por Nombre, Email, Teléfono...">
+                    <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+                    <select id="filterEstadoEmpleados" onchange="applyFiltersEmpleados()" class="filter-select">
+                        <option value="">Estado: Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <input type="number" id="minSalario" class="filter-select" placeholder="Salario mín: S/."
+                        style="width: 150px;" onchange="applyFiltersEmpleados()">
+                    <input type="number" id="maxSalario" class="filter-select" placeholder="Salario máx: S/."
+                        style="width: 150px;" onchange="applyFiltersEmpleados()">
+                    <button class="btn-clear-filters" onclick="clearFiltersEmpleados()">
+                        <i class="fas fa-times-circle"></i> Limpiar
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="empleadosTablePlanilla">
+                        <thead>
+                            <tr>
+                                <th>Nombre Completo</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Fecha de Ingreso</th>
+                                <th>Antigüedad</th>
+                                <th>Salario</th>
+                                <th>Estado</th>
+                                <th>Fecha de Salida</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empleadosListPlanilla">
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="export-buttons">
+                    <button class="btn-export btn-pdf" onclick="generatePDFEmpleados()">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button class="btn-export btn-excel" onclick="exportToExcelEmpleados()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button class="btn-export btn-print" onclick="printTableEmpleados()">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
             </div>
 
             <footer>
                 <p>&copy; 2025 TextileFlow ERP. Todos los derechos reservados.</p>
             </footer>
         </main>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
     </div>
 
     <div id="clientModal" class="modal">
@@ -142,6 +283,7 @@
                     <div class="form-group">
                         <label for="numeroDocumento">Número de Documento *</label>
                         <input type="text" id="numeroDocumento" required placeholder="Ej: 1234567890">
+                        <span class="error-message" id="documentoError"></span>
                     </div>
                 </div>
 
@@ -176,7 +318,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" placeholder="Ej: 3001234567">
+                        <input type="tel" id="telefono" placeholder="Ej: 987654321">
+                        <span class="error-message" id="telefonoError"></span>
                     </div>
 
                     <div class="form-group">
@@ -201,6 +344,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="../../js/rrhh-enhancements.js"></script>
     <script type="module" src="../../components/sidebar.js"></script>
     <script type="module">
         import { requireAdmin } from '../../components/auth-guard.js';
