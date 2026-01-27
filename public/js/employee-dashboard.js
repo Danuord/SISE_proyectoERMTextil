@@ -1,14 +1,11 @@
-// ===================== EMPLOYEE DASHBOARD =====================
 import { requireAuth, getCurrentUser } from '../../components/auth-guard.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-// Verificar autenticación
 requireAuth();
 
 const currentUser = getCurrentUser();
 
-// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -30,7 +27,6 @@ async function loadAttendanceStats() {
     const firstDayStr = firstDayOfMonth.toISOString().split('T')[0];
 
     try {
-        // Query simplificada - solo por userId (no requiere índice compuesto)
         const q = query(
             collection(db, "asistencias"),
             where("userId", "==", currentUser.uid)
@@ -41,7 +37,6 @@ async function loadAttendanceStats() {
         const porFecha = {};
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            // Filtrar por fecha en JavaScript
             if (data.fecha >= firstDayStr) {
                 if (!porFecha[data.fecha]) {
                     porFecha[data.fecha] = { entrada: null, salida: null };
@@ -59,7 +54,7 @@ async function loadAttendanceStats() {
             if (day.entrada) {
                 daysPresent++;
 
-                // Verificar tardanza (después de 8:30)
+                // Verificar tardanza
                 const [h, m] = day.entrada.split(':').map(Number);
                 if (h > 8 || (h === 8 && m > 30)) {
                     daysLate++;
@@ -93,8 +88,8 @@ async function loadRecentPayments() {
 
     try {
         const q = query(
-            collection(db, "pagos"),
-            where("empleadoId", "==", currentUser.uid)
+            collection(db, "pagos_empleados"),
+            where("uid", "==", currentUser.uid)
         );
 
         const querySnapshot = await getDocs(q);
@@ -107,20 +102,34 @@ async function loadRecentPayments() {
 
         const pagos = [];
         querySnapshot.forEach(doc => {
-            pagos.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            if (data.estado !== "anulado") {
+                pagos.push({ id: doc.id, ...data });
+            }
         });
 
-        // Ordenar por fecha descendente y tomar los últimos 5
-        pagos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        if (pagos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay pagos activos</td></tr>';
+            return;
+        }
+
+        pagos.sort((a, b) => b.periodo_pago.localeCompare(a.periodo_pago));
         const recentPayments = pagos.slice(0, 5);
 
         recentPayments.forEach(pago => {
+            const monto = parseFloat(pago.pago_total || 0).toFixed(2);
+            // Formatear periodo
+            const [year, month] = (pago.periodo_pago || "").split('-');
+            const periodoStr = (year && month)
+                ? new Date(year, month - 1, 1).toLocaleString('es-PE', { month: 'long', year: 'numeric' }).toUpperCase()
+                : pago.periodo_pago;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${pago.fecha}</td>
-                <td>${pago.concepto || 'Salario'}</td>
-                <td>S/ ${parseFloat(pago.monto || 0).toFixed(2)}</td>
-                <td><span class="status-badge status-complete">Pagado</span></td>
+                <td>${periodoStr}</td>
+                <td>${pago.detalle || 'Pago de Planilla'}</td>
+                <td style="font-weight:bold;">S/ ${monto}</td>
+                <td><span class="status-badge status-complete" style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.8rem; border:1px solid #a5d6a7;">Pagado</span></td>
             `;
             tbody.appendChild(tr);
         });
@@ -131,16 +140,13 @@ async function loadRecentPayments() {
     }
 }
 
-// Toggle menu
 window.toggleMenu = function () {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('active');
 };
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     loadAttendanceStats();
     loadRecentPayments();
 });
 
-console.log("✅ Employee Dashboard cargado");

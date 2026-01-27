@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
 
-    <title>Registro de pagos | TextileFlow</title>
+    <title>Control de Inventario | JOAR'S</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/common/sidebar-new.css">
@@ -53,156 +53,156 @@
                     </button>
 
                     <div style="overflow-x: auto; margin-top: 20px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaCategorias">
-                        </tbody>
-                    </table>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCategorias">
+                            </tbody>
+                        </table>
+
+                    </div>
 
                 </div>
+                <div class="container">
+                    <h2>Productos</h2>
+                    <button class="btn btn-primary" id="btnAddArticulo">
+                        <i class="fa fa-plus"></i> Nuevo Producto
+                    </button>
 
-            </div>
-            <div class="container">
-                <h2>Artículos</h2>
-                <button class="btn btn-primary" id="btnAddArticulo">
-                    <i class="fa fa-plus"></i> Nuevo Artículo
-                </button>
-
-                <div style="overflow-x: auto; margin-top: 20px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Nombre</th>
-                            <th>Categoría</th>
-                            <th>Característica</th>
-                            <th>Detalle</th>
-                            <th>Precio Base</th>
-                            <th>Stock</th>
-                            <th>Descripción</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaArticulos">
-                    </tbody>
-                </table>
+                    <div style="overflow-x: auto; margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th>Característica</th>
+                                    <th>Detalle</th>
+                                    <th>Precio Base</th>
+                                    <th>Stock</th>
+                                    <th>Descripción</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaArticulos">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <div class="modal" id="modalCategoria">
-                <div class="modal-content">
-                    <div class="modal-header">Nueva Categoría</div>
-                    <input type="text" placeholder="Nombre" id="catNombre" />
-                    <input type="text" placeholder="Descripción" id="catDesc" />
-                    <button class="btn btn-primary" id="guardarCategoria">Guardar</button>
-                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                <div class="modal" id="modalCategoria">
+                    <div class="modal-content">
+                        <div class="modal-header">Nueva Categoría</div>
+                        <input type="text" placeholder="Nombre" id="catNombre" />
+                        <input type="text" placeholder="Descripción" id="catDesc" />
+                        <button class="btn btn-primary" id="guardarCategoria">Guardar</button>
+                        <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="modal" id="modalArticulo">
-                <div class="modal-content">
-                    <div class="modal-header">Nuevo Artículo</div>
+                <div class="modal" id="modalArticulo">
+                    <div class="modal-content">
+                        <div class="modal-header">Nuevo Producto</div>
 
-                    <input type="text" placeholder="Nombre del artículo" id="artNombre" />
-                    <input type="text" placeholder="Descripción" id="artDesc" />
-                    <input type="number" placeholder="Precio base" id="artPrecio" />
-                    <input type="number" placeholder="Cantidad" id="artCantidad" />
+                        <input type="text" placeholder="Nombre del Producto" id="artNombre" />
+                        <input type="text" placeholder="Descripción" id="artDesc" />
+                        <input type="number" placeholder="Precio base" id="artPrecio" />
+                        <input type="number" placeholder="Cantidad" id="artCantidad" />
 
-                    <label for="artImagen">Imagen del artículo</label>
-                    <input type="file" id="artImagen" accept="image/*" />
+                        <label for="artImagen">Imagen del Producto</label>
+                        <input type="file" id="artImagen" accept="image/*" />
 
-                    <label>Categoría</label>
-                    <select id="selectCategorias">
-                        <option value="">-- Cargando categorías --</option>
-                    </select>
+                        <label>Categoría</label>
+                        <select id="selectCategorias">
+                            <option value="">-- Cargando categorías --</option>
+                        </select>
 
-                    <label>Característica</label>
-                    <div class="input-with-edit">
-                        <select id="selectAtributosArt">
+                        <label>Característica</label>
+                        <div class="input-with-edit">
+                            <select id="selectAtributosArt">
+                                <option value="">-- Cargando características --</option>
+                            </select>
+                            <button id="btnAddAtributo">+</button>
+                        </div>
+
+                        <div class="input-with-edit">
+                            <select id="selectValor">
+                                <option value="">-- Selecciona una característica primero --</option>
+                            </select>
+                            <button id="btnAddValor">+</button>
+                        </div>
+
+                        <button class="btn btn-primary" id="guardarArticulo">Guardar</button>
+                        <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                    </div>
+                </div>
+
+                <div class="modal" id="modalAtributo">
+                    <div class="modal-content">
+                        <div class="modal-header">Nueva Característica</div>
+                        <label>Nombre del atributo</label>
+                        <input type="text" id="attrNombre" placeholder="Ejemplo: Talla, Color, Material" />
+                        <button class="btn btn-primary" id="guardarAtributo">Guardar</button>
+                        <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                    </div>
+                </div>
+
+                <div class="modal" id="modalValor">
+                    <div class="modal-content">
+                        <div class="modal-header">Nuevo Valor</div>
+                        <label>Selecciona característica</label>
+                        <select id="selectAtributos">
                             <option value="">-- Cargando características --</option>
                         </select>
-                        <button id="btnAddAtributo">+</button>
+                        <label>Valor</label>
+                        <input type="text" id="inputValor" placeholder="Ejemplo: S, M, Rojo, Algodón" />
+                        <button class="btn btn-primary" id="btnGuardarValor">Guardar</button>
+                        <button class="btn btn-secondary cerrar-modal">Cancelar</button>
                     </div>
-
-                    <div class="input-with-edit">
-                        <select id="selectValor">
-                            <option value="">-- Selecciona una característica primero --</option>
-                        </select>
-                        <button id="btnAddValor">+</button>
-                    </div>
-
-                    <button class="btn btn-primary" id="guardarArticulo">Guardar</button>
-                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
                 </div>
-            </div>
 
-            <div class="modal" id="modalAtributo">
-                <div class="modal-content">
-                    <div class="modal-header">Nueva Característica</div>
-                    <label>Nombre del atributo</label>
-                    <input type="text" id="attrNombre" placeholder="Ejemplo: Talla, Color, Material" />
-                    <button class="btn btn-primary" id="guardarAtributo">Guardar</button>
-                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
+                <div class="modal" id="modalEditarArticulo">
+                    <div class="modal-content">
+
+                        <h2>Editar Artículo</h2>
+
+                        <label>Nombre del artículo</label>
+                        <div class="edit-group">
+                            <input type="text" id="editNombre" disabled>
+                        </div>
+
+                        <label>Categoría</label>
+                        <select id="editCategoria" disabled></select>
+
+                        <label>Precio Base</label>
+                        <div class="edit-group">
+                            <input type="number" id="editPrecio" disabled>
+                        </div>
+
+                        <label>Stock</label>
+                        <div class="edit-group">
+                            <input type="number" id="editStock" disabled>
+                        </div>
+
+                        <label>Descripción</label>
+                        <div class="edit-group">
+                            <textarea id="editDescripcion" disabled></textarea>
+                        </div>
+
+                        <button class="btn btn-primary" id="btnEditarGuardar" data-modo="editar">Editar</button>
+                        <button class="btn btn-danger" onclick="cerrarModal('modalEditarArticulo')">Cerrar</button>
+
+                    </div>
                 </div>
-            </div>
 
-            <div class="modal" id="modalValor">
-                <div class="modal-content">
-                    <div class="modal-header">Nuevo Valor</div>
-                    <label>Selecciona característica</label>
-                    <select id="selectAtributos">
-                        <option value="">-- Cargando características --</option>
-                    </select>
-                    <label>Valor</label>
-                    <input type="text" id="inputValor" placeholder="Ejemplo: S, M, Rojo, Algodón" />
-                    <button class="btn btn-primary" id="btnGuardarValor">Guardar</button>
-                    <button class="btn btn-secondary cerrar-modal">Cancelar</button>
-                </div>
-            </div>
-
-            <div class="modal" id="modalEditarArticulo">
-                <div class="modal-content">
-
-                    <h2>Editar Artículo</h2>
-
-                    <label>Nombre del artículo</label>
-                    <div class="edit-group">
-                        <input type="text" id="editNombre" disabled>
-                    </div>
-
-                    <label>Categoría</label>
-                    <select id="editCategoria" disabled></select>
-
-                    <label>Precio Base</label>
-                    <div class="edit-group">
-                        <input type="number" id="editPrecio" disabled>
-                    </div>
-
-                    <label>Stock</label>
-                    <div class="edit-group">
-                        <input type="number" id="editStock" disabled>
-                    </div>
-
-                    <label>Descripción</label>
-                    <div class="edit-group">
-                        <textarea id="editDescripcion" disabled></textarea>
-                    </div>
-
-                    <button class="btn btn-primary" id="btnEditarGuardar" data-modo="editar">Editar</button>
-                    <button class="btn btn-danger" onclick="cerrarModal('modalEditarArticulo')">Cerrar</button>
-
-                </div>
-            </div>
-
-            <script>
-                function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-            </script>
+                <script>
+                    function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+                </script>
         </main>
     </div>
 
@@ -213,4 +213,3 @@
     </script>
     <script type="module" src="../../js/inventario.js"></script>
 </body>
-

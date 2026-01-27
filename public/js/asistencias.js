@@ -26,6 +26,25 @@ if (session) {
     isAdmin = currentUser.rol === 'Administrador' || currentUser.rol === 'admin';
 }
 
+let defaultSchedule = { horaEntrada: "08:00", horaSalida: "17:00", tolerancia: 15 };
+let customSchedules = {};
+let employeeSchedules = {};
+
+function getTodayLima() {
+    const now = new Date();
+    const limaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+    return limaTime.toISOString().split('T')[0];
+}
+
+function getCurrentTimeLima() {
+    const now = new Date();
+    const limaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+    const hours = limaTime.getHours().toString().padStart(2, '0');
+    const minutes = limaTime.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+
 // ===================== CARGAR EMPLEADOS EN SELECT =====================
 document.addEventListener("DOMContentLoaded", () => {
     const manualEmployeeSelect = document.getElementById("manualEmployeeSelect");
@@ -38,17 +57,138 @@ document.addEventListener("DOMContentLoaded", () => {
 
             snapshot.forEach((doc) => {
                 const empleado = doc.data();
-                const option = document.createElement("option");
-                option.value = doc.id;
-                option.textContent = empleado.displayName || `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim() || empleado.email;
-                option.dataset.name = option.textContent;
-                manualEmployeeSelect.appendChild(option);
+
+                // Solo mostrar empleados
+                if (empleado.rol === 'Empleado') {
+                    const option = document.createElement("option");
+                    option.value = doc.id;
+                    option.textContent = empleado.displayName || `${empleado.nombre || ''} ${empleado.apellido || ''}`.trim() || empleado.email;
+                    option.dataset.name = option.textContent;
+                    manualEmployeeSelect.appendChild(option);
+                }
             });
         }, (error) => {
             console.error("Error al cargar empleados:", error);
         });
     }
 });
+
+async function loadDefaultSchedule() {
+    try {
+        const docRef = doc(db, "configuracion", "horario_default");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            defaultSchedule = docSnap.data();
+        } else {
+            await setDoc(docRef, defaultSchedule);
+        }
+
+        const defaultEntryInput = document.getElementById('defaultEntry');
+        const defaultExitInput = document.getElementById('defaultExit');
+        const defaultToleranceInput = document.getElementById('defaultTolerance');
+
+        if (defaultEntryInput) defaultEntryInput.value = defaultSchedule.horaEntrada;
+        if (defaultExitInput) defaultExitInput.value = defaultSchedule.horaSalida;
+        if (defaultToleranceInput) defaultToleranceInput.value = defaultSchedule.tolerancia;
+
+    } catch (error) {
+        console.error("Error al cargar horario por defecto:", error);
+    }
+}
+
+async function loadCustomSchedules() {
+    try {
+        const docRef = doc(db, "configuracion", "horarios_personalizados");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            customSchedules = docSnap.data();
+        }
+    } catch (error) {
+        console.error("Error al cargar horarios personalizados:", error);
+    }
+}
+
+function getApplicableSchedule(userId, fecha) {
+    if (employeeSchedules[userId] && employeeSchedules[userId].activo) {
+        return employeeSchedules[userId];
+    }
+
+    const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const diaSemana = diasSemana[new Date(fecha).getDay()];
+
+    if (customSchedules[diaSemana]) {
+        return customSchedules[diaSemana];
+    }
+
+    return defaultSchedule;
+}
+
+function setupScheduleListeners() {
+    onSnapshot(doc(db, "configuracion", "horario_default"), (doc) => {
+        if (doc.exists()) {
+            defaultSchedule = doc.data();
+
+            const defaultEntryInput = document.getElementById('defaultEntry');
+            const defaultExitInput = document.getElementById('defaultExit');
+            const defaultToleranceInput = document.getElementById('defaultTolerance');
+
+            if (defaultEntryInput) defaultEntryInput.value = defaultSchedule.horaEntrada;
+            if (defaultExitInput) defaultExitInput.value = defaultSchedule.horaSalida;
+            if (defaultToleranceInput) defaultToleranceInput.value = defaultSchedule.tolerancia;
+
+            if (isAdmin && typeof cargarAsistenciasHoy === 'function') {
+                cargarAsistenciasHoy();
+            }
+        }
+    });
+
+    onSnapshot(doc(db, "configuracion", "horarios_personalizados"), (doc) => {
+        if (doc.exists()) {
+            customSchedules = doc.data();
+
+            if (isAdmin && typeof cargarAsistenciasHoy === 'function') {
+                cargarAsistenciasHoy();
+            }
+        }
+    });
+}
+
+async function deleteCustomSchedule() {
+    const day = document.getElementById('customDaySelect').value;
+
+    if (!day) {
+        showToast('Selecciona un día primero', 'error');
+        return;
+    }
+
+    const confirmed = confirm(`¿Estás seguro de eliminar el horario personalizado de ${day}?`);
+    if (!confirmed) return;
+
+    try {
+        const docRef = doc(db, "configuracion", "horarios_personalizados");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            delete data[day];
+
+            await setDoc(docRef, data);
+            showToast(`Horario de ${day} eliminado correctamente`, 'success');
+
+            document.getElementById('customScheduleForm').style.display = 'none';
+            document.getElementById('customDaySelect').value = '';
+
+            if (typeof cargarAsistenciasHoy === 'function') {
+                cargarAsistenciasHoy();
+            }
+        }
+    } catch (error) {
+        console.error("Error al eliminar horario:", error);
+        showToast(`Error: ${error.message}`, 'error');
+    }
+}
 
 // =================== ACTUALIZAR ESTADO DE HOY =====================
 async function actualizarEstadoHoy() {
@@ -182,26 +322,9 @@ async function cargarAsistenciasHoy() {
     const tbody = document.getElementById("todayAttendanceBody");
     if (!tbody) return;
 
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = getTodayLima();
 
     try {
-        // Cargar configuración de horarios dinámicamente
-        let horaInicio = '08:30';
-        let horaFin = '17:30';
-
-        try {
-            const configRef = doc(db, "configuracion_sistema", "asistencias");
-            const configSnap = await getDoc(configRef);
-            if (configSnap.exists()) {
-                const config = configSnap.data();
-                horaInicio = config.horaInicio || '08:30';
-                horaFin = config.horaFin || '17:30';
-
-            }
-        } catch (configError) {
-            console.warn('No se pudo cargar configuración de horarios, usando valores por defecto');
-        }
-
         const q = query(
             collection(db, "asistencias"),
             where("fecha", "==", hoy)
@@ -212,7 +335,7 @@ async function cargarAsistenciasHoy() {
 
         const usuariosSnapshot = await getDocs(collection(db, "usuario"));
         let totalEmpleados = 0;
-        
+
         // Contar solo empleados con rol "Empleado" y estado "activo"
         usuariosSnapshot.forEach(doc => {
             const user = doc.data();
@@ -253,14 +376,16 @@ async function cargarAsistenciasHoy() {
         let tardanzas = 0;
         let ausentes = totalEmpleados - Object.keys(porEmpleado).length;
 
-        // Convertir hora de inicio a minutos para comparación
-        const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
-        const minutosInicio = horaInicioH * 60 + horaInicioM;
-
         Object.values(porEmpleado).forEach(emp => {
             const tr = document.createElement("tr");
             const entrada = emp.entrada || "--:--";
             const salida = emp.salida || "--:--";
+
+            // Obtener horario aplicable para este empleado
+            const horario = getApplicableSchedule(emp.userId, hoy);
+            const horaInicio = horario.horaEntrada;
+            const horaFin = horario.horaSalida;
+            const tolerancia = horario.tolerancia;
 
             let horas = "--";
             if (emp.entrada && emp.salida) {
@@ -284,10 +409,14 @@ async function cargarAsistenciasHoy() {
                 presentes++;
             }
 
-            // Detectar tardanza usando hora de inicio configurada
+            // Detectar tardanza usando hora de inicio configurada + tolerancia
             if (emp.horaEntrada) {
+                const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
+                const minutosInicio = horaInicioH * 60 + horaInicioM + tolerancia;
+
                 const [h, m] = emp.horaEntrada.split(':').map(Number);
                 const minutosEntrada = h * 60 + m;
+
                 if (minutosEntrada > minutosInicio) {
                     esTarde = true;
                     tardanzas++;
@@ -411,44 +540,28 @@ window.openManualRegisterModal = async function () {
     if (modal) {
         modal.classList.add("active");
 
-        // Cargar configuración de horarios dinámicamente
-        try {
-            const docRef = doc(db, "configuracion_sistema", "asistencias");
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const config = docSnap.data();
-                const horaInicio = config.horaInicio || '08:30';
-                const horaFin = config.horaFin || '17:30';
-
-                const tipoSelect = document.getElementById("manualType");
-                const horaInput = document.getElementById("manualTime");
-
-                const updateTimeByType = () => {
-                    if (tipoSelect.value === 'entrada') {
-                        horaInput.value = horaInicio;
-                    } else if (tipoSelect.value === 'salida') {
-                        horaInput.value = horaFin;
-                    }
-                };
-
-                updateTimeByType();
-
-                tipoSelect.removeEventListener('change', updateTimeByType); // Evitar duplicados
-                tipoSelect.addEventListener('change', updateTimeByType);
-
-            }
-        } catch (error) {
-            console.error('Error al cargar configuración de horarios:', error);
-            // Usar valores por defecto si falla
-            const horaInput = document.getElementById("manualTime");
-            const tipoSelect = document.getElementById("manualType");
-            if (tipoSelect.value === 'entrada') {
-                horaInput.value = '08:30';
-            } else {
-                horaInput.value = '17:30';
-            }
+        // Establecer fecha máxima como hoy (Lima, Perú)
+        const manualDateInput = document.getElementById("manualDate");
+        if (manualDateInput) {
+            manualDateInput.max = getTodayLima();
+            manualDateInput.value = getTodayLima();
         }
+
+        const tipoSelect = document.getElementById("manualType");
+        const horaInput = document.getElementById("manualTime");
+
+        const updateTimeByType = () => {
+            if (tipoSelect.value === 'entrada') {
+                horaInput.value = defaultSchedule.horaEntrada;
+            } else if (tipoSelect.value === 'salida') {
+                horaInput.value = defaultSchedule.horaSalida;
+            }
+        };
+
+        updateTimeByType();
+
+        tipoSelect.removeEventListener('change', updateTimeByType);
+        tipoSelect.addEventListener('change', updateTimeByType);
     }
 };
 
@@ -1192,8 +1305,6 @@ function switchTab(tabName) {
             const period = statsPeriod ? parseInt(statsPeriod.value) : 7;
             cargarEstadisticasGenerales(period);
             break;
-        default:
-            console.log("Tab sin función de carga:", tabName);
     }
 }
 
@@ -1418,3 +1529,88 @@ window.toggleMenu = function () {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('active');
 };
+
+const defaultScheduleForm = document.getElementById('defaultScheduleForm');
+if (defaultScheduleForm) {
+    defaultScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const newSchedule = {
+            horaEntrada: document.getElementById('defaultEntry').value,
+            horaSalida: document.getElementById('defaultExit').value,
+            tolerancia: parseInt(document.getElementById('defaultTolerance').value)
+        };
+
+        try {
+            await setDoc(doc(db, "configuracion", "horario_default"), newSchedule);
+            showToast('Horario por defecto guardado correctamente', 'success');
+
+            if (typeof cargarAsistenciasHoy === 'function') {
+                cargarAsistenciasHoy();
+            }
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    });
+}
+
+const customScheduleForm = document.getElementById('customScheduleForm');
+if (customScheduleForm) {
+    customScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const day = document.getElementById('customDaySelect').value;
+        const newSchedule = {
+            horaEntrada: document.getElementById('customEntry').value,
+            horaSalida: document.getElementById('customExit').value,
+            tolerancia: parseInt(document.getElementById('customTolerance').value)
+        };
+
+        try {
+            const docRef = doc(db, "configuracion", "horarios_personalizados");
+            await setDoc(docRef, {
+                [day]: newSchedule
+            }, { merge: true });
+
+            showToast(`Horario de ${day} guardado correctamente`, 'success');
+
+            if (typeof cargarAsistenciasHoy === 'function') {
+                cargarAsistenciasHoy();
+            }
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    });
+}
+
+const customDaySelect = document.getElementById('customDaySelect');
+if (customDaySelect) {
+    customDaySelect.addEventListener('change', async (e) => {
+        const day = e.target.value;
+        const form = document.getElementById('customScheduleForm');
+
+        if (day) {
+            form.style.display = 'block';
+
+            if (customSchedules[day]) {
+                document.getElementById('customEntry').value = customSchedules[day].horaEntrada;
+                document.getElementById('customExit').value = customSchedules[day].horaSalida;
+                document.getElementById('customTolerance').value = customSchedules[day].tolerancia;
+            } else {
+                document.getElementById('customEntry').value = defaultSchedule.horaEntrada;
+                document.getElementById('customExit').value = defaultSchedule.horaSalida;
+                document.getElementById('customTolerance').value = defaultSchedule.tolerancia;
+            }
+        } else {
+            form.style.display = 'none';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDefaultSchedule();
+    await loadCustomSchedules();
+    setupScheduleListeners();
+});
+
+window.deleteCustomSchedule = deleteCustomSchedule;

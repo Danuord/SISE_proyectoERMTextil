@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
 
-    <title>Registro de pagos | TextileFlow</title>
+    <title>Registro de pagos | JOAR'S</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../../css/common/sidebar-new.css">
     <link rel="stylesheet" href="../../css/dashboard.css">
-    <link rel="stylesheet" href="../../css/modules/pagos.css">
     <link rel="stylesheet" href="../../css/modules/admin/common.css">
     <link rel="stylesheet" href="../../css/modules/admin/pagos.css">
     <script src="../../js/sessionProtection.js"></script>
@@ -44,32 +43,45 @@
 
             <div class="cards-grid">
                 <div class="card">
-                    <h3>📦 SALARIO PROYECTADO</h3>
-                    <div class="value">0</div>
-                    <div class="unit">Diciembre</div>
+                    <h3>TOTAL PAGADO</h3>
+                    <div class="value" id="cardSalarioProyectado">S/ 0.00</div>
+                    <div class="unit" id="labelMesActual">--</div>
                 </div>
 
                 <div class="card">
-                    <h3>⚠️ SALARIO NETO MES ANTERIOR</h3>
-                    <div class="value">0</div>
-                    <div class="unit">Diciembre</div>
+                    <h3>PENDIENTE POR PAGAR</h3>
+                    <div class="value" id="cardSalarioPendiente">S/ 0.00</div>
+                    <div class="unit" id="labelMesPendiente">--</div>
                 </div>
 
                 <div class=" card graph-card">
-                    <h3>📊 Pagos Netos Últimos 3 Meses</h3>
+                    <h3>Pagos Netos Últimos 3 Meses</h3>
                     <canvas id="graficoSalarios" height="100"></canvas>
                 </div>
             </div>
 
-
             <div class="button-actions">
 
                 <div class="filter-group">
+                    <div class="month-selector-container">
+                        <label for="monthFilter"><i class="fas fa-calendar-alt"></i> Mes:</label>
+                        <select id="monthFilter" class="filter-select">
+                        </select>
+                    </div>
+
+                    <div class="switch-container">
+                        <label class="switch">
+                            <input type="checkbox" id="showAnulledSwitch">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="switch-label">Mostrar anulados</span>
+                    </div>
+
                     <button id="filterBtn" class="btn btn-secondary">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
-                    <button id="reportBtn" class="btn btn-secondary">
-                        <i class="fas fa-save"></i>
+                    <button id="reportBtn" class="btn btn-excel">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
                     </button>
 
                     <div class="column-selector-container">
@@ -96,8 +108,8 @@
 
                     <button id="addSalaryBtn" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Registrar pago
-                    </button>   
-                    
+                    </button>
+
                 </div>
 
                 <div class="other-buttons">
@@ -206,6 +218,27 @@
                 </div>
             </div>
 
+            <div id="anularPagoModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-btn regresar-btn">Regresar</span>
+                    <h2> Anular Pago</h2>
+                    <p>¿Estás seguro de que deseas anular este pago? Esta acción no se puede deshacer.</p>
+
+                    <form id="anularPagoForm">
+                        <input type="hidden" id="anularPagoId">
+
+                        <label for="motivoAnulacion">Motivo de anulación (Requerido)</label>
+                        <textarea id="motivoAnulacion" rows="3" placeholder="Ej: Error en el monto, duplicado..."
+                            required></textarea>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Confirmar Anulación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div id="statusMessage" class="status-message"></div>
 
             <footer>
@@ -223,7 +256,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module" src="../../js/pagos.js"></script>
-    
+
 
     <div id="pdfViewerModal" class="pdf-modal hidden">
         <div class="pdf-container">
@@ -238,4 +271,3 @@
 </body>
 
 </html>
-
