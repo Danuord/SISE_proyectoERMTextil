@@ -59,6 +59,8 @@
                                     <th>Número</th>
                                     <th>Nombre</th>
                                     <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaCategorias">
@@ -70,9 +72,27 @@
                 </div>
                 <div class="container">
                     <h2>Productos</h2>
-                    <button class="btn btn-primary" id="btnAddArticulo">
-                        <i class="fa fa-plus"></i> Nuevo Producto
-                    </button>
+
+                    <!-- Barra con Filtro y Botón -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; gap: 15px;">
+                        <!-- Filtro a la izquierda -->
+                        <div class="filter-group" style="display: flex; align-items: center; gap: 10px;">
+                            <label for="filterEstadoProducto"
+                                style="font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Estado:</label>
+                            <select id="filterEstadoProducto"
+                                style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; cursor: pointer; min-width: 150px;">
+                                <option value="">Todos</option>
+                                <option value="activo">Activos</option>
+                                <option value="descontinuado">Descontinuados</option>
+                            </select>
+                        </div>
+
+                        <!-- Botón a la derecha -->
+                        <button class="btn btn-primary" id="btnAddArticulo">
+                            <i class="fa fa-plus"></i> Nuevo Producto
+                        </button>
+                    </div>
 
                     <div style="overflow-x: auto; margin-top: 20px;">
                         <table>
@@ -86,7 +106,8 @@
                                     <th>Precio Base</th>
                                     <th>Stock</th>
                                     <th>Descripción</th>
-                                    <th>Acción</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaArticulos">

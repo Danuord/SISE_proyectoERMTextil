@@ -1,8 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-
-// ===================== CONFIG FIREBASE =====================
 const firebaseConfig = {
     apiKey: "AIzaSyDRTKsoZ9Zzh1oo-DQtlxnZ4Pw6RWBv08c",
     authDomain: "textileflow-test.firebaseapp.com",
@@ -25,13 +23,11 @@ if (session) {
 let currentReportType = null;
 let currentReportData = null;
 
-// ===================== INICIALIZACIÓN =====================
 document.addEventListener("DOMContentLoaded", async () => {
-    
+
     setupTabs();
     await loadEmployeeFilter();
 
-    // Inicializar tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -39,11 +35,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener('click', () => {
             const tabName = btn.dataset.tab;
 
-            // Remover active de todos
             tabButtons.forEach(b => b.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
 
-            // Activar el seleccionado
             btn.classList.add('active');
             const targetContent = document.querySelector(`.tab-content[data-tab="${tabName}"]`);
             if (targetContent) {
@@ -60,7 +54,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (hrFilterRole) {
         hrFilterRole.addEventListener('change', () => {
             if (currentHRReportType) {
-                console.log('🔄 Filtro de rol cambiado, regenerando reporte RRHH');
                 generateHRReport();
             }
         });
@@ -69,7 +62,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (hrFilterStatus) {
         hrFilterStatus.addEventListener('change', () => {
             if (currentHRReportType) {
-                console.log('🔄 Filtro de estado cambiado, regenerando reporte RRHH');
                 generateHRReport();
             }
         });
@@ -262,7 +254,7 @@ async function loadDashboardCharts() {
 async function loadEmployeeFilter() {
     const select = document.getElementById('filterEmployee');
     const payrollSelect = document.getElementById('payrollFilterEmployee');
-    
+
     if (!select && !payrollSelect) return;
 
     try {
@@ -279,11 +271,11 @@ async function loadEmployeeFilter() {
         if (select) {
             select.innerHTML = options + optionsHtml;
         }
-        
+
         if (payrollSelect) {
             payrollSelect.innerHTML = options + optionsHtml;
         }
-        
+
     } catch (error) {
         console.error("Error al cargar empleados:", error);
     }
@@ -691,7 +683,7 @@ window.exportToExcel = function () {
             // Agregar totales
             if (currentReportData.totales) {
                 data.push([]);
-                data.push(['TOTALES', '', '', 
+                data.push(['TOTALES', '', '',
                     currentReportData.totales.salarios.toFixed(2),
                     currentReportData.totales.bonos.toFixed(2),
                     currentReportData.totales.deducciones.toFixed(2),
@@ -719,7 +711,7 @@ window.exportToExcel = function () {
 
             if (currentReportData.totales) {
                 data.push([]);
-                data.push(['TOTALES', 
+                data.push(['TOTALES',
                     currentReportData.totales.salarios.toFixed(2),
                     currentReportData.totales.bonos.toFixed(2),
                     currentReportData.totales.deducciones.toFixed(2),
@@ -841,7 +833,7 @@ window.selectPayrollReport = function (reportType) {
             filterComparativo.style.display = 'block';
             const hoy = new Date();
             const mesActual = hoy.toISOString().substring(0, 7);
-            
+
             // Establecer meses por defecto
             const mes1 = document.getElementById('comparativeMonth1');
             const mes2 = document.getElementById('comparativeMonth2');
@@ -877,13 +869,13 @@ window.toggleEmployeeFilters = function () {
     const monthGroup = document.getElementById('employeeMonthGroup');
     const rangeStartGroup = document.getElementById('employeeRangeStartGroup');
     const rangeEndGroup = document.getElementById('employeeRangeEndGroup');
-    
+
     const selectedOption = document.querySelector('input[name="periodRangeEmployee"]:checked').value;
-    
+
     monthGroup.style.display = 'none';
     rangeStartGroup.style.display = 'none';
     rangeEndGroup.style.display = 'none';
-    
+
     if (selectedOption === 'specific') {
         monthGroup.style.display = 'block';
     } else if (selectedOption === 'range') {
@@ -896,13 +888,13 @@ window.toggleComparativeFilters = function () {
     const monthsGroup = document.getElementById('comparativeMonthsGroup');
     const rangeGroup = document.getElementById('comparativeRangeGroup');
     const yearlyGroup = document.getElementById('comparativeYearlyGroup');
-    
+
     const selectedOption = document.querySelector('input[name="comparativeType"]:checked').value;
-    
+
     monthsGroup.style.display = 'none';
     rangeGroup.style.display = 'none';
     yearlyGroup.style.display = 'none';
-    
+
     if (selectedOption === 'months') {
         monthsGroup.style.display = 'block';
     } else if (selectedOption === 'range') {
@@ -1044,7 +1036,7 @@ window.generatePayrollReport = async function () {
                 totalBonos += emp.bonoTotal;
                 totalDeducciones += emp.deduccionTotal;
                 totalNeto += emp.montoPagado;
-                
+
                 html += `
                     <tr style="border-bottom: 1px solid #e5e7eb;">
                         <td style="padding: 12px; text-align: left;"><strong>${emp.displayName}</strong><br><small style="color: #9ca3af; font-size: 0.85rem;">${emp.email}</small></td>
@@ -1197,12 +1189,12 @@ window.generatePayrollByEmployee = async function () {
         } else if (selectedRange === 'range') {
             const mesInicio = document.getElementById('employeeFilterStartMonth').value;
             const mesFin = document.getElementById('employeeFilterEndMonth').value;
-            
+
             if (!mesInicio || !mesFin) {
                 alert('Por favor selecciona rango de meses');
                 return;
             }
-            
+
             const q = query(
                 collection(db, "pagos_empleados"),
                 where("uid", "==", empleadoId),
@@ -1326,7 +1318,7 @@ window.generatePayrollComparative = async function () {
 
     try {
         let mesesAComparar = [];
-        
+
         if (comparationType === 'months') {
             const m1 = document.getElementById('comparativeMonth1').value;
             const m2 = document.getElementById('comparativeMonth2').value;
@@ -1336,7 +1328,7 @@ window.generatePayrollComparative = async function () {
                 alert('Por favor selecciona al menos 2 meses');
                 return;
             }
-            
+
             mesesAComparar = [m1, m2];
             if (m3) mesesAComparar.push(m3);
         } else if (comparationType === 'range') {
@@ -1351,10 +1343,10 @@ window.generatePayrollComparative = async function () {
             // Generar lista de meses entre dos fechas
             const [año1, mes1] = mesInicio.split('-').map(Number);
             const [año2, mes2] = mesFin.split('-').map(Number);
-            
+
             let fechaActual = new Date(año1, mes1 - 1);
             const fechaFin = new Date(año2, mes2 - 1);
-            
+
             while (fechaActual <= fechaFin) {
                 const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
                 const año = fechaActual.getFullYear();
@@ -1533,8 +1525,6 @@ window.selectHRReport = function (reportType) {
         `;
         document.getElementById('hrExportButtons').style.display = 'none';
         reportArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        console.log(`👥 Reporte de RRHH seleccionado: ${reportType}`);
     }
 };
 
@@ -1560,12 +1550,19 @@ window.generateHRReport = async function () {
     `;
 
     try {
-        // Obtener todos los usuarios
         const usuariosSnapshot = await getDocs(collection(db, "usuario"));
+        const adminSnapshot = await getDocs(collection(db, "usuario_admin"));
+        const adminDataMap = new Map();
+        adminSnapshot.forEach(doc => {
+            adminDataMap.set(doc.id, doc.data());
+        });
+
         const empleados = [];
 
         usuariosSnapshot.forEach(doc => {
             const user = doc.data();
+            const adminData = adminDataMap.get(doc.id) || {};
+
             empleados.push({
                 id: doc.id,
                 displayName: user.displayName || `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email,
@@ -1576,30 +1573,26 @@ window.generateHRReport = async function () {
                 telefono: user.telefono || 'N/A',
                 direccion: user.direccion || 'N/A',
                 departamento: user.departamento || 'N/A',
-                fechaIngreso: user.fechaIngreso || 'N/A',
-                fechaSalida: user.fechaSalida || '-',
+                fechaIngreso: adminData.fechaIngreso || user.fechaIngreso || '-',
+                fechaSalida: adminData.fechaSalida || user.fechaSalida || '-',
                 estado: user.estado || 'activo'
             });
         });
 
         let empleadosFiltrados = empleados;
 
-        // Filtrar por rol (solo si el usuario seleccionó un rol específico)
         if (filterRole) {
             empleadosFiltrados = empleadosFiltrados.filter(emp => {
                 const empRol = (emp.rol || '').toLowerCase();
                 const filtroRol = filterRole.toLowerCase();
-                console.log(`  Comparando: "${empRol}" === "${filtroRol}"`, empRol === filtroRol);
                 return empRol === filtroRol;
             });
         }
 
-        // Filtrar por estado (solo si el usuario seleccionó un estado específico)
         if (filterStatus) {
             empleadosFiltrados = empleadosFiltrados.filter(emp => {
                 const empEstado = (emp.estado || '').toLowerCase();
                 const filtroEstado = filterStatus.toLowerCase();
-                console.log(`  Comparando: "${empEstado}" === "${filtroEstado}"`, empEstado === filtroEstado);
                 return empEstado === filtroEstado;
             });
         }
@@ -1617,7 +1610,6 @@ window.generateHRReport = async function () {
                         <tr>
         `;
 
-        // Columnas diferentes según tipo de reporte
         if (reportType === 'empleados-activos') {
             html += `
                             <th>Nombre</th>
@@ -1685,7 +1677,6 @@ window.generateHRReport = async function () {
         html += '</tbody></table></div>';
         resultsDiv.innerHTML = html;
 
-        // Guardar datos para exportación
         currentReportData = {
             type: 'rrhh-empleados',
             data: empleadosFiltrados
@@ -1775,6 +1766,15 @@ window.generateInventoryReport = async function () {
     const resultsDiv = document.getElementById('inventoryResults');
     const exportButtons = document.getElementById('inventoryExportButtons');
 
+    // Toggle de tipo de cambio
+    window.toggleExchangeRate = function () {
+        const currency = document.getElementById('inventoryCurrency').value;
+        const rateGroup = document.getElementById('exchangeRateGroup');
+        if (rateGroup) {
+            rateGroup.style.display = currency === 'USD' ? 'block' : 'none';
+        }
+    };
+
     resultsDiv.innerHTML = `
         <div style="text-align: center; padding: 60px;">
             <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea; margin-bottom: 15px;"></i>
@@ -1797,7 +1797,7 @@ window.generateInventoryReport = async function () {
                 stock: 0,
                 stockMinimo: parseInt(articulo.stock_minimo || articulo.stock_minimo || 10),
                 precio: parseFloat(articulo.precio_base || articulo.precio || 0),
-                valorTotal: 0 
+                valorTotal: 0
             });
         });
 
@@ -1808,7 +1808,7 @@ window.generateInventoryReport = async function () {
         stockSnapshot.forEach(doc => {
             const stockData = doc.data();
             const idArticulo = stockData.id_articulo || doc.id;
-            
+
             if (!stockPorArticulo[idArticulo]) {
                 stockPorArticulo[idArticulo] = 0;
             }
@@ -1820,8 +1820,6 @@ window.generateInventoryReport = async function () {
             // Intentar matchear primero por ID del documento, luego por id_articulo
             prod.stock = stockPorArticulo[prod.id] || 0;
             prod.valorTotal = prod.stock * prod.precio;
-            
-            console.log(`Producto: ${prod.nombre}, ID: ${prod.id}, Stock: ${prod.stock}`);
         });
 
         // Filtrar según tipo de reporte
@@ -1850,20 +1848,41 @@ window.generateInventoryReport = async function () {
         const filterCategory = document.getElementById('inventoryFilterCategory')?.value || '';
         if (filterCategory) {
             productosFiltrados = productosFiltrados.filter(p => p.categoria == filterCategory);
- 
+
         }
 
         // Obtener opción de ordenamiento
         const sortOption = document.getElementById('inventoryFilterSort')?.value || 'nombre';
 
+        // Obtener configuración de moneda
+        const currency = document.getElementById('inventoryCurrency')?.value || 'PEN';
+        const exchangeRate = parseFloat(document.getElementById('inventoryExchangeRate')?.value || 3.75);
+        const currencySymbol = currency === 'USD' ? '$' : 'S/';
+
         const fechaReporte = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-        const totalValor = productosFiltrados.reduce((sum, p) => sum + p.valorTotal, 0);
+
+        // Calcular totales con conversión si es necesario
+        let totalValor = 0;
+
+        // Aplicar conversión a los productos filtrados para visualización
+        // Clonamos para no afectar los datos originales si se regenera
+        const productosVisualizar = productosFiltrados.map(p => {
+            const precioDisplay = currency === 'USD' ? (p.precio / exchangeRate) : p.precio;
+            const valorDisplay = currency === 'USD' ? (p.valorTotal / exchangeRate) : p.valorTotal;
+            return {
+                ...p,
+                precioDisplay,
+                valorDisplay
+            };
+        });
+
+        totalValor = productosVisualizar.reduce((sum, p) => sum + p.valorDisplay, 0);
 
         let html = `
             <div id="printableArea">
                 <div style="margin-bottom: 20px;">
                     <h3 style="margin: 0 0 5px 0; color: #374151;">Reporte de Inventario - ${reportType === 'stock-actual' ? 'Stock Actual' : reportType === 'stock-bajo' ? 'Stock Bajo' : 'Valorización'}</h3>
-                    <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total de productos: ${productosFiltrados.length}</p>
+                    <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total de productos: ${productosFiltrados.length} | Moneda: ${currency} ${currency === 'USD' ? '(T.C. ' + exchangeRate + ')' : ''}</p>
                     <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 0.85rem;">Fecha de generación: ${fechaReporte}</p>
                 </div>
                 <table>
@@ -1901,11 +1920,11 @@ window.generateInventoryReport = async function () {
                     return b.precio - a.precio;
                 case 'nombre':
                 default:
-                    return a.nombre.localeCompare(b.nombre); 
+                    return a.nombre.localeCompare(b.nombre);
             }
         });
 
-        productosFiltrados
+        productosVisualizar
             .forEach(prod => {
                 const stockBadge = prod.stock <= prod.stockMinimo ? 'status-absent' : prod.stock <= prod.stockMinimo * 1.5 ? 'status-incomplete' : 'status-complete';
                 html += `
@@ -1921,16 +1940,16 @@ window.generateInventoryReport = async function () {
                     html += `<td>${prod.stockMinimo}</td>`;
                 }
 
-                html += `<td>$${prod.precio.toFixed(2)}</td>`;
+                html += `<td>${currencySymbol}${prod.precioDisplay.toFixed(2)}</td>`;
 
                 if (reportType === 'valorizacion') {
-                    html += `<td>$${prod.valorTotal.toFixed(2)}</td>`;
+                    html += `<td>${currencySymbol}${prod.valorDisplay.toFixed(2)}</td>`;
                 }
 
                 html += `</tr>`;
             });
 
-        if (productosFiltrados.length === 0) {
+        if (productosVisualizar.length === 0) {
             const colspan = reportType === 'valorizacion' ? 6 : 7;
             html += `<tr><td colspan="${colspan}" style="text-align:center; padding: 40px; color: #6b7280;"><i class="fas fa-inbox"></i> No se encontraron productos</td></tr>`;
         }
@@ -1940,7 +1959,7 @@ window.generateInventoryReport = async function () {
             html += `
                 <tr style="background: #f3f4f6; font-weight: 600; border-top: 2px solid #667eea;">
                     <td colspan="5" style="text-align: right; padding: 1rem;">VALOR TOTAL:</td>
-                    <td style="color: #667eea; font-size: 1.1rem;">$${totalValor.toFixed(2)}</td>
+                    <td style="color: #667eea; font-size: 1.1rem;">${currencySymbol}${totalValor.toFixed(2)}</td>
                 </tr>
             `;
         }
@@ -1972,23 +1991,23 @@ let currentSalesReportType = null;
 let currentSalesData = null;
 
 // Seleccionar tipo de reporte de ventas
-window.selectSalesReport = async function(reportType) {
+window.selectSalesReport = async function (reportType) {
     currentSalesReportType = reportType;
-    
+
     const filterVentasPeriodo = document.getElementById('filterVentasPeriodo');
     const filterProductosVendidos = document.getElementById('filterProductosVendidos');
     const filterVentasCliente = document.getElementById('filterVentasCliente');
     const salesReportArea = document.getElementById('salesReportArea');
     const salesReportResults = document.getElementById('salesReportResults');
-    
+
     // Ocultar todos los filtros primero
     if (filterVentasPeriodo) filterVentasPeriodo.style.display = 'none';
     if (filterProductosVendidos) filterProductosVendidos.style.display = 'none';
     if (filterVentasCliente) filterVentasCliente.style.display = 'none';
     if (salesReportArea) salesReportArea.style.display = 'none';
-    
+
     // Mostrar filtro apropiado
-    switch(reportType) {
+    switch (reportType) {
         case 'ventas-periodo':
             if (filterVentasPeriodo) {
                 filterVentasPeriodo.style.display = 'block';
@@ -2009,17 +2028,17 @@ window.selectSalesReport = async function(reportType) {
             await loadClientsForSalesReport();
             break;
     }
-    
+
 };
 
 // Establecer fechas por defecto
 function setDefaultDates(desdeId, hastaId) {
     const hoje = new Date();
     const ultimoMes = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-    
+
     const desde = document.getElementById(desdeId);
     const hasta = document.getElementById(hastaId);
-    
+
     if (desde) desde.valueAsDate = ultimoMes;
     if (hasta) hasta.valueAsDate = hoje;
 }
@@ -2028,18 +2047,18 @@ function setDefaultDates(desdeId, hastaId) {
 async function loadClientsForSalesReport() {
     const clienteSel = document.getElementById('filterVentasClienteSel');
     if (!clienteSel) return;
-    
+
     clienteSel.innerHTML = '<option value="">⏳ Cargando clientes...</option>';
-    
+
     try {
         const q = query(
             collection(db, "usuario"),
             where("rol", "==", "Cliente")
         );
-        
+
         const snapshot = await getDocs(q);
         const clientes = [];
-        
+
         snapshot.forEach(doc => {
             const data = doc.data();
             clientes.push({
@@ -2047,20 +2066,28 @@ async function loadClientsForSalesReport() {
                 nombre: `${data.nombre} ${data.apellido || ''}`.trim()
             });
         });
-        
+
         clientes.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        
+
         // Limpiar y cargar opciones
         clienteSel.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
-        
+
+        // AGREGAR OPCIÓN DE CLIENTE EXTERNO
+        const optionExterno = document.createElement('option');
+        optionExterno.value = "EXTERNO";
+        optionExterno.textContent = "🏢 Cliente Externo / Manual";
+        optionExterno.style.fontWeight = "bold";
+        clienteSel.appendChild(optionExterno);
+
+
         clientes.forEach(cliente => {
             const option = document.createElement('option');
             option.value = cliente.id;
             option.textContent = cliente.nombre;
             clienteSel.appendChild(option);
         });
-        
-    } catch(error) {
+
+    } catch (error) {
         console.error("Error cargando clientes:", error);
         clienteSel.innerHTML = '<option value="">Error al cargar clientes</option>';
         alert(`Error al cargar clientes: ${error.message}`);
@@ -2068,38 +2095,38 @@ async function loadClientsForSalesReport() {
 }
 
 // Generar reporte de ventas por período
-window.generateSalesReport = async function() {
+window.generateSalesReport = async function () {
     const desde = document.getElementById('filterVentasDesde')?.value;
     const hasta = document.getElementById('filterVentasHasta')?.value;
-    
+
     if (!desde || !hasta) {
         alert('Selecciona rango de fechas');
         return;
     }
-    
+
     const resultsDiv = document.getElementById('salesReportResults');
     const salesReportArea = document.getElementById('salesReportArea');
     const exportButtons = document.getElementById('salesExportButtons');
-    
+
     resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
     salesReportArea.style.display = 'block';
     exportButtons.style.display = 'none';
-    
+
     try {
         const desdeDate = new Date(desde);
         const hastaDate = new Date(hasta);
         hastaDate.setHours(23, 59, 59, 999);
-        
+
         const q = query(
             collection(db, "ventas"),
             where("fecha_registro", ">=", desdeDate),
             where("fecha_registro", "<=", hastaDate)
         );
-        
+
         const snapshot = await getDocs(q);
         const ventas = [];
         let totalGeneral = 0;
-        
+
         snapshot.forEach(doc => {
             const v = doc.data();
             ventas.push({
@@ -2113,7 +2140,7 @@ window.generateSalesReport = async function() {
         });
 
         ventas.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
-        
+
         let html = `
             <div style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 5px 0;">Resumen de Ventas</h3>
@@ -2133,7 +2160,7 @@ window.generateSalesReport = async function() {
                 </thead>
                 <tbody>
         `;
-        
+
         if (ventas.length === 0) {
             html += '<tr><td colspan="4" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas en este período</td></tr>';
         } else {
@@ -2148,10 +2175,10 @@ window.generateSalesReport = async function() {
                 `;
             });
         }
-        
+
         html += '</tbody></table>';
         resultsDiv.innerHTML = html;
-        
+
         currentSalesData = {
             type: 'ventas-periodo',
             data: ventas,
@@ -2159,47 +2186,47 @@ window.generateSalesReport = async function() {
             desde: desde,
             hasta: hasta
         };
-        
+
         exportButtons.style.display = 'flex';
-    } catch(error) {
+    } catch (error) {
         console.error("Error:", error);
         resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
     }
 };
 
 // Generar reporte de productos más vendidos
-window.generateTopProductsReport = async function() {
+window.generateTopProductsReport = async function () {
     const desde = document.getElementById('filterProductosFechaDesde')?.value;
     const hasta = document.getElementById('filterProductosFechaHasta')?.value;
     const limit = parseInt(document.getElementById('filterProductosLimit')?.value || 10);
-    
+
     if (!desde || !hasta) {
         alert('Selecciona rango de fechas');
         return;
     }
-    
+
     const resultsDiv = document.getElementById('salesReportResults');
     const salesReportArea = document.getElementById('salesReportArea');
     const exportButtons = document.getElementById('salesExportButtons');
-    
+
     resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
     salesReportArea.style.display = 'block';
     exportButtons.style.display = 'none';
-    
+
     try {
         const desdeDate = new Date(desde);
         const hastaDate = new Date(hasta);
         hastaDate.setHours(23, 59, 59, 999);
-        
+
         // Obtener detalles de venta en el período
         const q = query(
             collection(db, "detalle_venta")
         );
-        
+
         const snapshot = await getDocs(q);
         const ventasMap = new Map();
         const ventaIds = new Set();
-        
+
         // Primero, obtener IDs de ventas en el rango de fechas
         const ventasQ = query(
             collection(db, "ventas"),
@@ -2208,12 +2235,16 @@ window.generateTopProductsReport = async function() {
         );
         const ventasSnap = await getDocs(ventasQ);
         ventasSnap.forEach(doc => ventaIds.add(doc.id));
-        
+
         // Procesar detalles
         snapshot.forEach(doc => {
             const detalle = doc.data();
             if (ventaIds.has(detalle.id_venta)) {
-                const key = detalle.id_articulo;
+                let key = detalle.id_articulo;
+                if (key === 'SERVICIO') {
+                    key = `SERVICIO_${detalle.nombre.trim().toUpperCase()}`;
+                }
+
                 const existing = ventasMap.get(key) || {
                     id_articulo: detalle.id_articulo,
                     nombre: detalle.nombre,
@@ -2227,12 +2258,12 @@ window.generateTopProductsReport = async function() {
                 ventasMap.set(key, existing);
             }
         });
-        
+
         // Ordenar por cantidad vendida
         const productos = Array.from(ventasMap.values())
             .sort((a, b) => b.cantidad_total - a.cantidad_total)
             .slice(0, limit);
-        
+
         let html = `
             <div style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 5px 0;">Productos Más Vendidos</h3>
@@ -2251,7 +2282,7 @@ window.generateTopProductsReport = async function() {
                 </thead>
                 <tbody>
         `;
-        
+
         if (productos.length === 0) {
             html += '<tr><td colspan="5" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas en este período</td></tr>';
         } else {
@@ -2267,76 +2298,82 @@ window.generateTopProductsReport = async function() {
                 `;
             });
         }
-        
+
         html += '</tbody></table>';
         resultsDiv.innerHTML = html;
-        
+
         currentSalesData = {
             type: 'productos-vendidos',
             data: productos,
             desde: desde,
             hasta: hasta
         };
-        
+
         exportButtons.style.display = 'flex';
-    } catch(error) {
+    } catch (error) {
         console.error("Error:", error);
         resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
     }
 };
 
 // Generar reporte de ventas por cliente
-window.generateSalesByClientReport = async function() {
+window.generateSalesByClientReport = async function () {
     const clienteId = document.getElementById('filterVentasClienteSel')?.value;
     const desde = document.getElementById('filterClienteFechaDesde')?.value;
     const hasta = document.getElementById('filterClienteFechaHasta')?.value;
-    
+
     if (!clienteId || !desde || !hasta) {
         alert('Completa todos los filtros');
         return;
     }
-    
+
     const resultsDiv = document.getElementById('salesReportResults');
     const salesReportArea = document.getElementById('salesReportArea');
     const exportButtons = document.getElementById('salesExportButtons');
-    
+
     resultsDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i><p>Generando reporte...</p></div>';
     salesReportArea.style.display = 'block';
     exportButtons.style.display = 'none';
-    
+
     try {
-        // Obtener datos del cliente
-        const clienteDoc = await getDoc(doc(db, "usuario", clienteId));
-        const clienteNombre = clienteDoc.exists() ? `${clienteDoc.data().nombre} ${clienteDoc.data().apellido || ''}`.trim() : '-';
-        
+        let clienteNombre = '-';
+        if (clienteId === 'EXTERNO') {
+            clienteNombre = 'Cliente Externo / Manual';
+        } else {
+            const clienteDoc = await getDoc(doc(db, "usuario", clienteId));
+            clienteNombre = clienteDoc.exists() ? `${clienteDoc.data().nombre} ${clienteDoc.data().apellido || ''}`.trim() : '-';
+        }
+
         const desdeDate = new Date(desde);
         const hastaDate = new Date(hasta);
         hastaDate.setHours(23, 59, 59, 999);
-        
+
         const q = query(
             collection(db, "ventas"),
-            where("cliente_id", "==", clienteId),
             where("fecha_registro", ">=", desdeDate),
             where("fecha_registro", "<=", hastaDate)
         );
-        
+
         const snapshot = await getDocs(q);
         const ventas = [];
         let totalGeneral = 0;
-        
+
         snapshot.forEach(doc => {
             const v = doc.data();
-            ventas.push({
-                id: doc.id,
-                fecha: v.fecha_registro?.toDate?.() || new Date(),
-                cantidad: v.cantidad_items || 0,
-                total: v.total_general || 0
-            });
-            totalGeneral += v.total_general || 0;
+            // Filtrado en memoria para evitar requerir índice compuesto en Firestore
+            if (v.cliente_id === clienteId) {
+                ventas.push({
+                    id: doc.id,
+                    fecha: v.fecha_registro?.toDate?.() || new Date(),
+                    cantidad: v.cantidad_items || 0,
+                    total: v.total_general || 0
+                });
+                totalGeneral += v.total_general || 0;
+            }
         });
-        
+
         ventas.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
-        
+
         let html = `
             <div style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 5px 0;">Ventas - ${clienteNombre}</h3>
@@ -2355,7 +2392,7 @@ window.generateSalesByClientReport = async function() {
                 </thead>
                 <tbody>
         `;
-        
+
         if (ventas.length === 0) {
             html += '<tr><td colspan="3" style="text-align:center; padding: 40px; color: #6b7280;">No hay ventas para este cliente en el período seleccionado</td></tr>';
         } else {
@@ -2369,10 +2406,10 @@ window.generateSalesByClientReport = async function() {
                 `;
             });
         }
-        
+
         html += '</tbody></table>';
         resultsDiv.innerHTML = html;
-        
+
         currentSalesData = {
             type: 'ventas-cliente',
             data: ventas,
@@ -2381,22 +2418,22 @@ window.generateSalesByClientReport = async function() {
             desde: desde,
             hasta: hasta
         };
-        
+
         exportButtons.style.display = 'flex';
         console.log('Reporte de ventas por cliente generado');
-    } catch(error) {
+    } catch (error) {
         console.error("Error:", error);
         resultsDiv.innerHTML = `<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p>${error.message}</p></div>`;
     }
 };
 
 // Exportar reporte de ventas
-window.exportSalesReport = function(format) {
+window.exportSalesReport = function (format) {
     if (!currentSalesData) {
         alert('No hay reporte para exportar');
         return;
     }
-    
+
     if (format === 'xlsx') {
         exportSalesExcel();
     } else if (format === 'pdf') {
@@ -2407,9 +2444,9 @@ window.exportSalesReport = function(format) {
 function exportSalesExcel() {
     try {
         const { type, data, totalGeneral, clienteNombre, desde, hasta } = currentSalesData;
-        
+
         let ws_data = [];
-        
+
         if (type === 'ventas-periodo') {
             ws_data = [
                 ['REPORTE DE VENTAS POR PERÍODO'],
@@ -2455,17 +2492,17 @@ function exportSalesExcel() {
                 ['TOTAL', '', `S/ ${totalGeneral.toFixed(2)}`]
             ];
         }
-        
+
         const ws = XLSX.utils.aoa_to_sheet(ws_data);
         ws['!cols'] = [{ wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
-        
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte Ventas");
-        
+
         const fecha = new Date().toLocaleDateString('es-PE').replaceAll('/', '-');
         XLSX.writeFile(wb, `reporte_ventas_${fecha}.xlsx`);
-        
-    } catch(error) {
+
+    } catch (error) {
         console.error("Error exportando Excel:", error);
         alert('Error al exportar Excel');
     }
@@ -2475,14 +2512,14 @@ function exportSalesPDF() {
     try {
         const { type, data, totalGeneral, clienteNombre, desde, hasta } = currentSalesData;
         const { jsPDF } = window.jspdf;
-        
+
         const pdf = new jsPDF();
         let y = 20;
-        
+
         pdf.setFontSize(16);
         pdf.text("REPORTE DE VENTAS", 105, y, { align: "center" });
         y += 15;
-        
+
         pdf.setFontSize(11);
         if (type === 'ventas-periodo') {
             pdf.text(`Período: ${desde} al ${hasta}`, 20, y);
@@ -2493,20 +2530,20 @@ function exportSalesPDF() {
             pdf.text(`Período: ${desde} al ${hasta}`, 20, y);
         }
         y += 15;
-  
+
         pdf.setFontSize(10);
-        const headers = type === 'productos-vendidos' 
+        const headers = type === 'productos-vendidos'
             ? ['#', 'Producto', 'Cantidad', 'Veces', 'Monto']
             : type === 'ventas-cliente'
-            ? ['Fecha', 'Cantidad', 'Monto']
-            : ['Fecha', 'Cliente', 'Cantidad', 'Monto'];
-        
+                ? ['Fecha', 'Cantidad', 'Monto']
+                : ['Fecha', 'Cliente', 'Cantidad', 'Monto'];
+
         const rows = type === 'productos-vendidos'
-            ? data.map((p, i) => [i+1, p.nombre, p.cantidad_total, p.veces_vendida, `S/ ${p.monto_total.toFixed(2)}`])
+            ? data.map((p, i) => [i + 1, p.nombre, p.cantidad_total, p.veces_vendida, `S/ ${p.monto_total.toFixed(2)}`])
             : type === 'ventas-cliente'
-            ? data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cantidad, `S/ ${v.total.toFixed(2)}`])
-            : data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cliente, v.cantidad, `S/ ${v.total.toFixed(2)}`]);
-        
+                ? data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cantidad, `S/ ${v.total.toFixed(2)}`])
+                : data.map(v => [v.fecha.toLocaleDateString('es-PE'), v.cliente, v.cantidad, `S/ ${v.total.toFixed(2)}`]);
+
         pdf.autoTable({
             head: [headers],
             body: rows,
@@ -2514,14 +2551,14 @@ function exportSalesPDF() {
             theme: 'grid',
             styles: { fontSize: 9 }
         });
-        
+
         pdf.setFontSize(11);
         pdf.text(`TOTAL: S/ ${totalGeneral.toFixed(2)}`, 20, pdf.lastAutoTable.finalY + 10);
-        
+
         const fecha = new Date().toLocaleDateString('es-PE').replaceAll('/', '-');
         pdf.save(`reporte_ventas_${fecha}.pdf`);
-        
-    } catch(error) {
+
+    } catch (error) {
         console.error("Error exportando PDF:", error);
         alert('Error al exportar PDF. Verifica que autoTable está disponible.');
     }
