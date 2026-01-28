@@ -1,8 +1,9 @@
-// ===================== IMPORTS FIREBASE =====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, addDoc, serverTimestamp, Timestamp, collection, 
-    onSnapshot, query, where, getDocs, getDoc, updateDoc, orderBy, runTransaction } 
+import {
+    getFirestore, doc, setDoc, addDoc, serverTimestamp, Timestamp, collection,
+    onSnapshot, query, where, getDocs, getDoc, updateDoc, orderBy, runTransaction
+}
     from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -20,11 +21,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore();
 
-console.log("ARCHIVO JS CARGADO ✔️");
-
-// ==========================
-// Modal Registro JS
-// ==========================
 
 // Selección de elementos
 const selectClientes = document.getElementById("clienteSel");
@@ -33,15 +29,87 @@ const btnCloseModal = document.getElementById('btnCloseModal');
 const btnAddItem = document.getElementById('btnAddItem');
 const btnClear = document.getElementById('btnClear');
 const btnSaveSale = document.getElementById('btnSaveSale');
-const btnOpenModal = document.getElementById('btnOpen'); // botón "+ Vender"
+const btnOpenModal = document.getElementById('btnOpen');
 
-// Función para abrir el modal
-function openModal() {
-    modalBack.style.display = 'flex'; // asegúrate que CSS tenga display:flex
-    resetModalFields();
+// Nuevos Elementos (Ventas Flexibles)
+const chkServicio = document.getElementById("chkServicio");
+const chkClienteManual = document.getElementById("chkClienteManual");
+const colCategoria = document.getElementById("colCategoria");
+const colProducto = document.getElementById("colProducto");
+const colServicioDesc = document.getElementById("colServicioDesc");
+const inputServicioDesc = document.getElementById("inputServicioDesc");
+const colClienteSelect = document.getElementById("colClienteSelect");
+const colClienteInput = document.getElementById("colClienteInput");
+const inputClienteNombre = document.getElementById("inputClienteNombre");
+const inputMontoManual = document.getElementById("inputMontoManual");
+
+// Listener Modo Servicio
+if (chkServicio) {
+    chkServicio.addEventListener("change", () => {
+        if (chkServicio.checked) {
+            colCategoria.style.display = "none";
+            colProducto.style.display = "none";
+            colServicioDesc.style.display = "block";
+            montounit.style.display = "none";
+            inputMontoManual.style.display = "block";
+
+            // Limpiar selección de producto
+            selectCategorias.selectedIndex = 0;
+            categorySel.innerHTML = "";
+            inputMontoManual.value = "";
+            document.getElementById('montototal').textContent = "S/ 0.00";
+        } else {
+            colCategoria.style.display = "block";
+            colProducto.style.display = "block";
+            colServicioDesc.style.display = "none";
+            montounit.style.display = "block";
+            inputMontoManual.style.display = "none";
+        }
+    });
+
+    // Recalcular total al cambiar precio manual
+    inputMontoManual.addEventListener("input", () => {
+        const cant = parseInt(document.getElementById('quantity').value) || 1;
+        const precio = parseFloat(inputMontoManual.value) || 0;
+        document.getElementById('montototal').textContent = "S/ " + (cant * precio).toFixed(2);
+    });
+
+    // Y también al cambiar cantidad en modo manual (el listener de quantity ya existe, pero hay que adaptarlo o agregar uno nuevo)
+    document.getElementById('quantity').addEventListener("input", () => {
+        if (chkServicio.checked) {
+            const cant = parseInt(document.getElementById('quantity').value) || 1;
+            const precio = parseFloat(inputMontoManual.value) || 0;
+            document.getElementById('montototal').textContent = "S/ " + (cant * precio).toFixed(2);
+        }
+    });
 }
 
-// Función para cerrar el modal
+// Listener Cliente Manual
+if (chkClienteManual) {
+    chkClienteManual.addEventListener("change", () => {
+        if (chkClienteManual.checked) {
+            colClienteSelect.style.display = "none";
+            colClienteInput.style.display = "block";
+            clienteSel.selectedIndex = 0;
+        } else {
+            colClienteSelect.style.display = "block";
+            colClienteInput.style.display = "none";
+            inputClienteNombre.value = "";
+        }
+    });
+}
+
+function openModal() {
+    modalBack.style.display = 'flex';
+}
+
+if (btnOpenModal) {
+    btnOpenModal.addEventListener('click', () => {
+        resetModalFields();
+        openModal();
+    });
+}
+
 function closeModal() {
     resetModalFields();
     itemsBody.innerHTML = "";
@@ -57,7 +125,7 @@ function resetModalFields() {
     const productSel = document.getElementById('productSel');
     const selectCategorias = document.getElementById('selectCategorias');
     const categorySel = document.getElementById('categorySel');
-    const clienteSel = document.getElementById('clienteSel');    
+    const clienteSel = document.getElementById('clienteSel');
     const quantity = document.getElementById('quantity');
     const montounit = document.getElementById('montounit');
     const itemsBody = document.getElementById('itemsBody');
@@ -71,23 +139,30 @@ function resetModalFields() {
     if (montototal) montototal.textContent = 'S/ 0.00';
     if (clienteSel) clienteSel.selectedIndex = 0;
     if (selectCategorias) selectCategorias.selectedIndex = 0;
+
+    // Resetear switches de modo manual
+    if (chkServicio) {
+        chkServicio.checked = false;
+        chkServicio.dispatchEvent(new Event('change'));
+    }
+    if (chkClienteManual) {
+        chkClienteManual.checked = false;
+        chkClienteManual.dispatchEvent(new Event('change'));
+    }
+
+    // Resetear estado de edición
+    const btnSaveSale = document.getElementById('btnSaveSale');
+    if (btnSaveSale) {
+        delete btnSaveSale.dataset.editingId;
+        btnSaveSale.textContent = "Guardar Venta";
+    }
 }
 
-// ==========================
-// Eventos del modal
-// ==========================
 
-// Abrir modal al hacer click en "+ Vender"
-if (btnOpenModal) {
-    btnOpenModal.addEventListener('click', openModal);
-}
-
-// Cerrar modal con botón
 if (btnCloseModal) {
     btnCloseModal.addEventListener('click', closeModal);
 }
 
-// Cerrar modal haciendo click fuera del contenido
 if (modalBack) {
     modalBack.addEventListener('click', (e) => {
         if (e.target === modalBack) closeModal();
@@ -97,7 +172,6 @@ if (modalBack) {
 if (btnSaveSale) {
     btnSaveSale.addEventListener('click', () => {
         console.log('Guardar venta - pendiente implementar');
-        // Aquí puedes agregar la lógica para guardar la venta
     });
 }
 
@@ -105,7 +179,6 @@ if (btnClear) {
     btnClear.addEventListener('click', resetModalFields);
 }
 
-//CARGAR DATOS EN CATEGORIA
 document.getElementById("btnOpen").addEventListener("click", cargarCategoriasEnSelect);
 
 async function cargarCategoriasEnSelect() {
@@ -171,7 +244,7 @@ async function cargarticulos(id_categoria) {
     try {
         const q = query(
             collection(db, "articulos"),
-            where("id_categoria", "==", id_categoria) // ✅ SIN parseInt
+            where("id_categoria", "==", id_categoria)
         );
 
         const querySnapshot = await getDocs(q);
@@ -180,7 +253,7 @@ async function cargarticulos(id_categoria) {
             const data = docSnap.data();
 
             const option = document.createElement("option");
-            option.value = docSnap.id;     // ✅ UID del artículo
+            option.value = docSnap.id;
             option.textContent = data.nombre;
 
             categorySel.appendChild(option);
@@ -211,10 +284,10 @@ const montototal = document.getElementById("montototal");
 
 categorySel.addEventListener("change", async () => {
     const uid = categorySel.value;
-    if (!uid) { 
-        montounit.textContent = "S/ 0.00"; 
+    if (!uid) {
+        montounit.textContent = "S/ 0.00";
         precioUnitarioActual = 0;
-        return; 
+        return;
     }
 
     const docRef = doc(db, "articulos", uid);
@@ -242,18 +315,68 @@ quantity.addEventListener("blur", () => {
         return;
     }
 
-    // obtener el precio unitario actual
     const precioUnitario = parseFloat(montototal.textContent.replace("S/ ", ""));
     if (isNaN(precioUnitario)) return;
 
-    // calcular total
     const total = precioUnitario * qty;
 
-    // actualizar montounit
     montototal.textContent = "S/ " + total.toFixed(2);
 });
 
-// ========================== AGREGAR ITEM
+function recalcularTotalVenta() {
+    const total = carrito.reduce((sum, item) => sum + item.monto_total, 0);
+
+}
+
+function renderItemRow(item, index) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${item.nombre}</td>
+            <td>${item.fecha}</td>
+            <td style="width: 100px;">
+                <input type="number" 
+                       class="form-control input-sm input-cantidad" 
+                       value="${item.cantidad}" 
+                       min="1" 
+                       style="width: 80px; text-align: center;">
+            </td>
+            <td class="td-precio">S/ ${item.monto_unitario.toFixed(2)}</td>
+            <td class="td-subtotal">S/ ${item.monto_total.toFixed(2)}</td>
+            <td><button class="btnDeleteItem">Eliminar</button></td>
+        `;
+
+    // Evento cambio de cantidad
+    const inputQty = tr.querySelector(".input-cantidad");
+    inputQty.addEventListener("change", () => {
+        let newQty = parseInt(inputQty.value);
+        if (newQty < 1 || isNaN(newQty)) {
+            newQty = 1;
+            inputQty.value = 1;
+        }
+
+        // Actualizar modelo
+        item.cantidad = newQty;
+        item.monto_total = item.monto_unitario * newQty;
+
+        // Actualizar vista
+        tr.querySelector(".td-subtotal").textContent = "S/ " + item.monto_total.toFixed(2);
+
+        recalcularTotalVenta();
+    });
+
+    tr.querySelector(".btnDeleteItem").addEventListener("click", () => {
+        const idx = carrito.indexOf(item);
+        if (idx > -1) {
+            carrito.splice(idx, 1);
+            tr.remove();
+            recalcularCodigos();
+            recalcularTotalVenta();
+        }
+    });
+
+    return tr;
+}
 
 function recalcularCodigos() {
     [...itemsBody.children].forEach((tr, index) => {
@@ -265,61 +388,69 @@ const itemsBody = document.getElementById("itemsBody");
 
 document.getElementById("btnAddItem").addEventListener("click", () => {
 
-    const productoID = categorySel.value;
-
-    console.log("▶ productoID (raw):", productoID);
-    console.log("▶ tipo productoID:", typeof productoID);
-    console.log("▶ productoID Number:", Number(productoID));
-    const productoNombre = categorySel.options[categorySel.selectedIndex].text;
+    let productoID, productoNombre, montoUnitario;
     const cantidad = parseInt(quantity.value);
-    const montoUnitario = parseFloat(montounit.textContent.replace("S/ ", ""));
-    const montoTotal = parseFloat(montototal.textContent.replace("S/ ", ""));
 
-    if (!productoID || isNaN(cantidad) || isNaN(montoUnitario) || isNaN(montoTotal)) {
-        alert("Por favor, complete todos los campos correctamente.");
+    // LOGICA FLEXIBLE
+    if (chkServicio && chkServicio.checked) {
+        productoID = "SERVICIO"; // ID especial
+        productoNombre = inputServicioDesc.value.trim();
+        montoUnitario = parseFloat(inputMontoManual.value);
+
+        if (!productoNombre) {
+            alert("Ingrese una descripción para el servicio.");
+            return;
+        }
+        if (isNaN(montoUnitario) || montoUnitario < 0) {
+            alert("Ingrese un precio válido.");
+            return;
+        }
+    } else {
+        // LOGICA NORMAL
+        productoID = categorySel.value;
+        if (!productoID) {
+            alert("Seleccione un producto");
+            return;
+        }
+        productoNombre = categorySel.options[categorySel.selectedIndex].text;
+        montoUnitario = parseFloat(montounit.textContent.replace("S/ ", ""));
+    }
+
+    // Calculo total
+    const montoTotal = cantidad * montoUnitario;
+
+    if (isNaN(cantidad) || cantidad < 1) {
+        alert("Cantidad inválida");
         return;
     }
 
     const fecha = new Date().toLocaleDateString();
 
-    // 🔥 FUENTE ÚNICA DE VERDAD
-    carrito.push({
+    const newItem = {
         productoID,
         nombre: productoNombre,
         fecha,
         cantidad,
         monto_unitario: montoUnitario,
         monto_total: montoTotal
-    });
+    };
 
-    // 🧾 PINTAR FILA
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-        <td>${carrito.length}</td>
-        <td>${productoNombre}</td>
-        <td>${fecha}</td>
-        <td>${cantidad}</td>
-        <td>S/ ${montoUnitario.toFixed(2)}</td>
-        <td>S/ ${montoTotal.toFixed(2)}</td>
-        <td><button class="btnDeleteItem">Eliminar</button></td>
-    `;
+    carrito.push(newItem);
 
-    tr.querySelector(".btnDeleteItem").addEventListener("click", () => {
-        const index = [...itemsBody.children].indexOf(tr);
-        carrito.splice(index, 1);
-        tr.remove();
-        recalcularCodigos();
-    });
-
+    const tr = renderItemRow(newItem, carrito.length - 1);
     itemsBody.appendChild(tr);
+    recalcularTotalVenta();
+
+    // Limpiar campos manuales si es necesario para facilitar siguiente ingreso
+    if (chkServicio.checked) {
+        inputServicioDesc.value = "";
+        // inputMontoManual.value = ""; // Opcional: mantener precio anterior? Mejor no.
+    }
 });
 
 
-///////////Guardar
-
-// ==========================================
-// GUARDAR VENTA + REFRESCAR TABLA PRINCIPAL
-// ==========================================
+//Guardar
+//Guardar
 document.getElementById("btnSaveSale").addEventListener("click", async () => {
 
     if (carrito.length === 0) {
@@ -327,81 +458,195 @@ document.getElementById("btnSaveSale").addEventListener("click", async () => {
         return;
     }
 
-    if (!clienteSel.value) {
-        alert("Seleccione un cliente");
-        return;
+    let clienteID, clienteNombre;
+
+    // Obtener datos de cliente según modo
+    if (chkClienteManual && chkClienteManual.checked) {
+        clienteNombre = inputClienteNombre.value.trim();
+        if (!clienteNombre) {
+            alert("Ingrese el nombre del cliente manual.");
+            return;
+        }
+        clienteID = "EXTERNO";
+    } else {
+        if (!clienteSel.value) {
+            alert("Seleccione un cliente");
+            return;
+        }
+        clienteID = clienteSel.value;
+        clienteNombre = clienteSel.options[clienteSel.selectedIndex].text;
     }
+
+    const editingId = btnSaveSale.dataset.editingId;
 
     try {
         await runTransaction(db, async (transaction) => {
 
-            /* =========================
-               1️⃣ CREAR VENTA (CABECERA)
-            ========================== */
-            const ventaRef = doc(collection(db, "ventas"));
-
-            const cantidadItems = carrito.reduce((a, i) => a + i.cantidad, 0);
-            const totalGeneral = carrito.reduce((a, i) => a + i.monto_total, 0);
-
-            transaction.set(ventaRef, {
-                fecha_registro: serverTimestamp(),
-                cliente_id: clienteSel.value,
-                cliente_nombre: clienteSel.options[clienteSel.selectedIndex].text,
-                cantidad_items: cantidadItems,
-                total_general: totalGeneral
-            });
-
-            /* =========================
-               2️⃣ DETALLE DE VENTA
-            ========================== */
-            for (const item of carrito) {
-
-                // 🔎 Validar stock
-                const stockQuery = query(
-                    collection(db, "stock_inventario"),
-                    where("id_articulo", "==", item.productoID)
+            if (!editingId) {
+                // Obtener el último número de comprobante
+                const ventasQuery = query(
+                    collection(db, "ventas"),
+                    orderBy("numero_comprobante", "desc")
                 );
+                const ultimaVentaSnap = await getDocs(ventasQuery);
 
-                const stockSnap = await getDocs(stockQuery);
 
-                if (stockSnap.empty) {
-                    throw new Error(`No existe stock para ${item.nombre}`);
+                let nuevoNumero = 1;
+                if (!ultimaVentaSnap.empty) {
+                    const ultimaVenta = ultimaVentaSnap.docs[0].data();
+                    nuevoNumero = (ultimaVenta.numero_comprobante || 0) + 1;
                 }
 
-                let stockDisponible = 0;
-                let stockDocRef = null;
+                const ventaRef = doc(collection(db, "ventas"));
 
-                stockSnap.forEach(docSnap => {
-                    stockDisponible += docSnap.data().stock;
-                    if (!stockDocRef) stockDocRef = docSnap.ref;
+                const cantidadItems = carrito.reduce((a, i) => a + i.cantidad, 0);
+                const totalGeneral = carrito.reduce((a, i) => a + i.monto_total, 0);
+
+                transaction.set(ventaRef, {
+                    numero_comprobante: nuevoNumero,
+                    fecha_registro: serverTimestamp(),
+                    cliente_id: clienteID,
+                    cliente_nombre: clienteNombre,
+                    cantidad_items: cantidadItems,
+                    total_general: totalGeneral,
+                    estado: "activo"
                 });
 
-                if (stockDisponible < item.cantidad) {
-                    throw new Error(`Stock insuficiente para ${item.nombre}`);
+                for (const item of carrito) {
+                    // SI ES SERVICIO, SALTAR LOGICA DE STOCK
+                    if (item.productoID === "SERVICIO") {
+                        const detalleRef = doc(collection(db, "detalle_venta"));
+                        transaction.set(detalleRef, {
+                            id_venta: ventaRef.id,
+                            id_articulo: "SERVICIO",
+                            nombre: item.nombre,
+                            descripcion: item.nombre, // Usamos el nombre como descripción
+                            cantidad: item.cantidad,
+                            precio_unitario: item.monto_unitario,
+                            subtotal: item.monto_total
+                        });
+                        continue;
+                    }
+
+                    // LOGICA NORMAL DE STOCK
+                    const stockQuery = query(
+                        collection(db, "stock_inventario"),
+                        where("id_articulo", "==", item.productoID)
+                    );
+
+                    const stockSnap = await getDocs(stockQuery);
+
+                    if (stockSnap.empty) {
+                        throw new Error(`No existe stock para ${item.nombre}`);
+                    }
+
+                    let stockDisponible = 0;
+                    let stockDocRef = null;
+
+                    stockSnap.forEach(docSnap => {
+                        stockDisponible += docSnap.data().stock;
+                        if (!stockDocRef) stockDocRef = docSnap.ref;
+                    });
+
+                    if (stockDisponible < item.cantidad) {
+                        throw new Error(`Stock insuficiente para ${item.nombre}`);
+                    }
+
+                    const detalleRef = doc(collection(db, "detalle_venta"));
+
+                    transaction.set(detalleRef, {
+                        id_venta: ventaRef.id,
+                        id_articulo: item.productoID,
+                        nombre: item.nombre,
+                        descripcion: item.descripcion || "",
+                        cantidad: item.cantidad,
+                        precio_unitario: item.monto_unitario ?? (item.monto_total / item.cantidad),
+                        subtotal: item.monto_total
+                    });
+
+                    const stockData = stockSnap.docs[0].data();
+                    transaction.update(stockSnap.docs[0].ref, {
+                        stock: stockData.stock - item.cantidad
+                    });
+                }
+            }
+            /*  ACTUALIZAR VENTA  */
+            else {
+                const ventaRef = doc(db, "ventas", editingId);
+
+                // Obtener detalles antiguos
+                const qDetalle = query(collection(db, "detalle_venta"), where("id_venta", "==", editingId));
+                const oldDetailsSnap = await getDocs(qDetalle);
+
+                // Mapa de cambios netos de stock: id_articulo -> cantidad (+ aumenta, - disminuye)
+                const stockChanges = {};
+
+                // Revertir stock
+                oldDetailsSnap.forEach(d => {
+                    const item = d.data();
+                    if (item.id_articulo !== "SERVICIO") {
+                        stockChanges[item.id_articulo] = (stockChanges[item.id_articulo] || 0) + item.cantidad;
+                    }
+                    transaction.delete(d.ref); // Borrar detalle antiguo
+                });
+
+                // Aplicar nuevo consumo
+                carrito.forEach(item => {
+                    if (item.productoID !== "SERVICIO") {
+                        stockChanges[item.productoID] = (stockChanges[item.productoID] || 0) - item.cantidad;
+                    }
+                });
+
+                // Procesar cambios de stock
+                for (const [prodId, change] of Object.entries(stockChanges)) {
+                    if (change === 0) continue;
+
+                    const qStock = query(collection(db, "stock_inventario"), where("id_articulo", "==", prodId));
+                    const stockSnap = await getDocs(qStock);
+
+                    if (stockSnap.empty) throw new Error(`No se encontró registro de stock para artículo ID: ${prodId}`);
+
+                    const stockDoc = stockSnap.docs[0];
+                    const currentStock = stockDoc.data().stock;
+                    const newStock = currentStock + change;
+
+                    if (newStock < 0) {
+                        throw new Error(`Stock insuficiente para artículo ID: ${prodId}.`);
+                    }
+
+                    transaction.update(stockDoc.ref, { stock: newStock });
                 }
 
-                /* 🧾 Crear detalle_venta */
-                const detalleRef = doc(collection(db, "detalle_venta"));
-
-                transaction.set(detalleRef, {
-                    id_venta: ventaRef.id,
-                    id_articulo: item.productoID,
-                    nombre: item.nombre,
-                    descripcion: item.descripcion || "",
-                    cantidad: item.cantidad,
-                    precio_unitario: item.monto_unitario ?? (item.monto_total / item.cantidad),
-                    subtotal: item.monto_total
+                // Crear nuevos detalles
+                carrito.forEach(item => {
+                    const detalleRef = doc(collection(db, "detalle_venta"));
+                    transaction.set(detalleRef, {
+                        id_venta: editingId,
+                        id_articulo: item.productoID,
+                        nombre: item.nombre,
+                        descripcion: item.nombre,
+                        cantidad: item.cantidad,
+                        precio_unitario: item.monto_unitario,
+                        subtotal: item.monto_total
+                    });
                 });
 
-                /* 📉 Descontar stock (simple, luego puedes mejorar por atributo) */
-                const stockData = stockSnap.docs[0].data();
-                transaction.update(stockSnap.docs[0].ref, {
-                    stock: stockData.stock - item.cantidad
+                // Actualizar cabecera de venta
+                const cantidadItems = carrito.reduce((a, i) => a + i.cantidad, 0);
+                const totalGeneral = carrito.reduce((a, i) => a + i.monto_total, 0);
+
+                transaction.update(ventaRef, {
+                    cliente_id: clienteID,
+                    cliente_nombre: clienteNombre,
+                    cantidad_items: cantidadItems,
+                    total_general: totalGeneral,
+                    fecha_modificacion: serverTimestamp(),
+                    estado: "activo"
                 });
             }
         });
 
-        alert("Venta registrada correctamente ✅");
+        alert(editingId ? "Venta actualizada correctamente ✅" : "Venta registrada correctamente ✅");
         carrito.length = 0;
         resetModalFields();
         closeModal();
@@ -412,14 +657,14 @@ document.getElementById("btnSaveSale").addEventListener("click", async () => {
     }
 });
 
-function agregarVentaATabla(idVenta, cliente, fecha, cantidad, monto) {
+function agregarVentaATabla(idVenta, numeroComprobante, cliente, fecha, cantidad, monto) {
     const tablaBody = document.getElementById("tabla-body");
-    const correlativo = obtenerCorrelativoDisponible();
+    const numeroFormateado = String(numeroComprobante).padStart(4, "0");
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-        <td>${correlativo}</td>
+        <td>${numeroFormateado}</td>
         <td>${cliente}</td>
         <td>${fecha}</td>
         <td>${cantidad}</td>
@@ -435,15 +680,104 @@ function agregarVentaATabla(idVenta, cliente, fecha, cantidad, monto) {
             <button class="btn-editar" title="Editar venta">
                 <i class="fa-solid fa-pen-to-square"></i>
             </button>
+            <button class="btn-eliminar-venta" title="Eliminar venta" style="color: #dc3545;">
+                <i class="fa-solid fa-trash"></i>
+            </button>
         </td>
     `;
 
     // EDITAR
-    tr.querySelector(".btn-editar").addEventListener("click", () => {
-        console.log("Editar venta:", idVenta);
+    tr.querySelector(".btn-editar").addEventListener("click", async () => {
+        await editarVenta(idVenta);
+    });
+
+    // ELIMINAR
+    tr.querySelector(".btn-eliminar-venta").addEventListener("click", async () => {
+        if (confirm("¿Está seguro de eliminar esta venta? El stock será devuelto al inventario.")) {
+            await eliminarVenta(idVenta);
+        }
     });
 
     tablaBody.appendChild(tr);
+}
+
+// Función para editar una venta
+async function editarVenta(ventaId) {
+    try {
+        // Obtener datos de la venta
+        const ventaRef = doc(db, "ventas", ventaId);
+        const ventaSnap = await getDoc(ventaRef);
+
+        if (!ventaSnap.exists()) {
+            alert("Venta no encontrada");
+            return;
+        }
+
+        const venta = ventaSnap.data();
+
+        // Obtener detalle de la venta
+        const qDetalle = query(
+            collection(db, "detalle_venta"),
+            where("id_venta", "==", ventaId)
+        );
+        const detalleSnap = await getDocs(qDetalle);
+
+        // Limpiar carrito actual
+        carrito.length = 0;
+        itemsBody.innerHTML = "";
+
+        // Cargar items al carrito
+        detalleSnap.forEach((docSnap) => {
+            const item = docSnap.data();
+            carrito.push({
+                productoID: item.id_articulo,
+                nombre: item.nombre,
+                fecha: new Date().toLocaleDateString(),
+                cantidad: item.cantidad,
+                monto_unitario: item.precio_unitario,
+                monto_total: item.subtotal
+            });
+        });
+
+        // Renderizar items en el modal
+        carrito.forEach((item, index) => {
+            const tr = renderItemRow(item, index);
+            itemsBody.appendChild(tr);
+        });
+
+        // Seleccionar cliente
+        const clienteSel = document.getElementById("clienteSel");
+        await cargarClientesEnSelect();
+
+        // Lógica Cliente Externo
+        if (venta.cliente_id === "EXTERNO") {
+            if (chkClienteManual) {
+                chkClienteManual.checked = true;
+                chkClienteManual.dispatchEvent(new Event('change'));
+            }
+            document.getElementById("inputClienteNombre").value = venta.cliente_nombre;
+        } else {
+            if (chkClienteManual && chkClienteManual.checked) {
+                chkClienteManual.checked = false;
+                chkClienteManual.dispatchEvent(new Event('change'));
+            }
+            clienteSel.value = venta.cliente_id;
+        }
+
+        // Cargar Categorías
+        await cargarCategoriasEnSelect();
+
+        // Guardar ID de venta para actualización
+        btnSaveSale.dataset.editingId = ventaId;
+        btnSaveSale.textContent = "Actualizar Venta";
+
+        // Abrir modal
+        openModal();
+
+    } catch (error) {
+        console.error("Error al cargar venta para editar:", error);
+        alert("Error al cargar la venta");
+    }
 }
 
 /////CONTADOR PARA TABLA-#FACT.
@@ -476,44 +810,102 @@ function formatearFecha(timestamp) {
     return timestamp.toDate().toLocaleDateString("es-PE");
 }
 
+// Función para eliminar venta (lógica)
+async function eliminarVenta(ventaId) {
+    try {
+        await runTransaction(db, async (transaction) => {
+            const ventaRef = doc(db, "ventas", ventaId);
+            const ventaSnap = await transaction.get(ventaRef);
+
+            if (!ventaSnap.exists()) throw "Venta no encontrada";
+
+            // Obtener detalles para devolver stock
+            const qDetalle = query(collection(db, "detalle_venta"), where("id_venta", "==", ventaId));
+            const detallesSnap = await getDocs(qDetalle);
+
+            // Marcar venta como inactivo
+            transaction.update(ventaRef, { estado: "inactivo" });
+
+            // Devolver stock
+            for (const docDetalle of detallesSnap.docs) {
+                const item = docDetalle.data();
+
+                // Buscar stock
+                const qStock = query(collection(db, "stock_inventario"), where("id_articulo", "==", item.id_articulo));
+                const stockSnap = await getDocs(qStock);
+
+                if (!stockSnap.empty) {
+                    const stockDoc = stockSnap.docs[0];
+                    const stockData = stockDoc.data();
+                    const nuevoStock = (stockData.stock || 0) + item.cantidad;
+
+                    transaction.update(stockDoc.ref, { stock: nuevoStock });
+                }
+            }
+        });
+
+        alert("Venta eliminada correctamente. Stock devuelto. 🗑️");
+
+    } catch (error) {
+        console.error("Error al eliminar venta:", error);
+        alert("Error al eliminar venta: " + error.message);
+    }
+}
+
+
 async function cargarVentasEnTabla() {
     const tablaBody = document.getElementById("tabla-body");
-    tablaBody.innerHTML = "";
 
     try {
         const q = query(
             collection(db, "ventas"),
+            where("estado", "!=", "inactivo"),
+            orderBy("estado"),
             orderBy("fecha_registro", "desc")
         );
 
-        const snap = await getDocs(q);
+        const q2 = query(
+            collection(db, "ventas"),
+            orderBy("fecha_registro", "desc")
+        );
 
-        if (snap.empty) {
-            tablaBody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align:center">
-                        No hay ventas registradas
-                    </td>
-                </tr>
-            `;
-            return;
-        }
 
-        snap.forEach((docSnap) => {
-            const v = docSnap.data();
+        onSnapshot(q2, (snap) => {
+            tablaBody.innerHTML = "";
 
-            const cliente = v.cliente_nombre ?? "-";
-            const fecha = formatearFecha(v.fecha_registro);
-            const cantidad = Number(v.cantidad_items ?? 0);
-            const monto = Number(v.total_general ?? 0);
+            if (snap.empty) {
+                tablaBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center">
+                            No hay ventas registradas
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-            agregarVentaATabla(
-                docSnap.id,
-                cliente,
-                fecha,
-                cantidad,
-                monto
-            );
+            snap.forEach((docSnap) => {
+                const v = docSnap.data();
+
+                if (v.estado === "inactivo") return;
+
+                const numeroComprobante = v.numero_comprobante || 0;
+                const cliente = v.cliente_nombre ?? "-";
+                const fecha = formatearFecha(v.fecha_registro);
+                const cantidad = Number(v.cantidad_items ?? 0);
+                const monto = Number(v.total_general ?? 0);
+
+                agregarVentaATabla(
+                    docSnap.id,
+                    numeroComprobante,
+                    cliente,
+                    fecha,
+                    cantidad,
+                    monto
+                );
+            });
+        }, (error) => {
+            console.error("Error en onSnapshot ventas:", error);
         });
 
     } catch (error) {
@@ -528,7 +920,6 @@ document.addEventListener("DOMContentLoaded", cargarVentasEnTabla);
 
 async function generarComprobanteVenta(ventaId) {
     try {
-        // ====== OBTENER VENTA ======
         const ventaRef = doc(db, "ventas", ventaId);
         const ventaSnap = await getDoc(ventaRef);
 
@@ -539,7 +930,6 @@ async function generarComprobanteVenta(ventaId) {
 
         const venta = ventaSnap.data();
 
-        // ====== OBTENER DETALLE DE VENTA ======
         const qDetalle = query(
             collection(db, "detalle_venta"),
             where("id_venta", "==", ventaId)
@@ -552,68 +942,131 @@ async function generarComprobanteVenta(ventaId) {
             return;
         }
 
-        // ====== CREAR PDF ======
         const pdf = new jsPDF();
-        let y = 20;
 
-        // ====== ENCABEZADO ======
-        pdf.setFontSize(16);
-        pdf.text("Empresa", 105, y, { align: "center" });
-        y += 8;
+        const primaryColor = [102, 126, 234];
+        const darkColor = [44, 62, 80];
+        const grayColor = [127, 140, 141];
 
-        pdf.setFontSize(12);
-        pdf.text("Comprobante de Venta", 105, y, { align: "center" });
-        y += 12;
+        pdf.setFillColor(...primaryColor);
+        pdf.rect(0, 0, 210, 40, "F");
 
-        // ====== DATOS DE LA VENTA ======
-        pdf.setFontSize(11);
-        pdf.text(`Cliente: ${venta.cliente_nombre}`, 20, y); y += 7;
-        pdf.text(
-            `Fecha: ${venta.fecha_registro.toDate().toLocaleDateString("es-PE")}`,
-            20,
-            y
-        );
-        y += 10;
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(22);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("JOAR'S S.A.C.", 20, 20);
 
-        // ====== DETALLE ======
-        pdf.setFontSize(12);
-        pdf.text("Detalle de Artículos", 20, y);
-        y += 8;
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("COMPROBANTE DE VENTA", 20, 30);
 
         pdf.setFontSize(10);
+        pdf.text(`RUC: 20123456789`, 150, 20);
+        pdf.text(`Fecha: ${venta.fecha_registro.toDate().toLocaleDateString("es-PE")}`, 150, 28);
 
+        let y = 55;
+        pdf.setTextColor(...darkColor);
+
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setFillColor(245, 247, 250);
+        pdf.roundedRect(15, y, 180, 25, 3, 3, "FD");
+
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("DATOS DEL CLIENTE", 20, y + 8);
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        y += 16;
+
+        const numeroComprobanteFormateado = String(venta.numero_comprobante || 0).padStart(4, "0");
+        pdf.text(`Cliente: ${venta.cliente_nombre}`, 20, y);
+        pdf.text(`N° Comprobante: ${numeroComprobanteFormateado}`, 110, y);
+
+        y += 20;
+
+        // --- TABLA DE PRODUCTOS ---
+        pdf.setFillColor(...primaryColor);
+        pdf.setTextColor(255, 255, 255);
+        pdf.rect(15, y, 180, 10, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.text("PRODUCTO", 20, y + 7);
+        pdf.text("CANT.", 110, y + 7);
+        pdf.text("P. UNIT.", 135, y + 7);
+        pdf.text("SUBTOTAL", 170, y + 7);
+
+        y += 10;
+        pdf.setTextColor(...darkColor);
+        pdf.setFont("helvetica", "normal");
+
+        function addProductRow(nombre, cantidad, precioUnit, subtotal) {
+            pdf.setDrawColor(230, 230, 230);
+            pdf.line(15, y + 8, 195, y + 8);
+
+            // Nombre del producto (truncar si es muy largo)
+            const nombreCorto = nombre.length > 35 ? nombre.substring(0, 32) + "..." : nombre;
+            pdf.text(nombreCorto, 20, y + 6);
+            pdf.text(String(cantidad), 115, y + 6);
+            pdf.text(`S/ ${Number(precioUnit).toFixed(2)}`, 138, y + 6);
+
+            const subtotalStr = `S/ ${Number(subtotal).toFixed(2)}`;
+            const textWidth = pdf.getTextWidth(subtotalStr);
+            pdf.text(subtotalStr, 190 - textWidth, y + 6);
+
+            y += 10;
+        }
+
+        // Agregar productos
         detalleSnap.forEach(docSnap => {
             const d = docSnap.data();
-
-            pdf.text(
-                `${d.nombre}  x${d.cantidad}  -  S/ ${Number(d.precio_unitario).toFixed(2)}`,
-                25,
-                y
+            addProductRow(
+                d.nombre,
+                d.cantidad,
+                d.precio_unitario,
+                d.subtotal
             );
-            y += 6;
         });
 
-        y += 6;
+        y += 5;
 
-        // ====== TOTALES ======
-        pdf.setFontSize(11);
-        pdf.text(`Cantidad de artículos: ${venta.cantidad_items}`, 20, y); y += 7;
-        pdf.text(
-            `Total: S/ ${Number(venta.total_general).toFixed(2)}`,
-            20,
-            y
-        );
-        y += 15;
+        // --- TOTALES ---
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(110, y, 85, 25, "F");
 
-        // ====== PIE ======
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...darkColor);
+        pdf.text("Cantidad de artículos:", 115, y + 8);
+        pdf.text(String(venta.cantidad_items), 185, y + 8);
+
+        y += 10;
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("TOTAL:", 115, y + 8);
+
+        const totalStr = `S/ ${Number(venta.total_general).toFixed(2)}`;
+        const totalWidth = pdf.getTextWidth(totalStr);
+        pdf.setTextColor(...primaryColor);
+        pdf.text(totalStr, 190 - totalWidth, y + 8);
+
+        y += 30;
+
+        // --- PIE DE PÁGINA ---
+        pdf.setTextColor(...grayColor);
         pdf.setFontSize(9);
-        pdf.text(
-            "Documento no legal, solo informativo",
-            105,
-            285,
-            { align: "center" }
-        );
+        pdf.setFont("helvetica", "normal");
 
+        pdf.setDrawColor(150, 150, 150);
+        pdf.line(70, y, 140, y);
+        pdf.text("Firma del Cliente", 105, y + 5, { align: "center" });
+
+        y += 15;
+        pdf.setFontSize(8);
+        pdf.text("Este documento es un comprobante interno generado por el sistema JOAR'S.", 105, y, { align: "center" });
+
+        // Mostrar PDF en modal
         mostrarPDFEnModal(pdf);
 
     } catch (error) {
@@ -679,9 +1132,8 @@ checkboxes.forEach(checkbox => {
 });
 
 // EXPORTAR EXCEL
-
 document.getElementById("exportVentasBtn")
-  .addEventListener("click", exportarVentasExcel);
+    .addEventListener("click", exportarVentasExcel);
 
 function exportarVentasExcel() {
     const table = document.getElementById("salesTable");
@@ -690,14 +1142,12 @@ function exportarVentasExcel() {
         return;
     }
 
-    // Clonar tabla
     const clonedTable = table.cloneNode(true);
 
-    // Detectar columnas ocultas
     const hiddenIndexes = [];
     clonedTable.querySelectorAll("th").forEach((th, index) => {
-        if 
-        (
+        if
+            (
             th.classList.contains("hidden-col") ||
             th.classList.contains("no-export")
         ) {
@@ -705,7 +1155,6 @@ function exportarVentasExcel() {
         }
     });
 
-    // Eliminar columnas ocultas (de atrás hacia adelante)
     clonedTable.querySelectorAll("tr").forEach(tr => {
         hiddenIndexes
             .slice()
@@ -717,13 +1166,11 @@ function exportarVentasExcel() {
             });
     });
 
-    // Convertir a HTML Excel
     const tableHTML = clonedTable.outerHTML.replace(/ /g, "%20");
 
     const fecha = new Date().toLocaleDateString("es-PE").replaceAll("/", "-");
     const nombreArchivo = `registro_ventas_${fecha}.xls`;
 
-    // Descargar
     const link = document.createElement("a");
     link.href = "data:application/vnd.ms-excel," + tableHTML;
     link.download = nombreArchivo;

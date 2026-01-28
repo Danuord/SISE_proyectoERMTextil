@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
-    
+
 <head>
   <meta charset="UTF-8">
 
-  <title>Registro de pagos | TextileFlow</title>
+  <title>Registro de ventas | JOAR'S</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/common/sidebar-new.css">
@@ -12,19 +12,19 @@
   <link rel="stylesheet" href="../../css/modules/ventas.css">
   <script src="../../js/sessionProtection.js"></script>
   <script>
-        window.toggleMenu = function () {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('active');
-            }
-        };
-    </script>
+    window.toggleMenu = function () {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('active');
+      }
+    };
+  </script>
 </head>
 
 <body>
   <div class="layout">
     <div id="sidebar-container"></div>
-  
+
     <main class="main-content">
 
       <div class="header">
@@ -34,12 +34,12 @@
           <p>Gestión y registro de ventas</p>
         </div>
       </div>
-  
+
       <section class="card">
-          
-          <div class="control-head">
-            <h3>Registro de ventas</h3>
-          </div>
+
+        <div class="control-head">
+          <h3>Registro de ventas</h3>
+        </div>
 
         <div class="panel-buttons">
 
@@ -49,22 +49,24 @@
             </button>
 
             <div id="columnSelectorMenu" class="column-selector-menu hidden">
-                <label><input type="checkbox" data-col="0" checked> Código</label>
-                <label><input type="checkbox" data-col="1" checked> Producto</label>
-                <label><input type="checkbox" data-col="2" checked> Fecha</label>
-                <label><input type="checkbox" data-col="3" checked> Cantidad</label>
-                <label><input type="checkbox" data-col="4" checked> Precio total</label>
+              <label><input type="checkbox" data-col="0" checked> Código</label>
+              <label><input type="checkbox" data-col="1" checked> Producto</label>
+              <label><input type="checkbox" data-col="2" checked> Fecha</label>
+              <label><input type="checkbox" data-col="3" checked> Cantidad</label>
+              <label><input type="checkbox" data-col="4" checked> Precio total</label>
             </div>
           </div>
 
           <div class="export-buttons">
-            <button id="exportVentasBtn" class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar registros</button>
+            <button id="exportVentasBtn" class="btn-export excel"><i class="fa-solid fa-file-excel"></i> Exportar
+              registros</button>
             <button id="btnOpen" class="btn-regventas">Registrar venta</button>
           </div>
-          
+
         </div>
-  
-        <div style="margin-top:20px; overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <div
+          style="margin-top:20px; overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
           <table id="salesTable">
             <thead>
@@ -83,49 +85,73 @@
       </section>
     </main>
   </div>
- 
-<!-- MODAL REGISTRO -->
-<div id="modalBack" class="modal-back">
-  <div class="modal" role="dialog" aria-modal="true">
+
+  <!-- MODAL REGISTRO -->
+  <div id="modalBack" class="modal-back">
+    <div class="modal" role="dialog" aria-modal="true">
       <h3 id="modalTitle">Registrar venta</h3>
- 
+
       <div>
         <div>
+          <div class="manual-options-container">
+            <label class="manual-switch-label">
+              <input type="checkbox" id="chkServicio"> 🛠️ Modo Servicio / Manual
+            </label>
+            <label class="manual-switch-label">
+              <input type="checkbox" id="chkClienteManual"> 👤 Cliente Externo
+            </label>
+          </div>
+
           <div class="first-row">
-            <div>
-                <label>Categoria:</label>
-                <select id="selectCategorias"></select>
+            <div id="colCategoria">
+              <label>Categoria:</label>
+              <select id="selectCategorias"></select>
             </div>
-            <div>
-                <label>Producto:</label>
-                <select id="categorySel"></select>
+            <div id="colProducto">
+              <label>Producto:</label>
+              <select id="categorySel"></select>
             </div>
-            <div>
-                <label>Cliente:</label>
-                <select id="clienteSel"></select>
+
+            <div id="colServicioDesc" style="display:none; flex: 2;">
+              <label>Descripción del Servicio / Detalle:</label>
+              <input type="text" id="inputServicioDesc" class="input-manual"
+                placeholder="Ej. Servicio de estampado..." />
             </div>
-        </div>
+
+            <div id="colClienteSelect">
+              <label>Cliente:</label>
+              <select id="clienteSel"></select>
+            </div>
+
+            <div id="colClienteInput" style="display:none;">
+              <label>Nombre del Cliente:</label>
+              <input type="text" id="inputClienteNombre" class="input-manual" placeholder="Nombre completo..." />
+            </div>
+          </div>
 
           <div class="form-row">
             <label>Cantidad:</label>
             <input id="quantity" type="number" min="1" value="1" />
           </div>
- 
+
           <div class="form-row">
             <label>Monto base:</label>
             <div class="monto" id="montounit"></div>
+            <input type="number" id="inputMontoManual" class="input-manual" style="display:none; width:140px;"
+              placeholder="0.00" min="0" step="0.1">
+
             <label>Monto total:</label>
-            <div class="monto" id="montototal"></div>   
+            <div class="monto" id="montototal"></div>
           </div>
         </div>
- 
+
         <div class="actions-row">
           <button id="btnAddItem" class="btn-primary">Agregar</button>
           <button id="btnClear" class="btn-secondary">Limpiar</button>
           <button id="btnSaveSale" class="btn-primary">Guardar</button>
           <button id="btnCloseModal" class="btn-secondary">Cerrar</button>
         </div>
- 
+
         <div class="items-wrap" style="overflow-x: auto;">
           <table>
             <thead>
@@ -143,43 +169,42 @@
           </table>
         </div>
       </div>
-  </div>
-</div>
- 
-<div id="viewBack" class="modal-back">
-  <div class="modal">
-    <h3>Detalle de venta</h3>
-    <div id="viewContent"></div>
- 
-    <div style="text-align:right;margin-top:12px; display:flex; justify-content: flex-end; gap:10px;">
-      <button id="printView" class="icon-btn" style="background:#5B3CC4;color:#fff;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;">
-        <i class="fa-solid fa-print"></i> Imprimir
-      </button>
- 
-      <button id="closeView" class="icon-btn" style="background:#e5e7eb;padding:8px 14px;border-radius:8px;">
-        Cerrar
-      </button>
     </div>
- 
   </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <div id="viewBack" class="modal-back">
+    <div class="modal">
+      <h3>Detalle de venta</h3>
+      <div id="viewContent"></div>
 
-    <script type="module" src="../../components/sidebar.js"></script>
- 
-<script type="module" src="../../js/ventas.js"></script>
+      <div style="text-align:right;margin-top:12px; display:flex; justify-content: flex-end; gap:10px;">
+        <button id="printView" class="icon-btn"
+          style="background:#5B3CC4;color:#fff;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-print"></i> Imprimir
+        </button>
 
-<div id="pdfViewerModal" class="pdf-modal hidden">
-        <div class="pdf-container">
-            <iframe id="pdfViewerFrame"></iframe>
+        <button id="closeView" class="icon-btn" style="background:#e5e7eb;padding:8px 14px;border-radius:8px;">
+          Cerrar
+        </button>
+      </div>
 
-            <div class="pdf-footer">
-                <button id="closePdfModal" class="btn-cancelar">Cerrar</button>
-            </div>
-        </div>
     </div>
- 
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module" src="../../components/sidebar.js"></script>
+  <script type="module" src="../../js/ventas.js"></script>
+
+  <div id="pdfViewerModal" class="pdf-modal hidden">
+    <div class="pdf-container">
+      <iframe id="pdfViewerFrame"></iframe>
+
+      <div class="pdf-footer">
+        <button id="closePdfModal" class="btn-cancelar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
-</html>
 
+</html>

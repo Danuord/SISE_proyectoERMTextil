@@ -46,22 +46,17 @@ async function handleLogin(e) {
 
         // Configurar persistencia de Firebase Auth
         await setPersistence(auth, browserLocalPersistence);
-        console.log('✅ Persistencia de Firebase Auth configurada');
 
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        console.log('Usuario autenticado:', user.uid);
-
         // Obtener datos del usuario desde Firestore
         let userData = null;
         try {
-            console.log('Buscando datos en Firestore (colección: usuario)...');
             const userDoc = await getDoc(doc(db, 'usuario', user.uid));
 
             if (userDoc.exists()) {
                 const firestoreData = userDoc.data();
-                console.log('Datos encontrados:', firestoreData);
 
                 userData = {
                     uid: user.uid,
@@ -75,7 +70,6 @@ async function handleLogin(e) {
                     ...firestoreData
                 };
             } else {
-                console.warn('No se encontró documento en Firestore');
                 userData = {
                     uid: user.uid,
                     email: user.email,
@@ -104,25 +98,19 @@ async function handleLogin(e) {
             timestamp: Date.now()
         };
 
-        console.log('Guardando sesión:', sessionData);
         localStorage.setItem('textileflow_session', JSON.stringify(sessionData));
-        console.log('Sesión guardada correctamente');
 
         alert("¡Inicio de sesión exitoso!");
 
         // Redirigir según el rol del usuario
         const rol = (userData.rol || '').toLowerCase();
         if (rol === 'administrador' || rol === 'admin') {
-            console.log('Redirigiendo a dashboard de administrador');
             window.location.href = "/pages/admin/dashboard.html";
         } else {
-            console.log('Redirigiendo a dashboard de empleado');
             window.location.href = "/pages/employee/dashboard.html";
         }
 
     } catch (error) {
-        console.error("Código de error:", error.code);
-
         let message = "Credenciales incorrectas. Vuelve a intentarlo.";
 
         switch (error.code) {
@@ -144,10 +132,7 @@ async function handleLogin(e) {
     }
 }
 
-
 document.getElementById("loginForm").addEventListener("submit", handleLogin);
-
-
 
 const resetModal = document.getElementById("resetModal");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
@@ -156,7 +141,6 @@ const resetForm = document.getElementById("resetForm");
 
 forgotPasswordLink.addEventListener("click", (e) => {
     e.preventDefault();
-    console.log("→ Click detectado en 'Olvidaste tu contraseña'");
     resetModal.style.display = "flex";
 });
 
